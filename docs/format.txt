@@ -1,5 +1,5 @@
-OpenCTM Format Specification
-============================
+OpenCTM Format Specification - Format version 1.0
+=================================================
 
 Copyright (c) 2009 Marcus Geelnard
 
@@ -34,19 +34,26 @@ followed by a UTF-8 format string (there is no zero termination and no BOM).
 
 The file must start with a header, which looks as follows:
 
-Offset    Size        Value         Description
+Offset  Type      Value         Description
 -------------------------------------------------------------------------------
-0         32 bits     0x4d54434f    Magic identifier ("OCTM" when read as ASCII)
-4         32 bits     0x00000100    File format version (version 1.0)
-...
+0       Integer   Magic identifier (0x4d54434f, or "OCTM" when read as ASCII).
+4       Integer   File format version (0x00000100 = version 1.0).
+8       Integer   Compression method ("MG0\0" or "MG1\0").
+12      Integer   Vertex count.
+16      Integer   Triangle count.
+20      Integer   Boolean flags, or:ed together:
+                    0x00000001 -> The file contains texture coordinates.
+24      String    File comment.
 
-TBD
+The length of the file header is varibale, since it contains fields of variable
+length.
 
 
 2.3 Data body
 -------------
 
-TBD
+The body data follows immediately after the file header. Its file offset is
+dictated by the length of the file header.
 
 
 3. Recommendations
