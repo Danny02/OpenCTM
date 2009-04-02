@@ -13,7 +13,12 @@ This document describes version 1.0 of the OpenCTM file format.
 2. File format specification
 ----------------------------
 
-TBD
+The structure of a OpenCTM file is as follows:
+
+[Header]
+[Body data]
+
+Each part of the file is described in the following sections.
 
 
 2.1 Data formats
@@ -34,11 +39,13 @@ followed by a UTF-8 format string (there is no zero termination and no BOM).
 
 The file must start with a header, which looks as follows:
 
-Offset  Type      Value         Description
+Offset  Type      Description
 -------------------------------------------------------------------------------
 0       Integer   Magic identifier (0x4d54434f, or "OCTM" when read as ASCII).
 4       Integer   File format version (0x00000100 = version 1.0).
-8       Integer   Compression method ("MG0\0" or "MG1\0").
+8       Integer   Compression method, which can be one of the following:
+                    0x0030474d -> Use the MG0 compression method.
+                    0x0031474d -> Use the MG1 compression method.
 12      Integer   Vertex count.
 16      Integer   Triangle count.
 20      Integer   Boolean flags, or:ed together:
@@ -49,11 +56,17 @@ The length of the file header is varibale, since it contains fields of variable
 length.
 
 
-2.3 Data body
+2.3 Body data
 -------------
 
 The body data follows immediately after the file header. Its file offset is
 dictated by the length of the file header.
+
+The format of the body data is specific for each compression method, which is
+defined by the "Compression method" field in the header.
+
+The body data contains the vertex, index and texture coordinate data, usually
+in a compressed form.
 
 
 3. Recommendations
