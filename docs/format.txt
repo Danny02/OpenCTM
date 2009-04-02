@@ -7,23 +7,13 @@ Copyright (c) 2009 Marcus Geelnard
 1. Introduction
 ---------------
 
-This document describes version 1 of the OpenCTM file format.
+This document describes version 1.0 of the OpenCTM file format.
 
 
 2. File format specification
 ----------------------------
 
-The OpenCTM format is a tagged binary format. This means that it is easily
-extendible, while still being both backwards and forward compatible.
-
-The basic layout of the file is as follows:
-
-<Magic header>
-<Tag 1><Length 1><Data 1>
-<Tag 2><Length 2><Data 2>
-<Tag 3><Length 3><Data 3>
-...
-<Tag N><Length N><Data N>
+TBD
 
 
 2.1 Data formats
@@ -35,74 +25,31 @@ first).
 All floating point fields are stored in 32-bit binary IEEE 754 format (little
 endian).
 
-All strings are stored with UTF-8 format, including zero termination.
+All strings are stored as a 32-bit integer string length (number of bytes)
+followed by a UTF-8 format string (there is no zero termination and no BOM).
 
 
-2.2 Magic header
-----------------
+2.2 Header
+----------
 
-The file must start with a 12-byte "magic" identifier, which looks as follows:
+The file must start with a header, which looks as follows:
 
 Offset    Size        Value         Description
 -------------------------------------------------------------------------------
-0         32 bits     0x4d54434f    When read as ASCII, this reads "OCTM"
-4         32 bits     0x00000004    Four bytes follow (according to tag format)
-8         32 bits     0x00000001    File format version (version 1)
+0         32 bits     0x4d54434f    Magic identifier ("OCTM" when read as ASCII)
+4         32 bits     0x00000100    File format version (version 1.0)
+...
+
+TBD
 
 
-2.3 Tags
---------
+2.3 Data body
+-------------
 
-Each tag is a 32-bit unsigned integer, and indicates what kind of data that
-follows in the data field (see the Tags section below).
-
-Each tag is directly followed by a data length descriptor (also a 32-bit
-unsigned integer). The length is given as the number of bytes of the data
-field (the length can be zero, indicating that there is no associated data for
-the tag).
-
-All tags are optional, and each tag must occur at most once per file.
-
-The following tags are supported:
-
-Tag         Data type/size  Description                             Default
--------------------------------------------------------------------------------
-0x00000001  string          Software ID (name and version)          ""
-0x00000002  string          File comment                            ""
-0x00000003  UINT32          Index count                             0
-0x00000004  UINT32          Vertex count                            0
-0x00000005  UINT32          3D data compression method:             0x3130474d
-                              0x454e4f4e: NONE
-                              0x3130474d: MG01 (default)
-
-0x00010001  variable        Index data                              []
-0x00010002  variable        3D coordinates data                     []
-0x00010003  variable        2D texture coordinates data             []
-0x00010004  variable        Normals data (per vertex)               []
-0x00010005  variable        Colors data (per triangle)              []
-
-0x7f000000  string          Custom tags name space                  "custom"
-0x7f000001  (app. defined)  Custom tags
-     -
-0x7fffffff
+TBD
 
 
-3. Custom tags
---------------
-
-Custom tags (in the range 0x7f000001 - 0x7fffffff) can be used to provide
-application specific information in addition to the officialy supported tags.
-
-The interpretation of the custom tags is not defined by this specification,
-but by each application.
-
-Each set of custom tags should have a unique name space (e.g. software/vendor
-name), which is given by the string of the 0x7f000000-tag. If an application
-that tries to read the file does not recognize the name space, all custom tags
-must be ignored.
-
-
-4. Recommendations
+3. Recommendations
 ------------------
 
 There are several aspects of a 3D model that are not mandated by this
@@ -118,5 +65,3 @@ Here are the recommendations:
 3) Given the three coordinates of a triangle (P1, P2, P3), the front/up
    direction of the triangle ("flat normal") should be defined by the
    normalized cross product: (P2 - P1) X (P3 - P1).
-4) Use custom tags sparingly (OpenCTM is not meant to be a generic container
-   format).
