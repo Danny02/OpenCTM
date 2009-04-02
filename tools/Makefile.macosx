@@ -1,10 +1,6 @@
 all: ctmconv
 
 OPENCTMDIR = ..
-OPENCTMLIB = $(OPENCTMDIR)/libopenctm.a
 
-ctmconv: ctmconv.cpp ply.cpp ply.h $(OPENCTMLIB)
+ctmconv: ctmconv.cpp ply.cpp ply.h
 	g++ -O2 -W -I$(OPENCTMDIR) -o $@ -L$(OPENCTMDIR) ctmconv.cpp ply.cpp -lopenctm
-
-$(OPENCTMLIB):
-	cd src && $(MAKE) -f Makefile.macosx && cd tools

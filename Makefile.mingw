@@ -61,15 +61,18 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
             $(LZMADIR)/LzmaEnc.c \
             $(LZMADIR)/LzmaLib.c
 
-.phony: all clean docs depend
+.phony: all docs tools clean depend
 
-all: $(STATICLIB)
+all: $(STATICLIB) tools
 
 clean:
 	$(RM) $(STATICLIB) $(OBJS) $(LZMA_OBJS)
 
 docs:
-	cd ..\docs && $(DOXYGEN) && cd ..\src
+	cd docs && $(DOXYGEN) && cd ..
+
+tools:
+	cd tools && $(MAKE) -f Makefile.mingw -j2 && cd ..
 
 $(STATICLIB): $(OBJS) $(LZMA_OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS) $(LZMA_OBJS)
