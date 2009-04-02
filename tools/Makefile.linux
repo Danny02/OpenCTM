@@ -1,0 +1,10 @@
+all: demo
+
+OPENCTMDIR = ../src
+OPENCTMLIB = $(OPENCTMDIR)/libopenctm.a
+
+demo: demo.cpp ply.cpp ply.h $(OPENCTMLIB)
+	g++ -s -O2 -W -o demo -L$(OPENCTMDIR) demo.cpp ply.cpp -lopenctm
+
+$(OPENCTMLIB):
+	cd src && make -f Makefile.linux && cd ..

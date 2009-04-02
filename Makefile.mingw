@@ -1,7 +1,0 @@
-all: demo.exe
-
-demo.exe: demo.cpp ply.cpp ply.h src/libopenctm.a
-	g++ -s -O2 -W -o demo.exe -Lsrc demo.cpp ply.cpp -lopenctm
-
-src/libopenctm.a:
-	cd src && make -f Makefile.linux && cd ..
