@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cctype>
 #include "ply.h"
-#include "src/openctm.h"
+#include <openctm.h>
 
 using namespace std;
 
