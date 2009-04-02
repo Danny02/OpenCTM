@@ -28,7 +28,7 @@ mingw32-make -f Makefile.mingw -j2
 2.2 Windows, MS Visual Studio (Express) 2008
 --------------------------------------------
 
-nmake /fMakefile.msvc (not yet supported!)
+nmake /fMakefile.msvc
 
 
 2.3 Linux

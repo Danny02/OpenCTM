@@ -1,0 +1,6 @@
+all: ctmconv.exe
+
+OPENCTMDIR = ..
+
+ctmconv.exe: ctmconv.cpp ply.cpp ply.h
+	cl /Ox /W3 /I$(OPENCTMDIR) /Fe$@ ctmconv.cpp ply.cpp /link /LIBPATH:$(OPENCTMDIR) openctm.lib
