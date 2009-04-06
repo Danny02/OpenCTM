@@ -42,9 +42,12 @@ static void _ctmClearMesh(_CTMcontext * self)
     free(self->mIndices);
   if(self->mTexCoords)
     free(self->mTexCoords);
+  if(self->mNormals)
+    free(self->mNormals);
   self->mVertices = (CTMfloat *) 0;
   self->mIndices = (CTMuint *) 0;
   self->mTexCoords = (CTMfloat *) 0;
+  self->mNormals = (CTMfloat *) 0;
   self->mVertexCount = 0;
   self->mTriangleCount = 0;
 }
@@ -82,6 +85,8 @@ void ctmFreeContext(CTMcontext aContext)
     free(self->mIndices);
   if(self->mTexCoords)
     free(self->mTexCoords);
+  if(self->mNormals)
+    free(self->mNormals);
   if(self->mFileComment)
     free(self->mFileComment);
 
@@ -123,6 +128,9 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty)
 
     case CTM_HAS_TEX_COORDS:
       return self->mTexCoords ? CTM_TRUE : CTM_FALSE;
+
+    case CTM_HAS_NORMALS:
+      return self->mNormals ? CTM_TRUE : CTM_FALSE;
 
     default:
       self->mError = CTM_INVALID_ARGUMENT;
@@ -209,7 +217,8 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment)
 //-----------------------------------------------------------------------------
 void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
                    CTMuint aVertexCount, const CTMuint * aIndices,
-                   CTMuint aTriangleCount, const CTMfloat * aTexCoords)
+                   CTMuint aTriangleCount, const CTMfloat * aTexCoords,
+                   const CTMfloat * aNormals)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -257,6 +266,19 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
     }
     memcpy(self->mTexCoords, aTexCoords, aVertexCount * sizeof(CTMfloat) * 2);
   }
+
+  // Copy normals
+  if(aNormals)
+  {
+    self->mNormals = (CTMfloat *) malloc(aVertexCount * sizeof(CTMfloat) * 3);
+    if(!self->mNormals)
+    {
+      _ctmClearMesh(self);
+      self->mError = CTM_OUT_OF_MEMORY;
+      return;
+    }
+    memcpy(self->mNormals, aNormals, aVertexCount * sizeof(CTMfloat) * 3);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -264,7 +286,8 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
 //-----------------------------------------------------------------------------
 void ctmGetMesh(CTMcontext aContext, CTMfloat * aVertices,
                 CTMuint aVertexCount, CTMuint * aIndices,
-                CTMuint aTriangleCount, CTMfloat * aTexCoords)
+                CTMuint aTriangleCount, CTMfloat * aTexCoords,
+                CTMfloat * aNormals)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -290,6 +313,15 @@ void ctmGetMesh(CTMcontext aContext, CTMfloat * aVertices,
       memcpy(aTexCoords, self->mTexCoords, aVertexCount * sizeof(CTMfloat) * 2);
     else
       memset(aTexCoords, 0, aVertexCount * sizeof(CTMfloat) * 2);
+  }
+
+  // Copy (or clear) normals
+  if(aNormals)
+  {
+    if(self->mNormals)
+      memcpy(aNormals, self->mNormals, aVertexCount * sizeof(CTMfloat) * 3);
+    else
+      memset(aNormals, 0, aVertexCount * sizeof(CTMfloat) * 3);
   }
 }
 
@@ -331,7 +363,7 @@ void ctmLoad(CTMcontext aContext, const char * aFileName)
 void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMuint formatVersion, hasTexCoords, method;
+  CTMuint formatVersion, flags, method;
   if(!self) return;
 
   // Initialize stream
@@ -377,12 +409,7 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     self->mError = CTM_FORMAT_ERROR;
     return;
   }
-  hasTexCoords = _ctmStreamReadUINT(self);
-  if((hasTexCoords != 0) && (hasTexCoords != 1))
-  {
-    self->mError = CTM_FORMAT_ERROR;
-    return;
-  }
+  flags = _ctmStreamReadUINT(self);
   _ctmStreamReadSTRING(self, &self->mFileComment);
 
   // Allocate memory for the mesh arrays
@@ -399,10 +426,20 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     self->mError = CTM_OUT_OF_MEMORY;
     return;
   }
-  if(hasTexCoords)
+  if(flags & _CTM_HAS_TEXCOORDS_BIT)
   {
     self->mTexCoords = (CTMfloat *) malloc(self->mVertexCount * sizeof(CTMfloat) * 2);
     if(!self->mTexCoords)
+    {
+      _ctmClearMesh(self);
+      self->mError = CTM_OUT_OF_MEMORY;
+      return;
+    }
+  }
+  if(flags & _CTM_HAS_NORMALS_BIT)
+  {
+    self->mNormals = (CTMfloat *) malloc(self->mVertexCount * sizeof(CTMfloat) * 3);
+    if(!self->mNormals)
     {
       _ctmClearMesh(self);
       self->mError = CTM_OUT_OF_MEMORY;
@@ -466,6 +503,7 @@ void ctmSave(CTMcontext aContext, const char * aFileName)
 void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
+  CTMuint flags;
   if(!self) return;
 
   // Check mesh integrity
@@ -479,6 +517,13 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
   // Initialize stream
   self->mWriteFn = aWriteFn;
   self->mUserData = aUserData;
+
+  // Determine flags
+  flags = 0;
+  if(self->mTexCoords)
+    flags |= _CTM_HAS_TEXCOORDS_BIT;
+  if(self->mNormals)
+    flags |= _CTM_HAS_NORMALS_BIT;
 
   // Write header to stream
   _ctmStreamWrite(self, (void *) "OCTM", 4);
@@ -497,7 +542,7 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
   }
   _ctmStreamWriteUINT(self, self->mVertexCount);
   _ctmStreamWriteUINT(self, self->mTriangleCount);
-  _ctmStreamWriteUINT(self, self->mTexCoords ? 1 : 0);
+  _ctmStreamWriteUINT(self, flags);
   _ctmStreamWriteSTRING(self, self->mFileComment);
 
   // Compress to stream

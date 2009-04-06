@@ -66,7 +66,7 @@
  *   triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
  *   vertices = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * vertCount);
  *   indices = (CTMuint *) malloc(3 * sizeof(CTMuint) * triCount);
- *   ctmGetMesh(context, vertices, vertCount, indices, triCount, NULL);
+ *   ctmGetMesh(context, vertices, vertCount, indices, triCount, NULL, NULL);
  *
  *   // Free the context
  *   ctmFreeContext(context);
@@ -100,7 +100,7 @@
  *
  *   // Transfer the mesh from our own mesh representation to the OpenCTM
  *   // context
- *   ctmDefineMesh(context, vertices, vertCount, indices, triCount, NULL);
+ *   ctmDefineMesh(context, vertices, vertCount, indices, triCount, NULL, NULL);
  *
  *   //Free our mesh
  *   free(indices);
@@ -175,7 +175,8 @@ typedef enum {
   CTM_VERTEX_COUNT = 1,   ///< Number of vertices in the mesh (integer).
   CTM_TRIANGLE_COUNT = 2, ///< Number of triangles in the mesh (integer).
   CTM_HAS_TEX_COORDS = 3, ///< CTM_TRUE if the mesh has texture coordinates (integer).
-  CTM_FILE_COMMENT = 4    ///< File comment (string).
+  CTM_HAS_NORMALS = 4,    ///< CTM_TRUE if the mesh has normals (integer).
+  CTM_FILE_COMMENT = 5    ///< File comment (string).
 } CTMproperty;
 
 /// Supported compression methods.
@@ -280,36 +281,47 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment);
 ///            no texture coordinates). Each texture coordinate is made up by
 ///            two consecutive floats, and there must be \c aVertexCount
 ///            texture coordinates.
+/// @param[in] aNormals An array of per-vertex normals (or NULL if there are
+///            no normals). Each nromal is made up by three consecutive floats,
+///            and there must be \c aVertexCount normals. All normals must have
+///            unit length.
 /// @see ctmSave(), ctmSaveCustom().
 void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
                    CTMuint aVertexCount, const CTMuint * aIndices,
-                   CTMuint aTriangleCount, const CTMfloat * aTexCoords);
+                   CTMuint aTriangleCount, const CTMfloat * aTexCoords,
+                   const CTMfloat * aNormals);
 
 /// Retrieve the triangle mesh from the OpenCTM context. The arrays must have
 /// been allocated by the caller, and should have enough capacity to hold the
 /// entire mesh (use ctmGetInteger() to determine the size of the mesh).
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aVertices An array that will recieve the vertices (three
+/// @param[in] aVertices An array that will receive the vertices (three
 ///            consecutive floats make one vertex).
 /// @param[in] aVertexCount The number of vertices that \c aVertices (and
 ///            optionally \c aTexCoords) can hold.
-/// @param[in] aIndices An array that will recieve the vertex indices (three
+/// @param[in] aIndices An array that will receive the vertex indices (three
 ///            consecutive integers make one triangle).
 /// @param[in] aTriangleCount The number of triangles that \c aIndices can hold
 ///            (each triangle is made up of three indices).
-/// @param[in] aTexCoords An array that will recieve the texture coordinates
+/// @param[in] aTexCoords An array that will receive the texture coordinates
 ///            (or NULL if texture coordinates are not requested). Each texture
 ///            coordinate is made up by two consecutive floats, and there must
 ///            be \c aVertexCount texture coordinates. If the mesh does not
 ///            have any texture coordinates, and \c aTexCoords is non-NULL, the
 ///            array is zero-filled.
+/// @param[in] aNormals An array that will receive the normals (or NULL if
+///            normals are not requested). Each nromal is made up by three
+///            consecutive floats, and there must be \c aVertexCount normals.
+///            If the mesh does not have any normals, and \c aNormals is
+///            non-NULL, the array is zero-filled..
 /// @note The mesh should have been loaded by calling ctmLoad() or
 ///        ctmLoadCustom() prior to calling this function.
 /// @see ctmGetInteger(), ctmLoad(), ctmLoadCustom().
 void ctmGetMesh(CTMcontext aContext, CTMfloat * aVertices,
                 CTMuint aVertexCount, CTMuint * aIndices,
-                CTMuint aTriangleCount, CTMfloat * aTexCoords);
+                CTMuint aTriangleCount, CTMfloat * aTexCoords,
+                CTMfloat * aNormals);
 
 /// Load an OpenCTM format file. The mesh can be retrieved using ctmGetMesh().
 /// @param[in] aContext An OpenCTM context that has been created by

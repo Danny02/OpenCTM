@@ -95,7 +95,7 @@ void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
     aPoints.resize(vertCount);
     aIndices.resize(triCount * 3);
     ctmGetMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
-               (CTMuint*) &aIndices[0], aIndices.size() / 3, NULL);
+               (CTMuint*) &aIndices[0], aIndices.size() / 3, NULL, NULL);
     CheckCTMError(ctm);
 
     // Free OpenCTM context
@@ -125,7 +125,7 @@ void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
 
     // Define mesh
     ctmDefineMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
-                  (const CTMuint*) &aIndices[0], aIndices.size() / 3, NULL);
+                  (const CTMuint*) &aIndices[0], aIndices.size() / 3, NULL, NULL);
     CheckCTMError(ctm);
 
     // Export file

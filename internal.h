@@ -43,6 +43,9 @@ typedef struct {
   // Texture coordinates (optional)
   CTMfloat *mTexCoords;
 
+  // Normals (optional)
+  CTMfloat *mNormals;
+
   // Last error code
   CTMerror mError;
 
@@ -61,6 +64,13 @@ typedef struct {
   // User data (for stream read/write - usually the stream handle)
   void * mUserData;
 } _CTMcontext;
+
+//-----------------------------------------------------------------------------
+// Constants
+//-----------------------------------------------------------------------------
+// Flags for the Flags field in the OpenCTM file header
+#define _CTM_HAS_TEXCOORDS_BIT 0x00000001
+#define _CTM_HAS_NORMALS_BIT   0x00000002
 
 //-----------------------------------------------------------------------------
 // Macros

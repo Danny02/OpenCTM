@@ -50,6 +50,7 @@ Offset  Type      Description
 16      Integer   Triangle count.
 20      Integer   Boolean flags, or:ed together:
                     0x00000001 -> The file contains texture coordinates.
+                    0x00000002 -> The file contains per-vertex normals.
 24      String    File comment.
 
 The length of the file header is varibale, since it contains fields of variable
@@ -65,8 +66,8 @@ dictated by the length of the file header.
 The format of the body data is specific for each compression method, which is
 defined by the "Compression method" field in the header.
 
-The body data contains the vertex, index and texture coordinate data, usually
-in a compressed form.
+The body data contains the vertex, index, texture coordinate and normal data,
+usually in a compressed form.
 
 
 3. Recommendations

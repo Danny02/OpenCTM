@@ -55,6 +55,14 @@ int _ctmCompressMesh_MG0(_CTMcontext * self)
       _ctmStreamWriteFLOAT(self, self->mTexCoords[i]);
   }
 
+  // Write normals
+  if(self->mNormals)
+  {
+    _ctmStreamWrite(self, (void *) "NORM", 4);
+    for(i = 0; i < self->mVertexCount * 3; ++ i)
+      _ctmStreamWriteFLOAT(self, self->mNormals[i]);
+  }
+
   return 1;
 }
 
@@ -95,6 +103,18 @@ int _ctmUncompressMesh_MG0(_CTMcontext * self)
     }
     for(i = 0; i < self->mVertexCount * 2; ++ i)
       self->mTexCoords[i] = _ctmStreamReadFLOAT(self);
+  }
+
+  // Read normals
+  if(self->mNormals)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return 0;
+    }
+    for(i = 0; i < self->mVertexCount * 3; ++ i)
+      self->mNormals[i] = _ctmStreamReadFLOAT(self);
   }
 
   return 1;

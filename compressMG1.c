@@ -181,6 +181,14 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
       return CTM_FALSE;
   }
 
+  // Write normals
+  if(self->mNormals)
+  {
+    _ctmStreamWrite(self, (void *) "NORM", 4);
+    if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
+      return CTM_FALSE;
+  }
+
   return CTM_TRUE;
 }
 
@@ -237,6 +245,22 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
       return CTM_FALSE;
     }
     if(!_ctmStreamReadPackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
+    {
+      free((void *) indices);
+      return CTM_FALSE;
+    }
+  }
+
+  // Read normals
+  if(self->mNormals)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      free(indices);
+      return CTM_FALSE;
+    }
+    if(!_ctmStreamReadPackedFloats(self, self->mNormals, self->mVertexCount, 3))
     {
       free((void *) indices);
       return CTM_FALSE;
