@@ -31,9 +31,9 @@
 #include "internal.h"
 
 //-----------------------------------------------------------------------------
-// _compateTriangle() - Comparator for the triangle sorting.
+// _compareTriangle() - Comparator for the triangle sorting.
 //-----------------------------------------------------------------------------
-static int _compateTriangle(const void * elem1, const void * elem2)
+static int _compareTriangle(const void * elem1, const void * elem2)
 {
   CTMuint * tri1 = (CTMuint *) elem1;
   CTMuint * tri2 = (CTMuint *) elem2;
@@ -73,7 +73,7 @@ static void _ctmReArrangeTriangles(_CTMcontext * self, CTMuint * aIndices)
   }
 
   // Step 2: Sort the triangles based on the first triangle index
-  qsort((void *) aIndices, self->mTriangleCount, sizeof(CTMuint) * 3, _compateTriangle);
+  qsort((void *) aIndices, self->mTriangleCount, sizeof(CTMuint) * 3, _compareTriangle);
 }
 
 //-----------------------------------------------------------------------------
