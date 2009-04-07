@@ -38,7 +38,7 @@ STATICLIB = openctm.lib
 
 OBJS = openctm.obj \
        stream.obj \
-       compressMG0.obj \
+       compressRAW.obj \
        compressMG1.obj \
        compressMG2.obj
 
@@ -50,7 +50,7 @@ LZMA_OBJS = Alloc.obj \
 
 SRCS = openctm.c \
        stream.c \
-       compressMG0.c \
+       compressRAW.c \
        compressMG1.c \
        compressMG2.c
 
@@ -82,8 +82,8 @@ openctm.obj: openctm.c openctm.h internal.h
 stream.obj: stream.c openctm.h internal.h
 	$(CC) $(CFLAGS) stream.c
 
-compressMG0.obj: compressMG0.c openctm.h internal.h
-	$(CC) $(CFLAGS) compressMG0.c
+compressRAW.obj: compressRAW.c openctm.h internal.h
+	$(CC) $(CFLAGS) compressRAW.c
 
 compressMG1.obj: compressMG1.c openctm.h internal.h
 	$(CC) $(CFLAGS) compressMG1.c

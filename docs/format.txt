@@ -44,7 +44,7 @@ Offset  Type      Description
 0       Integer   Magic identifier (0x4d54434f, or "OCTM" when read as ASCII).
 4       Integer   File format version (0x00000100 = version 1.0).
 8       Integer   Compression method, which can be one of the following:
-                    0x0030474d -> Use the MG0 compression method.
+                    0x00574152 -> Use the RAW compression method.
                     0x0031474d -> Use the MG1 compression method.
 12      Integer   Vertex count.
 16      Integer   Triangle count.

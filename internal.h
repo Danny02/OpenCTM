@@ -103,10 +103,10 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aC
 unsigned char * _ctmPackFloats(CTMfloat * aData, CTMuint aCount, CTMuint * aSize);
 
 //-----------------------------------------------------------------------------
-// Funcion prototypes for compressMG0.c
+// Funcion prototypes for compressRAW.c
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_MG0(_CTMcontext * self);
-int _ctmUncompressMesh_MG0(_CTMcontext * self);
+int _ctmCompressMesh_RAW(_CTMcontext * self);
+int _ctmUncompressMesh_RAW(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
 // Funcion prototypes for compressMG1.c

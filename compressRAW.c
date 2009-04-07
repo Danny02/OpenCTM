@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // Product:     OpenCTM
-// File:        compressMG0.c
-// Description: Implementation of the MG0 compression method.
+// File:        compressRAW.c
+// Description: Implementation of the RAW compression method.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2009 Marcus Geelnard
 //
@@ -29,11 +29,11 @@
 #include "internal.h"
 
 //-----------------------------------------------------------------------------
-// _ctmCompressMesh_MG0() - Compress the mesh that is stored in the CTM
-// context using the MG0 method, and write it the the output stream in the CTM
+// _ctmCompressMesh_RAW() - Compress the mesh that is stored in the CTM
+// context using the RAW method, and write it the the output stream in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_MG0(_CTMcontext * self)
+int _ctmCompressMesh_RAW(_CTMcontext * self)
 {
   CTMuint i;
 
@@ -67,11 +67,11 @@ int _ctmCompressMesh_MG0(_CTMcontext * self)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmUncompressMesh_MG0() - Uncmpress the mesh from the input stream in the
-// CTM context using the MG0 method, and store the resulting mesh in the CTM
+// _ctmUncompressMesh_RAW() - Uncmpress the mesh from the input stream in the
+// CTM context using the RAW method, and store the resulting mesh in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressMesh_MG0(_CTMcontext * self)
+int _ctmUncompressMesh_RAW(_CTMcontext * self)
 {
   CTMuint i;
 

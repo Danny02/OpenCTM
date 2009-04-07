@@ -169,7 +169,7 @@ void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod)
   if(!self) return;
 
   // Check arguments
-  if((aMethod != CTM_METHOD_MG0) && (aMethod != CTM_METHOD_MG1) &&
+  if((aMethod != CTM_METHOD_RAW) && (aMethod != CTM_METHOD_MG1) &&
      (aMethod != CTM_METHOD_MG2))
   {
     self->mError = CTM_INVALID_ARGUMENT;
@@ -406,8 +406,8 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     return;
   }
   method = _ctmStreamReadUINT(self);
-  if(method == FOURCC("MG0\0"))
-    self->mMethod = CTM_METHOD_MG0;
+  if(method == FOURCC("RAW\0"))
+    self->mMethod = CTM_METHOD_RAW;
   else if(method == FOURCC("MG1\0"))
     self->mMethod = CTM_METHOD_MG1;
   else if(method == FOURCC("MG2\0"))
@@ -470,8 +470,8 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
   // Uncompress from stream
   switch(self->mMethod)
   {
-    case CTM_METHOD_MG0:
-      _ctmUncompressMesh_MG0(self);
+    case CTM_METHOD_RAW:
+      _ctmUncompressMesh_RAW(self);
       break;
 
     case CTM_METHOD_MG1:
@@ -550,8 +550,8 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
   _ctmStreamWriteUINT(self, CTM_FORMAT_VERSION);
   switch(self->mMethod)
   {
-    case CTM_METHOD_MG0:
-      _ctmStreamWrite(self, (void *) "MG0\0", 4);
+    case CTM_METHOD_RAW:
+      _ctmStreamWrite(self, (void *) "RAW\0", 4);
       break;
     case CTM_METHOD_MG1:
       _ctmStreamWrite(self, (void *) "MG1\0", 4);
@@ -568,8 +568,8 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
   // Compress to stream
   switch(self->mMethod)
   {
-    case CTM_METHOD_MG0:
-      _ctmCompressMesh_MG0(self);
+    case CTM_METHOD_RAW:
+      _ctmCompressMesh_RAW(self);
       break;
 
     case CTM_METHOD_MG1:

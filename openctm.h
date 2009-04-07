@@ -181,7 +181,7 @@ typedef enum {
 
 /// Supported compression methods.
 typedef enum {
-  CTM_METHOD_MG0 = 1,   ///< Just store the raw data.
+  CTM_METHOD_RAW = 1,   ///< Just store the raw data.
   CTM_METHOD_MG1 = 2,   ///< Lossless compression.
   CTM_METHOD_MG2 = 3    ///< Fairly advanced, slightly "lossy" compression.
 } CTMmethod;
