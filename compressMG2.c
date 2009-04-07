@@ -97,9 +97,48 @@ static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
 }
 
 //-----------------------------------------------------------------------------
-// _compateVertex() - Comparator for the vertex sorting.
+// _ctmPointToGridIdx() - Convert a point to a grid index.
 //-----------------------------------------------------------------------------
-static int _compateVertex(const void * elem1, const void * elem2)
+static CTMuint _ctmPointToGridIdx(_CTMgrid * aGrid, CTMfloat * aPoint)
+{
+  CTMuint i, idx[3];
+
+  for(i = 0; i < 3; ++ i)
+  {
+    idx[i] = floor(aPoint[i] / aGrid->mSize[i]);
+    if(idx[i] >= aGrid->mDivision[i])
+      idx[i] = aGrid->mDivision[i] - 1;
+  }
+
+  return idx[0] + aGrid->mDivision[0] * (idx[1] + aGrid->mDivision[1] * idx[2]);
+}
+
+//-----------------------------------------------------------------------------
+// _ctmGridIdxToPoint() - Convert a grid index to a point (the min x/y/z for
+// the given grid box).
+//-----------------------------------------------------------------------------
+static void _ctmGridIdxToPoint(_CTMgrid * aGrid, CTMuint aIdx, CTMfloat * aPoint)
+{
+  CTMuint gridIdx[3], zdiv, ydiv;
+
+  zdiv = aGrid->mDivision[0] * aGrid->mDivision[1];
+  ydiv = aGrid->mDivision[0];
+
+  gridIdx[2] =  aIdx / zdiv;
+  aIdx -= gridIdx[2] * zdiv;
+  gridIdx[1] =  aIdx / ydiv;
+  aIdx -= gridIdx[1] * ydiv;
+  gridIdx[0] = aIdx;
+
+  aPoint[0] = gridIdx[0] * aGrid->mSize[0];
+  aPoint[1] = gridIdx[1] * aGrid->mSize[1];
+  aPoint[2] = gridIdx[2] * aGrid->mSize[2];
+}
+
+//-----------------------------------------------------------------------------
+// _compareVertex() - Comparator for the vertex sorting.
+//-----------------------------------------------------------------------------
+static int _compareVertex(const void * elem1, const void * elem2)
 {
   _CTMsortvertex * v1 = (_CTMsortvertex *) elem1;
   _CTMsortvertex * v2 = (_CTMsortvertex *) elem2;
@@ -120,28 +159,20 @@ static int _compateVertex(const void * elem1, const void * elem2)
 static void _ctmSetupVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
   CTMfloat * aVertices, _CTMgrid * aGrid)
 {
-  CTMuint i, j, gridIdx[3];
+  CTMuint i;
 
-  // Prepare vertices
+  // Prepare sort vertex array
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    // Calculate grid coordinates
-    for(j = 0; j < 3; ++ j)
-    {
-      gridIdx[j] = floor(self->mVertices[i * 3 + j] / aGrid->mSize[j]);
-      if(gridIdx[j] >= aGrid->mDivision[j])
-        gridIdx[j] = aGrid->mDivision[j] - 1;
-    }
-
-    // Store vertex properties in the vertex array
+    // Store vertex properties in the sort vertex array
     aSortVertices[i].x = self->mVertices[i * 3];;
-    aSortVertices[i].mGridIndex = gridIdx[0] + aGrid->mDivision[0] * (gridIdx[1] + aGrid->mDivision[1] * gridIdx[2]);
+    aSortVertices[i].mGridIndex = _ctmPointToGridIdx(aGrid, &self->mVertices[i * 3]);;
     aSortVertices[i].mOriginalIndex = i;
   }
 
   // Sort vertices. The elements are first sorted by their grid indices, and
   // scondly by their x coordinates.
-  qsort((void *) aSortVertices, self->mVertexCount, sizeof(_CTMsortvertex), _compateVertex);
+  qsort((void *) aSortVertices, self->mVertexCount, sizeof(_CTMsortvertex), _compareVertex);
 
   // Create new vertex array, with the sorted vertices
   for(i = 0; i < self->mVertexCount; ++ i)
@@ -181,13 +212,16 @@ static int _ctmReIndexIndices(_CTMcontext * self, _CTMsortvertex * aSortVertices
 }
 
 //-----------------------------------------------------------------------------
-// _compateTriangle() - Comparator for the triangle sorting.
+// _compareTriangle() - Comparator for the triangle sorting.
 //-----------------------------------------------------------------------------
-static int _compateTriangle(const void * elem1, const void * elem2)
+static int _compareTriangle(const void * elem1, const void * elem2)
 {
   CTMuint * tri1 = (CTMuint *) elem1;
   CTMuint * tri2 = (CTMuint *) elem2;
-  return *tri1 - *tri2;
+  if(tri1[0] != tri2[0])
+    return tri1[0] - tri2[0];
+  else
+    return tri1[1] - tri2[1];
 }
 
 //-----------------------------------------------------------------------------
@@ -220,7 +254,7 @@ static void _ctmReArrangeTriangles(_CTMcontext * self, CTMuint * aIndices)
   }
 
   // Step 2: Sort the triangles based on the first triangle index
-  qsort((void *) aIndices, self->mTriangleCount, sizeof(CTMuint) * 3, _compateTriangle);
+  qsort((void *) aIndices, self->mTriangleCount, sizeof(CTMuint) * 3, _compareTriangle);
 }
 
 //-----------------------------------------------------------------------------
@@ -230,17 +264,51 @@ static void _ctmReArrangeTriangles(_CTMcontext * self, CTMuint * aIndices)
 static void _ctmMakeIndexDeltas(_CTMcontext * self, CTMuint * aIndices)
 {
   CTMint i;
-
   for(i = self->mTriangleCount - 1; i >= 0; -- i)
   {
-    // Step 1: Calculate deltas from second and third triangle index to the
-    // first triangle index
-    aIndices[i * 3 + 1] -= aIndices[i * 3];
+    // Step 1: Calculate delta from second triangle index to the previous
+    // second triangle index, if the previous triangle shares the same first
+    // index, otherwise calculate the delta to the first triangle index
+    if((i >= 1) && (aIndices[i * 3] == aIndices[(i - 1) * 3]))
+      aIndices[i * 3 + 1] -= aIndices[(i - 1) * 3 + 1];
+    else
+      aIndices[i * 3 + 1] -= aIndices[i * 3];
+
+    // Step 2: Calculate delta from third triangle index to the first triangle
+    // index
     aIndices[i * 3 + 2] -= aIndices[i * 3];
 
-    // Step 2: Calculate derivative of the first triangle index
+    // Step 3: Calculate derivative of the first triangle index
     if(i >= 1)
       aIndices[i * 3] -= aIndices[(i - 1) * 3];
+  }
+}
+
+//-----------------------------------------------------------------------------
+// _ctmRestoreIndices() - Restore original indices (inverse derivative
+// operation).
+//-----------------------------------------------------------------------------
+static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
+{
+  CTMuint i;
+
+  for(i = 0; i < self->mTriangleCount; ++ i)
+  {
+    // Step 1: Reverse derivative of the first triangle index
+    if(i >= 1)
+      aIndices[i * 3] += aIndices[(i - 1) * 3];
+
+    // Step 2: Reverse delta from third triangle index to the first triangle
+    // index
+    aIndices[i * 3 + 2] += aIndices[i * 3];
+
+    // Step 3: Reverse delta from second triangle index to the previous
+    // second triangle index, if the previous triangle shares the same first
+    // index, otherwise reverse the delta to the first triangle index
+    if((i >= 1) && (aIndices[i * 3] == aIndices[(i - 1) * 3]))
+      aIndices[i * 3 + 1] += aIndices[(i - 1) * 3 + 1];
+    else
+      aIndices[i * 3 + 1] += aIndices[i * 3];
   }
 }
 
@@ -251,11 +319,8 @@ static void _ctmMakeIndexDeltas(_CTMcontext * self, CTMuint * aIndices)
 static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
   _CTMsortvertex * aSortVertices, _CTMgrid * aGrid)
 {
-  CTMuint i, gridIdx[3], prevGridIndex, idx, zdiv, ydiv;
-  CTMfloat prevX, deltaX, deltaY, deltaZ;
-
-  zdiv = aGrid->mDivision[0] * aGrid->mDivision[1];
-  ydiv = aGrid->mDivision[0];
+  CTMuint i, prevGridIndex, idx;
+  CTMfloat prevX, deltaX, deltaY, deltaZ, gridOrigin[3];
 
   prevGridIndex = 0x7fffffff;
   prevX = 0.0;
@@ -263,17 +328,13 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
   {
     // Get grid box origin
     idx = aSortVertices[i].mGridIndex;
-    gridIdx[2] =  idx / zdiv;
-    idx -= gridIdx[2] * zdiv;
-    gridIdx[1] =  idx / ydiv;
-    idx -= gridIdx[1] * ydiv;
-    gridIdx[0] = idx;
+    _ctmGridIdxToPoint(aGrid, idx, gridOrigin);
 
     // Calculate delta-x
     if(idx != prevGridIndex)
     {
       // New grid box -> delta to grid box edge
-      deltaX = aVertices[i * 3] - gridIdx[0] * aGrid->mSize[0];
+      deltaX = aVertices[i * 3] - gridOrigin[0];
       prevGridIndex = idx;
     }
     else
@@ -284,8 +345,8 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
     prevX = aVertices[i * 3];
 
     // Calculate delta-y and delta-z (to grid box edge)
-    deltaY = aVertices[i * 3 + 1] - gridIdx[1] * aGrid->mSize[1];
-    deltaZ = aVertices[i * 3 + 2] - gridIdx[2] * aGrid->mSize[2];
+    deltaY = aVertices[i * 3 + 1] - gridOrigin[1];
+    deltaZ = aVertices[i * 3 + 2] - gridOrigin[2];
 
     // Store delta in vertex array
     aVertices[i * 3] = deltaX;
