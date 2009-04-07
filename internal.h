@@ -52,6 +52,9 @@ typedef struct {
   // The selected compression method
   CTMmethod mMethod;
 
+  // Vertex precision
+  CTMfloat mVertexPrecision;
+
   // File comment
   char * mFileComment;
 

@@ -260,6 +260,14 @@ const char * ctmGetString(CTMcontext aContext, CTMproperty aProperty);
 /// @see CTMmethod
 void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod);
 
+/// Set the vertex coordinate precision (only used by the MG2 compression
+/// method).
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aPrecision Fixed point precision. For instance, if this value is
+///             0.001, all coordinates will be rounded to three decimals.
+void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
+
 /// Set the file comment for the given OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().

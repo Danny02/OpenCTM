@@ -66,6 +66,7 @@ CTMcontext ctmNewContext(void)
   memset(self, 0, sizeof(_CTMcontext));
   self->mError = CTM_NO_ERROR;
   self->mMethod = CTM_METHOD_MG1;
+  self->mVertexPrecision = 0.001;
 
   return (CTMcontext) self;
 }
@@ -177,6 +178,25 @@ void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod)
 
   // Set method
   self->mMethod = aMethod;
+}
+
+//-----------------------------------------------------------------------------
+// ctmVertexPrecision()
+//-----------------------------------------------------------------------------
+void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Check arguments
+  if(aPrecision == 0.0)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Set method
+  self->mVertexPrecision = aPrecision;
 }
 
 //-----------------------------------------------------------------------------
