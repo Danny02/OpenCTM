@@ -169,8 +169,8 @@ static void _ctmSetupVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Store vertex properties in the sort vertex array
-    aSortVertices[i].x = self->mVertices[i * 3];;
-    aSortVertices[i].mGridIndex = _ctmPointToGridIdx(aGrid, &self->mVertices[i * 3]);;
+    aSortVertices[i].x = self->mVertices[i * 3];
+    aSortVertices[i].mGridIndex = _ctmPointToGridIdx(aGrid, &self->mVertices[i * 3]);
     aSortVertices[i].mOriginalIndex = i;
   }
 
@@ -378,7 +378,7 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
     deltaX = aIntVertices[i * 3];
     if(idx == prevGridIndex)
       deltaX += prevDeltaX;
-    self->mVertices[i * 3 + 1] = scale * deltaX + gridOrigin[1];
+    self->mVertices[i * 3] = scale * deltaX + gridOrigin[0];
     self->mVertices[i * 3 + 1] = scale * aIntVertices[i * 3 + 1] + gridOrigin[1];
     self->mVertices[i * 3 + 2] = scale * aIntVertices[i * 3 + 2] + gridOrigin[2];
 
