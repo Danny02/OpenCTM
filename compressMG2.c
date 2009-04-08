@@ -355,6 +355,39 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
 }
 
 //-----------------------------------------------------------------------------
+// _ctmRestoreVertices() - Calculate inverse derivatives of the vertices.
+//-----------------------------------------------------------------------------
+static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
+  CTMuint * aGridIndices, _CTMgrid * aGrid)
+{
+  CTMuint i, prevGridIndex, idx;
+  CTMfloat gridOrigin[3], scale;
+  CTMint deltaX, prevDeltaX;
+
+  scale = self->mVertexPrecision;
+
+  prevGridIndex = 0x7fffffff;
+  prevDeltaX = 0;
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    // Get grid box origin
+    idx = aGridIndices[i];
+    _ctmGridIdxToPoint(aGrid, idx, gridOrigin);
+
+    // Restore original point
+    deltaX = aIntVertices[i * 3];
+    if(idx == prevGridIndex)
+      deltaX += prevDeltaX;
+    self->mVertices[i * 3 + 1] = scale * deltaX + gridOrigin[1];
+    self->mVertices[i * 3 + 1] = scale * aIntVertices[i * 3 + 1] + gridOrigin[1];
+    self->mVertices[i * 3 + 2] = scale * aIntVertices[i * 3 + 2] + gridOrigin[2];
+
+    prevGridIndex = idx;
+    prevDeltaX = deltaX;
+  }
+}
+
+//-----------------------------------------------------------------------------
 // _ctmCompressMesh_MG2() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
 //-----------------------------------------------------------------------------
@@ -449,7 +482,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   printf("Grid indices: ");
 #endif
   _ctmStreamWrite(self, (void *) "GIDX", 4);
-  if(!_ctmStreamWritePackedInts(self, gridIndices, self->mVertexCount, 1))
+  if(!_ctmStreamWritePackedInts(self, (CTMint *) gridIndices, self->mVertexCount, 1))
   {
     free((void *) gridIndices);
     free((void *) sortVertices);
@@ -526,6 +559,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
   CTMuint * indices, * gridIndices, i;
+  CTMint * intVertices;
   _CTMgrid grid;
 
   // Read MG2-specific header information from the stream
@@ -577,18 +611,57 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     self->mError = CTM_FORMAT_ERROR;
     return CTM_FALSE;
   }
+  intVertices = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 3);
+  if(!intVertices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+  if(!_ctmStreamReadPackedInts(self, intVertices, self->mVertexCount, 3))
+  {
+    free((void *) intVertices);
+    return CTM_FALSE;
+  }
 
-  // FIXME!
+  // Read grid indices
+  if(_ctmStreamReadUINT(self) != FOURCC("GIDX"))
+  {
+    free((void *) intVertices);
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  gridIndices = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
+  if(!gridIndices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    free((void *) intVertices);
+    return CTM_FALSE;
+  }
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) gridIndices, self->mVertexCount, 1))
+  {
+    free((void *) gridIndices);
+    free((void *) intVertices);
+    return CTM_FALSE;
+  }
 
-  // Allocate memory for the indices
+  // Restore grid indices (deltas)
+  for(i = 1; i < self->mVertexCount; ++ i)
+    gridIndices[i] += gridIndices[i - 1];
+
+  // Restore vertices
+  _ctmRestoreVertices(self, intVertices, gridIndices, &grid);
+
+  // Free temporary grid indices & integer vertices
+  free((void *) gridIndices);
+  free((void *) intVertices);
+
+  // Read triangle indices
   indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
   if(!indices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-
-  // Read triangle indices
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
     self->mError = CTM_FORMAT_ERROR;
