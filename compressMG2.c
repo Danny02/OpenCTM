@@ -30,6 +30,11 @@
 #include "openctm.h"
 #include "internal.h"
 
+#define __DEBUG_
+#ifdef __DEBUG_
+#include <stdio.h>
+#endif
+
 //-----------------------------------------------------------------------------
 // _CTMgrid - 3D space subdivision grid.
 //-----------------------------------------------------------------------------
@@ -105,7 +110,7 @@ static CTMuint _ctmPointToGridIdx(_CTMgrid * aGrid, CTMfloat * aPoint)
 
   for(i = 0; i < 3; ++ i)
   {
-    idx[i] = floor(aPoint[i] / aGrid->mSize[i]);
+    idx[i] = floor((aPoint[i] - aGrid->mMin[i]) / aGrid->mSize[i]);
     if(idx[i] >= aGrid->mDivision[i])
       idx[i] = aGrid->mDivision[i] - 1;
   }
@@ -119,7 +124,7 @@ static CTMuint _ctmPointToGridIdx(_CTMgrid * aGrid, CTMfloat * aPoint)
 //-----------------------------------------------------------------------------
 static void _ctmGridIdxToPoint(_CTMgrid * aGrid, CTMuint aIdx, CTMfloat * aPoint)
 {
-  CTMuint gridIdx[3], zdiv, ydiv;
+  CTMuint gridIdx[3], zdiv, ydiv, i;
 
   zdiv = aGrid->mDivision[0] * aGrid->mDivision[1];
   ydiv = aGrid->mDivision[0];
@@ -130,9 +135,8 @@ static void _ctmGridIdxToPoint(_CTMgrid * aGrid, CTMuint aIdx, CTMfloat * aPoint
   aIdx -= gridIdx[1] * ydiv;
   gridIdx[0] = aIdx;
 
-  aPoint[0] = gridIdx[0] * aGrid->mSize[0];
-  aPoint[1] = gridIdx[1] * aGrid->mSize[1];
-  aPoint[2] = gridIdx[2] * aGrid->mSize[2];
+  for(i = 0; i < 3; ++ i)
+    aPoint[i] = gridIdx[i] * aGrid->mSize[i] + aGrid->mMin[i];
 }
 
 //-----------------------------------------------------------------------------
@@ -317,41 +321,36 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
 // reduce data entropy.
 //-----------------------------------------------------------------------------
 static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
-  _CTMsortvertex * aSortVertices, _CTMgrid * aGrid)
+   CTMint * aIntVertices, _CTMsortvertex * aSortVertices, _CTMgrid * aGrid)
 {
   CTMuint i, prevGridIndex, idx;
-  CTMfloat prevX, deltaX, deltaY, deltaZ, gridOrigin[3];
+  CTMfloat gridOrigin[3], scale;
+  CTMint deltaX, prevDeltaX;
+
+  // Vertex scaling factor
+  scale = 1.0 / self->mVertexPrecision;
 
   prevGridIndex = 0x7fffffff;
-  prevX = 0.0;
+  prevDeltaX = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get grid box origin
     idx = aSortVertices[i].mGridIndex;
     _ctmGridIdxToPoint(aGrid, idx, gridOrigin);
 
-    // Calculate delta-x
-    if(idx != prevGridIndex)
-    {
-      // New grid box -> delta to grid box edge
-      deltaX = aVertices[i * 3] - gridOrigin[0];
-      prevGridIndex = idx;
-    }
+    // Store delta to the grid box origin in the integer vertex array. For the
+    // X axis (which is sorted) we also do the delta to the previous coordinate
+    // in the box.
+    deltaX = round(scale * (aVertices[i * 3] - gridOrigin[0]));
+    if(idx == prevGridIndex)
+      aIntVertices[i * 3] = deltaX - prevDeltaX;
     else
-    {
-      // Same grid box -> delta to previous sample in the box
-      deltaX = aVertices[i * 3] - prevX;
-    }
-    prevX = aVertices[i * 3];
+      aIntVertices[i * 3] = deltaX;
+    aIntVertices[i * 3 + 1] = round(scale * (aVertices[i * 3 + 1] - gridOrigin[1]));
+    aIntVertices[i * 3 + 2] = round(scale * (aVertices[i * 3 + 2] - gridOrigin[2]));
 
-    // Calculate delta-y and delta-z (to grid box edge)
-    deltaY = aVertices[i * 3 + 1] - gridOrigin[1];
-    deltaZ = aVertices[i * 3 + 2] - gridOrigin[2];
-
-    // Store delta in vertex array
-    aVertices[i * 3] = deltaX;
-    aVertices[i * 3 + 1] = deltaY;
-    aVertices[i * 3 + 2] = deltaZ;
+    prevGridIndex = idx;
+    prevDeltaX = deltaX;
   }
 }
 
@@ -363,11 +362,31 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 {
   _CTMgrid grid;
   _CTMsortvertex * sortVertices;
-  CTMuint * indices;
+  CTMuint * indices, * gridIndices;
   CTMfloat * vertices;
+  CTMint * intVertices;
+  CTMuint i;
+
+#ifdef __DEBUG_
+  printf("COMPRESSION METHOD: MG2\n");
+#endif
 
   // Setup 3D space subdivision grid
   _ctmSetupGrid(self, &grid);
+
+  // Write MG2-specific header information to the stream
+  _ctmStreamWrite(self, (void *) "HEAD", 4);
+  _ctmStreamWriteUINT(self, 1); // MG2 header format version
+  _ctmStreamWriteFLOAT(self, self->mVertexPrecision);
+  _ctmStreamWriteFLOAT(self, grid.mMin[0]);
+  _ctmStreamWriteFLOAT(self, grid.mMin[1]);
+  _ctmStreamWriteFLOAT(self, grid.mMin[2]);
+  _ctmStreamWriteFLOAT(self, grid.mMax[0]);
+  _ctmStreamWriteFLOAT(self, grid.mMax[1]);
+  _ctmStreamWriteFLOAT(self, grid.mMax[2]);
+  _ctmStreamWriteUINT(self, grid.mDivision[0]);
+  _ctmStreamWriteUINT(self, grid.mDivision[1]);
+  _ctmStreamWriteUINT(self, grid.mDivision[2]);
 
   // Prepare (sort) vertices
   sortVertices = (_CTMsortvertex *) malloc(sizeof(_CTMsortvertex) * self->mVertexCount);
@@ -377,7 +396,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     return 0;
   }
   vertices = (CTMfloat *) malloc(sizeof(CTMfloat) * 3 * self->mVertexCount);
-  if(!sortVertices)
+  if(!vertices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
     free((void *) sortVertices);
@@ -385,45 +404,121 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   }
   _ctmSetupVertices(self, sortVertices, vertices, &grid);
 
-  // Perpare (sort) indices
-  indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
-  if(!indices)
+  // Convert vertices to integers and calculate vertex deltas (entropy-reduction)
+  intVertices = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
+  if(!intVertices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
     free((void *) vertices);
     free((void *) sortVertices);
     return 0;
   }
+  _ctmMakeVertexDeltas(self, vertices, intVertices, sortVertices, &grid);
+
+  // Prepare grid indices (deltas)
+  gridIndices = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
+  if(!gridIndices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    free((void *) intVertices);
+    free((void *) vertices);
+    free((void *) sortVertices);
+    return 0;
+  }
+  gridIndices[0] = sortVertices[0].mGridIndex;
+  for(i = 1; i < self->mVertexCount; ++ i)
+    gridIndices[i] = sortVertices[i].mGridIndex - sortVertices[i - 1].mGridIndex;
+  
+  // Write grid indices
+#ifdef __DEBUG_
+  printf("Grid indices: ");
+#endif
+  _ctmStreamWrite(self, (void *) "GIDX", 4);
+  if(!_ctmStreamWritePackedInts(self, gridIndices, self->mVertexCount, 1))
+  {
+    free((void *) gridIndices);
+    free((void *) intVertices);
+    free((void *) vertices);
+    free((void *) sortVertices);
+    return CTM_FALSE;
+  }
+
+  // Free temporary grid indices
+  free((void *) gridIndices);
+
+  // Write vertices
+#ifdef __DEBUG_
+  printf("Vertices: ");
+#endif
+  _ctmStreamWrite(self, (void *) "VERT", 4);
+  if(!_ctmStreamWritePackedInts(self, intVertices, self->mVertexCount, 3))
+  {
+    free((void *) intVertices);
+    free((void *) vertices);
+    free((void *) sortVertices);
+    return CTM_FALSE;
+  }
+
+  // Free temporary data for the vertices
+  free((void *) intVertices);
+  free((void *) vertices);
+
+  // Perpare (sort) indices
+  indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
+  if(!indices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    free((void *) sortVertices);
+    return 0;
+  }
   if(!_ctmReIndexIndices(self, sortVertices, indices))
   {
     free((void *) indices);
-    free((void *) vertices);
     free((void *) sortVertices);
     return 0;
   }
   _ctmReArrangeTriangles(self, indices);
 
-  // Calculate vertex deltas (entropy-reduction)
-  _ctmMakeVertexDeltas(self, vertices, sortVertices, &grid);
-
-  // Convert vertices to integers (entropy-reduction)
-  // ...
-
   // Calculate index deltas (entropy-reduction)
   _ctmMakeIndexDeltas(self, indices);
 
-  // Save data to the stream... (TEMPORARY HACK)
-  _ctmStreamWrite(self, (void *) "VERT", 4);
-  _ctmStreamWrite(self, (void *) &self->mVertexCount, 4);
-  _ctmStreamWrite(self, (void *) vertices, sizeof(CTMfloat) * 3 * self->mVertexCount);
+  // Write triangle indices
+#ifdef __DEBUG_
+  printf("Indices: ");
+#endif
   _ctmStreamWrite(self, (void *) "INDX", 4);
-  _ctmStreamWrite(self, (void *) &self->mTriangleCount, 4);
-  _ctmStreamWrite(self, (void *) indices, sizeof(CTMuint) * self->mTriangleCount * 3);
+  if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
+  {
+    free((void *) indices);
+    free((void *) sortVertices);
+    return CTM_FALSE;
+  }
 
-  // Free temporary resources
+  // Free temporary data for the indices
   free((void *) indices);
-  free((void *) vertices);
   free((void *) sortVertices);
+
+  // Write texture coordintes (TEMPORARY HACK: no entropy reduction yet)
+  if(self->mTexCoords)
+  {
+#ifdef __DEBUG_
+    printf("Texture coordinates: ");
+#endif
+    _ctmStreamWrite(self, (void *) "TEXC", 4);
+    if(!_ctmStreamWritePackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
+      return CTM_FALSE;
+  }
+
+  // Write normals (TEMPORARY HACK: no entropy reduction yet)
+  if(self->mNormals)
+  {
+#ifdef __DEBUG_
+    printf("Normals: ");
+#endif
+    _ctmStreamWrite(self, (void *) "NORM", 4);
+    if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
+      return CTM_FALSE;
+  }
 
   return 1;
 }

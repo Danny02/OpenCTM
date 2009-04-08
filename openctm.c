@@ -577,7 +577,7 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
       break;
 
     case CTM_METHOD_MG2:
-      _ctmCompressMesh_MG1(self);
+      _ctmCompressMesh_MG2(self);
       break;
   }
 }

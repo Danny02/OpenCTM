@@ -31,6 +31,11 @@
 #include "openctm.h"
 #include "internal.h"
 
+#define __DEBUG_
+#ifdef __DEBUG_
+#include <stdio.h>
+#endif
+
 //-----------------------------------------------------------------------------
 // _ctmStreamRead() - Read data from a stream.
 //-----------------------------------------------------------------------------
@@ -302,6 +307,10 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
     return CTM_FALSE;
   }
 
+#ifdef __DEBUG_
+  printf("%d->%d bytes\n", aCount * aSize * 4, bufSize);
+#endif
+
   // Write packed data size to the stream
   _ctmStreamWriteUINT(self, (CTMuint) bufSize);
 
@@ -461,6 +470,10 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
     free(packed);
     return CTM_FALSE;
   }
+
+#ifdef __DEBUG_
+  printf("%d->%d bytes\n", aCount * aSize * 4, bufSize);
+#endif
 
   // Write packed data size to the stream
   _ctmStreamWriteUINT(self, (CTMuint) bufSize);
