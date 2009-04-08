@@ -308,7 +308,7 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
   }
 
 #ifdef __DEBUG_
-  printf("%d->%d bytes\n", aCount * aSize * 4, bufSize);
+  printf("%d->%d bytes\n", aCount * aSize * 4, (int) bufSize);
 #endif
 
   // Write packed data size to the stream
@@ -472,7 +472,7 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
   }
 
 #ifdef __DEBUG_
-  printf("%d->%d bytes\n", aCount * aSize * 4, bufSize);
+  printf("%d->%d bytes\n", aCount * aSize * 4, (int) bufSize);
 #endif
 
   // Write packed data size to the stream

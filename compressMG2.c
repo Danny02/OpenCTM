@@ -341,13 +341,13 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
     // Store delta to the grid box origin in the integer vertex array. For the
     // X axis (which is sorted) we also do the delta to the previous coordinate
     // in the box.
-    deltaX = round(scale * (aVertices[i * 3] - gridOrigin[0]));
+    deltaX = floor(scale * (aVertices[i * 3] - gridOrigin[0]) + 0.5);
     if(idx == prevGridIndex)
       aIntVertices[i * 3] = deltaX - prevDeltaX;
     else
       aIntVertices[i * 3] = deltaX;
-    aIntVertices[i * 3 + 1] = round(scale * (aVertices[i * 3 + 1] - gridOrigin[1]));
-    aIntVertices[i * 3 + 2] = round(scale * (aVertices[i * 3 + 2] - gridOrigin[2]));
+    aIntVertices[i * 3 + 1] = floor(scale * (aVertices[i * 3 + 1] - gridOrigin[1]) + 0.5);
+    aIntVertices[i * 3 + 2] = floor(scale * (aVertices[i * 3 + 2] - gridOrigin[2]) + 0.5);
 
     prevGridIndex = idx;
     prevDeltaX = deltaX;
