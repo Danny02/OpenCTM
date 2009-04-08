@@ -175,14 +175,15 @@ void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue)
 int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
   CTMuint aCount, CTMuint aSize)
 {
-  CTMuint packedSize, unpackedSize, i, k;
+  size_t packedSize, unpackedSize;
+  CTMuint i, k;
   CTMint value;
   unsigned char * packed, * tmp;
   unsigned char props[5];
   int lzmaRes;
 
   // Read packed data size from the stream
-  packedSize = _ctmStreamReadUINT(self);
+  packedSize = (size_t) _ctmStreamReadUINT(self);
 
   // Read LZMA compression props from the stream
   _ctmStreamRead(self, (void *) props, 5);
@@ -207,8 +208,8 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
 
   // Uncompress
   unpackedSize = aCount * aSize * 4;
-  lzmaRes = LzmaUncompress(tmp, (size_t *) &unpackedSize, packed,
-                           (size_t *) &packedSize, props, 5);
+  lzmaRes = LzmaUncompress(tmp, &unpackedSize, packed,
+                           &packedSize, props, 5);
 
   // Free the packed array
   free(packed);
@@ -333,7 +334,8 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
 int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
   CTMuint aCount, CTMuint aSize)
 {
-  CTMuint packedSize, unpackedSize, i, k;
+  CTMuint i, k;
+  size_t packedSize, unpackedSize;
   union {
     CTMfloat f;
     CTMint i;
@@ -343,7 +345,7 @@ int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
   int lzmaRes;
 
   // Read packed data size from the stream
-  packedSize = _ctmStreamReadUINT(self);
+  packedSize = (size_t) _ctmStreamReadUINT(self);
 
   // Read LZMA compression props from the stream
   _ctmStreamRead(self, (void *) props, 5);
@@ -368,8 +370,8 @@ int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
 
   // Uncompress
   unpackedSize = aCount * aSize * 4;
-  lzmaRes = LzmaUncompress(tmp, (size_t *) &unpackedSize, packed,
-                           (size_t *) &packedSize, props, 5);
+  lzmaRes = LzmaUncompress(tmp, &unpackedSize, packed,
+                           &packedSize, props, 5);
 
   // Free the packed array
   free(packed);
