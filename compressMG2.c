@@ -393,14 +393,14 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   if(!sortVertices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
-    return 0;
+    return CTM_FALSE;
   }
   vertices = (CTMfloat *) malloc(sizeof(CTMfloat) * 3 * self->mVertexCount);
   if(!vertices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
     free((void *) sortVertices);
-    return 0;
+    return CTM_FALSE;
   }
   _ctmSetupVertices(self, sortVertices, vertices, &grid);
 
@@ -411,40 +411,9 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     self->mError = CTM_OUT_OF_MEMORY;
     free((void *) vertices);
     free((void *) sortVertices);
-    return 0;
-  }
-  _ctmMakeVertexDeltas(self, vertices, intVertices, sortVertices, &grid);
-
-  // Prepare grid indices (deltas)
-  gridIndices = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
-  if(!gridIndices)
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
-    free((void *) intVertices);
-    free((void *) vertices);
-    free((void *) sortVertices);
-    return 0;
-  }
-  gridIndices[0] = sortVertices[0].mGridIndex;
-  for(i = 1; i < self->mVertexCount; ++ i)
-    gridIndices[i] = sortVertices[i].mGridIndex - sortVertices[i - 1].mGridIndex;
-  
-  // Write grid indices
-#ifdef __DEBUG_
-  printf("Grid indices: ");
-#endif
-  _ctmStreamWrite(self, (void *) "GIDX", 4);
-  if(!_ctmStreamWritePackedInts(self, gridIndices, self->mVertexCount, 1))
-  {
-    free((void *) gridIndices);
-    free((void *) intVertices);
-    free((void *) vertices);
-    free((void *) sortVertices);
     return CTM_FALSE;
   }
-
-  // Free temporary grid indices
-  free((void *) gridIndices);
+  _ctmMakeVertexDeltas(self, vertices, intVertices, sortVertices, &grid);
 
   // Write vertices
 #ifdef __DEBUG_
@@ -463,19 +432,46 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   free((void *) intVertices);
   free((void *) vertices);
 
+  // Prepare grid indices (deltas)
+  gridIndices = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
+  if(!gridIndices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    free((void *) sortVertices);
+    return CTM_FALSE;
+  }
+  gridIndices[0] = sortVertices[0].mGridIndex;
+  for(i = 1; i < self->mVertexCount; ++ i)
+    gridIndices[i] = sortVertices[i].mGridIndex - sortVertices[i - 1].mGridIndex;
+  
+  // Write grid indices
+#ifdef __DEBUG_
+  printf("Grid indices: ");
+#endif
+  _ctmStreamWrite(self, (void *) "GIDX", 4);
+  if(!_ctmStreamWritePackedInts(self, gridIndices, self->mVertexCount, 1))
+  {
+    free((void *) gridIndices);
+    free((void *) sortVertices);
+    return CTM_FALSE;
+  }
+
+  // Free temporary grid indices
+  free((void *) gridIndices);
+
   // Perpare (sort) indices
   indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
   if(!indices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
     free((void *) sortVertices);
-    return 0;
+    return CTM_FALSE;
   }
   if(!_ctmReIndexIndices(self, sortVertices, indices))
   {
     free((void *) indices);
     free((void *) sortVertices);
-    return 0;
+    return CTM_FALSE;
   }
   _ctmReArrangeTriangles(self, indices);
 
@@ -520,7 +516,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
       return CTM_FALSE;
   }
 
-  return 1;
+  return CTM_TRUE;
 }
 
 //-----------------------------------------------------------------------------
@@ -529,6 +525,117 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
+  CTMuint * indices, * gridIndices, i;
+  _CTMgrid grid;
+
+  // Read MG2-specific header information from the stream
+  if(_ctmStreamReadUINT(self) != FOURCC("HEAD"))
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  if(_ctmStreamReadUINT(self) != 1) // MG2 header format version
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  self->mVertexPrecision = _ctmStreamReadFLOAT(self);
+  if(self->mVertexPrecision == 0.0)
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  grid.mMin[0] = _ctmStreamReadFLOAT(self);
+  grid.mMin[1] = _ctmStreamReadFLOAT(self);
+  grid.mMin[2] = _ctmStreamReadFLOAT(self);
+  grid.mMax[0] = _ctmStreamReadFLOAT(self);
+  grid.mMax[1] = _ctmStreamReadFLOAT(self);
+  grid.mMax[2] = _ctmStreamReadFLOAT(self);
+  if((grid.mMax[0] < grid.mMin[0]) ||
+     (grid.mMax[1] < grid.mMin[1]) ||
+     (grid.mMax[2] < grid.mMin[2]))
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  grid.mDivision[0] = _ctmStreamReadUINT(self);
+  grid.mDivision[1] = _ctmStreamReadUINT(self);
+  grid.mDivision[2] = _ctmStreamReadUINT(self);
+  if((grid.mDivision[0] < 1) || (grid.mDivision[1] < 1) || (grid.mDivision[2] < 1))
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+
+  // Initialize 3D space subdivision grid
+  for(i = 0; i < 3; ++ i)
+    grid.mSize[i] = (grid.mMax[i] - grid.mMin[i]) / grid.mDivision[i];
+
+  // Read vertices
+  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+
   // FIXME!
-  return 0;
+
+  // Allocate memory for the indices
+  indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
+  if(!indices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+
+  // Read triangle indices
+  if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    free(indices);
+    return CTM_FALSE;
+  }
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
+  {
+    free((void *) indices);
+    return CTM_FALSE;
+  }
+
+  // Restore indices
+  _ctmRestoreIndices(self, indices);
+  for(i = 0; i < self->mTriangleCount * 3; ++ i)
+    self->mIndices[i] = indices[i];
+
+  // Free temporary indices
+  free(indices);
+
+  // Read texture coordintes (TEMPORARY HACK: no entropy reduction yet)
+  if(self->mTexCoords)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return CTM_FALSE;
+    }
+    if(!_ctmStreamReadPackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
+    {
+      return CTM_FALSE;
+    }
+  }
+
+  // Read normals (TEMPORARY HACK: no entropy reduction yet)
+  if(self->mNormals)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return CTM_FALSE;
+    }
+    if(!_ctmStreamReadPackedFloats(self, self->mNormals, self->mVertexCount, 3))
+    {
+      return CTM_FALSE;
+    }
+  }
+
+  return CTM_TRUE;
 }
