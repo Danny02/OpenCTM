@@ -70,6 +70,7 @@ typedef struct {
 static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
 {
   CTMuint i;
+  CTMfloat factor[3], sum, wantedGrids;
 
   // Calculate the mesh bounding box
   aGrid->mMin[0] = aGrid->mMax[0] = self->mVertices[0];
@@ -91,10 +92,33 @@ static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
       aGrid->mMax[2] = self->mVertices[i * 3 + 2];
   }
 
-  // Determine grid resolution
-  aGrid->mDivision[0] = 64;
-  aGrid->mDivision[1] = 64;
-  aGrid->mDivision[2] = 64;
+  // Determine optimal grid resolution, based on the number of vertices and
+  // the bounding box
+  for(i = 0; i < 3; ++ i)
+    factor[i] = aGrid->mMax[i] - aGrid->mMin[i];
+  sum = factor[0] + factor[1] + factor[2];
+  if(sum > 1e-30)
+  {
+    sum = 1.0 / sum;
+    for(i = 0; i < 3; ++ i)
+      factor[i] *= sum;
+    wantedGrids = pow(100.0 * self->mVertexCount, 1.0 / 3.0);
+    for(i = 0; i < 3; ++ i)
+    {
+      aGrid->mDivision[i] = ceil(wantedGrids * factor[i]);
+      if(aGrid->mDivision[i] < 1)
+        aGrid->mDivision[i] = 1;
+    }
+  }
+  else
+  {
+    aGrid->mDivision[0] = 4;
+    aGrid->mDivision[1] = 4;
+    aGrid->mDivision[2] = 4;
+  }
+#ifdef __DEBUG_
+  printf("Division: (%d %d %d)\n", aGrid->mDivision[0], aGrid->mDivision[1], aGrid->mDivision[2]);
+#endif
 
   // Calculate grid sizes
   for(i = 0; i < 3; ++ i)
