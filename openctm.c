@@ -66,7 +66,8 @@ CTMcontext ctmNewContext(void)
   memset(self, 0, sizeof(_CTMcontext));
   self->mError = CTM_NO_ERROR;
   self->mMethod = CTM_METHOD_MG1;
-  self->mVertexPrecision = 0.001;
+  self->mVertexPrecision = 1.0 / 1024.0;
+  self->mTexCoordPrecision = 1.0 / 4096.0;
 
   return (CTMcontext) self;
 }
@@ -189,7 +190,7 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
   if(!self) return;
 
   // Check arguments
-  if(aPrecision == 0.0)
+  if(aPrecision <= 0.0)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
@@ -197,6 +198,25 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
 
   // Set method
   self->mVertexPrecision = aPrecision;
+}
+
+//-----------------------------------------------------------------------------
+// ctmTexCoordPrecision()
+//-----------------------------------------------------------------------------
+void ctmTexCoordPrecision(CTMcontext aContext, CTMfloat aPrecision)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Check arguments
+  if(aPrecision <= 0.0)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Set method
+  self->mTexCoordPrecision = aPrecision;
 }
 
 //-----------------------------------------------------------------------------

@@ -68,7 +68,7 @@ clean:
 	$(RM) $(STATICLIB) $(OBJS) $(LZMA_OBJS)
 
 docs:
-	cd docs && $(DOXYGEN) && cd ..
+	cd doc && $(DOXYGEN) && cd ..
 
 tools:
 	cd tools && $(MAKE) /nologo /f Makefile.msvc && cd ..

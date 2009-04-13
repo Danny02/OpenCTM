@@ -69,7 +69,7 @@ clean:
 	$(RM) $(STATICLIB) $(OBJS) $(LZMA_OBJS)
 
 docs:
-	cd docs && $(DOXYGEN) && cd ..
+	cd doc && $(DOXYGEN) && cd ..
 
 tools:
 	cd tools && $(MAKE) -f Makefile.macosx -j2 && cd ..

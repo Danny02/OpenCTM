@@ -265,8 +265,18 @@ void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod);
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aPrecision Fixed point precision. For instance, if this value is
-///             0.001, all coordinates will be rounded to three decimals.
+///             0.001, all vertex coordinates will be rounded to three decimals.
+///             The default vertex coordinate precision is 2^-10 ~= 0.00098.
 void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
+
+/// Set the texture coordinate precision (only used by the MG2 compression
+/// method).
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aPrecision Fixed point precision. For instance, if this value is
+///             0.001, all texture coordinates will be rounded to three decimals.
+///             The default texture coordinate precision is 2^-12 ~= 0.00024.
+void ctmTexCoordPrecision(CTMcontext aContext, CTMfloat aPrecision);
 
 /// Set the file comment for the given OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
