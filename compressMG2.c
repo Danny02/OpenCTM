@@ -413,20 +413,16 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
 static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
   _CTMsortvertex * aSortVertices)
 {
- CTMuint i, gridIdx, prevGridIdx, oldIdx;
+ CTMuint i, oldIdx;
  CTMint u, v, prevU, prevV;
  CTMfloat scale;
 
   // Texture coordinate scaling factor
   scale = 1.0 / self->mTexCoordPrecision;
 
-  prevGridIdx = 0x7fffffff;
   prevU = prevV = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    // Get grid box index
-    gridIdx = aSortVertices[i].mGridIndex;
-
     // Get old texture coordinate index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
@@ -434,21 +430,12 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
     u = floor(scale * self->mTexCoords[oldIdx * 2] + 0.5);
     v = floor(scale * self->mTexCoords[oldIdx * 2 + 1] + 0.5);
 
-    // Calculate delta (when feasible) and store it in the converted array
-    if(gridIdx == prevGridIdx)
-    {
-      aIntTexCoords[i * 2] = u - prevU;
-      aIntTexCoords[i * 2 + 1] = v - prevV;
-    }
-    else
-    {
-      aIntTexCoords[i * 2] = u;
-      aIntTexCoords[i * 2 + 1] = v;
-    }
+    // Calculate delta and store it in the converted array
+    aIntTexCoords[i * 2] = u - prevU;
+    aIntTexCoords[i * 2 + 1] = v - prevV;
 
     prevU = u;
     prevV = v;
-    prevGridIdx = gridIdx;
   }
 }
 
@@ -456,34 +443,21 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
 // _ctmRestoreTexCoords() - Calculate inverse derivatives of the texture
 // coordinates.
 //-----------------------------------------------------------------------------
-static void _ctmRestoreTexCoords(_CTMcontext * self, CTMint * aIntTexCoords,
-  CTMuint * aGridIndices)
+static void _ctmRestoreTexCoords(_CTMcontext * self, CTMint * aIntTexCoords)
 {
  CTMuint i;
- CTMint u, v, idx, prevIdx, prevU, prevV;
+ CTMint u, v, prevU, prevV;
  CTMfloat scale;
 
   // Texture coordinate scaling factor
   scale = self->mTexCoordPrecision;
 
-  prevIdx = 0x7fffffff;
   prevU = prevV = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    // Get grid box index
-    idx = aGridIndices[i];
-
-    // Calculate inverse delta (when feasible)
-    if(idx == prevIdx)
-    {
-      u = aIntTexCoords[i * 2] + prevU;
-      v = aIntTexCoords[i * 2 + 1] + prevV;
-    }
-    else
-    {
-      u = aIntTexCoords[i * 2];
-      v = aIntTexCoords[i * 2 + 1];
-    }
+    // Calculate inverse delta
+    u = aIntTexCoords[i * 2] + prevU;
+    v = aIntTexCoords[i * 2 + 1] + prevV;
 
     // Convert to floating point
     self->mTexCoords[i * 2] = (CTMfloat) u * scale;
@@ -491,7 +465,6 @@ static void _ctmRestoreTexCoords(_CTMcontext * self, CTMint * aIntTexCoords,
 
     prevU = u;
     prevV = v;
-    prevIdx = idx;
   }
 }
 
@@ -835,7 +808,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
 
     // Restore texture coordinates
-    _ctmRestoreTexCoords(self, intTexCoords, gridIndices);
+    _ctmRestoreTexCoords(self, intTexCoords);
 
     // Free temporary texture coordinate data
     free((void *) intTexCoords);
