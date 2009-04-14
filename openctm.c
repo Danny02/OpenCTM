@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include "openctm.h"
 #include "internal.h"
 
@@ -196,8 +197,53 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
     return;
   }
 
-  // Set method
+  // Set precision
   self->mVertexPrecision = aPrecision;
+}
+
+//-----------------------------------------------------------------------------
+// ctmVertexPrecisionRel()
+//-----------------------------------------------------------------------------
+void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  CTMfloat avgEdgeLength, * p1, * p2;
+  CTMuint edgeCount, i, j;
+  if(!self) return;
+
+  // Check arguments
+  if(aRelPrecision <= 0.0)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Calculate the average edge length (Note: we actually sum up all the half-
+  // edges, so in a proper solid mesh all connected edges are counted twice)
+  avgEdgeLength = 0.0;
+  edgeCount = 0;
+  for(i = 0; i < self->mTriangleCount; ++ i)
+  {
+    p1 = &self->mVertices[self->mIndices[i * 3 + 2] * 3];
+    for(j = 0; j < 3; ++ j)
+    {
+      p2 = &self->mVertices[self->mIndices[i * 3 + j] * 3];
+      avgEdgeLength += sqrt((p2[0] - p1[0]) * (p2[0] - p1[0]) +
+                            (p2[1] - p1[1]) * (p2[1] - p1[1]) +
+                            (p2[2] - p1[2]) * (p2[2] - p1[2]));
+      p1 = p2;
+      ++ edgeCount;
+    }
+  }
+  if(edgeCount == 0)
+  {
+    self->mError = CTM_INVALID_MESH;
+    return;
+  }
+  avgEdgeLength /= (CTMfloat) edgeCount;
+
+  // Set precision
+  self->mVertexPrecision = aRelPrecision * avgEdgeLength;
 }
 
 //-----------------------------------------------------------------------------
@@ -215,7 +261,7 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMfloat aPrecision)
     return;
   }
 
-  // Set method
+  // Set precision
   self->mTexCoordPrecision = aPrecision;
 }
 

@@ -129,7 +129,9 @@ void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
     CheckCTMError(ctm);
 
     // Export file
-    ctmCompressionMethod(ctm, CTM_METHOD_MG1);
+    ctmCompressionMethod(ctm, CTM_METHOD_MG2);
+    CheckCTMError(ctm);
+    ctmVertexPrecisionRel(ctm, 0.01);
     CheckCTMError(ctm);
     ctmSave(ctm, aFileName.c_str());
     CheckCTMError(ctm);

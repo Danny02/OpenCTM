@@ -269,6 +269,20 @@ void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod);
 ///             The default vertex coordinate precision is 2^-10 ~= 0.00098.
 void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
 
+/// Set the vertex coordinate precision, relative to the mesh dimensions (only
+/// used by the MG2 compression method).
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aRelPrecision Relative precision. This factor is multiplied by the
+///            average triangle edge length in the mesh in order to obtain the
+///            final, fixed point precision. For instance, if aRelPrecision is 
+///            0.01, and the average edge length is 3.7, then the fixed point
+///            precision is set to 0.037.
+/// @note The mesh must have been devined using the ctmDefineMesh() function
+///       before calling this function.
+/// @see ctmVertexPrecision().
+void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision);
+
 /// Set the texture coordinate precision (only used by the MG2 compression
 /// method).
 /// @param[in] aContext An OpenCTM context that has been created by
