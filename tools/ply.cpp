@@ -39,9 +39,31 @@ Vector3f ParseVertex(string &aString, int aX, int aY, int aZ)
     if(i == aX)
       result.x = value;
     else if(i == aY)
-      result.z = value;
+      result.y = value;
     else if(i == aZ)
-      result.y = -value;
+      result.z = value;
+  }
+
+  return result;
+}
+
+/// Parse texture coordinates from a vertexs string.
+Vector2f ParseTexCoord(string &aString, int aS, int aT)
+{
+  int maxPos = aS;
+  if(aT > maxPos) maxPos = aT;
+
+  Vector2f result;
+
+  istringstream sstr(aString);
+  for(int i = 0; i <= maxPos; ++ i)
+  {
+    float value;
+    sstr >> value;
+    if(i == aS)
+      result.x = value;
+    else if(i == aT)
+      result.y = value;
   }
 
   return result;
@@ -61,15 +83,17 @@ void ParseFace(string &aString, int &aIdx1, int &aIdx2, int &aIdx3)
 }
 
 /// Import a PLY file from a stream.
-void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices)
+void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices,
+  vector<Vector2f> &aTexCoords)
 {
   // Clear the mesh
   aPoints.clear();
+  aTexCoords.clear();
   aIndices.clear();
 
   // Read header
   unsigned int count, vertexCount = 0, faceCount = 0;
-  int xPos = -1, yPos = -1, zPos = -1, propCnt = 0;
+  int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, propCnt = 0;
   string elementType("");
   string str;
   getline(aStream, str);
@@ -110,6 +134,10 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
           yPos = propCnt;
         else if(porpName == string("z"))
           zPos = propCnt;
+        else if(porpName == string("s"))
+          sPos = propCnt;
+        else if(porpName == string("t"))
+          tPos = propCnt;
       }
       else if(elementType == string("face"))
       {
@@ -137,10 +165,14 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
 
   // Read vertices
   aPoints.resize(vertexCount);
+  if(sPos >= 0)
+    aTexCoords.resize(vertexCount);
   for(unsigned int i = 0; i < vertexCount; ++ i)
   {
     getline(aStream, str);
     aPoints[i] = ParseVertex(str, xPos, yPos, zPos);
+    if(sPos >= 0)
+      aTexCoords[i] = ParseTexCoord(str, sPos, tPos);
   }
 
   // Read faces
@@ -157,7 +189,8 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
 }
 
 /// Export a PLY file to a stream.
-void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices)
+void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices,
+  vector<Vector2f> &aTexCoords)
 {
   // Write header
   aStream << "ply" << endl;
@@ -166,15 +199,26 @@ void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
   aStream << "property float x" << endl;
   aStream << "property float y" << endl;
   aStream << "property float z" << endl;
+  if(aTexCoords.size() > 0)
+  {
+    aStream << "property float s" << endl;
+    aStream << "property float t" << endl;
+  }
   aStream << "element face " << aIndices.size() / 3 << endl;
   aStream << "property list uchar int vertex_indices" << endl;
   aStream << "end_header" << endl;
 
   // Write vertices
   for(unsigned int i = 0; i < aPoints.size(); ++ i)
+  {
     aStream << aPoints[i].x << " " <<
-               aPoints[i].z << " " <<
-               -aPoints[i].y << endl;
+               aPoints[i].y << " " <<
+               aPoints[i].z;
+    if(aTexCoords.size() > 0)
+      aStream << " " << aTexCoords[i].x << " " <<
+                 aTexCoords[i].y;
+    aStream << endl;
+  }
 
   // Write faces
   for(unsigned int i = 0; i < aIndices.size() / 3; ++ i)
