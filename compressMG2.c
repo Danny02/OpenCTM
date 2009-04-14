@@ -412,6 +412,92 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
 }
 
 //-----------------------------------------------------------------------------
+// _ctmMakeTexCoordDeltas() - Calculate various forms of derivatives in order
+// to reduce data entropy.
+//-----------------------------------------------------------------------------
+static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
+  _CTMsortvertex * aSortVertices)
+{
+ CTMuint i;
+ CTMint u, v, idx, prevIdx, prevU, prevV;
+ CTMfloat scale;
+
+  // Texture coordinate scaling factor
+  scale = 1.0 / self->mTexCoordPrecision;
+
+  prevIdx = 0x7fffffff;
+  prevU = prevV = 0;
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    // Get grid box index
+    idx = aSortVertices[i].mGridIndex;
+
+    // Convert to fixed point
+    u = floor(scale * self->mTexCoords[i * 2] + 0.5);
+    v = floor(scale * self->mTexCoords[i * 2 + 1] + 0.5);
+
+    // Calculate delta (when feasible) and store it in the converted array
+    if(idx == prevIdx)
+    {
+      aIntTexCoords[i * 2] = u - prevU;
+      aIntTexCoords[i * 2 + 1] = v - prevV;
+    }
+    else
+    {
+      aIntTexCoords[i * 2] = u;
+      aIntTexCoords[i * 2 + 1] = v;
+    }
+
+    prevU = u;
+    prevV = v;
+    prevIdx = idx;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// _ctmRestoreTexCoords() - Calculate inverse derivatives of the texture
+// coordinates.
+//-----------------------------------------------------------------------------
+static void _ctmRestoreTexCoords(_CTMcontext * self, CTMint * aIntTexCoords,
+  CTMuint * aGridIndices)
+{
+ CTMuint i;
+ CTMint u, v, idx, prevIdx, prevU, prevV;
+ CTMfloat scale;
+
+  // Texture coordinate scaling factor
+  scale = self->mTexCoordPrecision;
+
+  prevIdx = 0x7fffffff;
+  prevU = prevV = 0;
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    // Get grid box index
+    idx = aGridIndices[i];
+
+    // Calculate inverse delta (when feasible)
+    if(idx == prevIdx)
+    {
+      u = aIntTexCoords[i * 2] + prevU;
+      v = aIntTexCoords[i * 2 + 1] + prevV;
+    }
+    else
+    {
+      u = aIntTexCoords[i * 2];
+      v = aIntTexCoords[i * 2 + 1];
+    }
+
+    // Convert to floating point
+    self->mTexCoords[i * 2] = (CTMfloat) u * scale;
+    self->mTexCoords[i * 2 + 1] = (CTMfloat) v * scale;
+
+    prevU = u;
+    prevV = v;
+    prevIdx = idx;
+  }
+}
+
+//-----------------------------------------------------------------------------
 // _ctmCompressMesh_MG2() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
 //-----------------------------------------------------------------------------
@@ -421,7 +507,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   _CTMsortvertex * sortVertices;
   CTMuint * indices, * gridIndices;
   CTMfloat * vertices;
-  CTMint * intVertices;
+  CTMint * intVertices, * intTexCoords;
   CTMuint i;
 
 #ifdef __DEBUG_
@@ -550,17 +636,33 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 
   // Free temporary data for the indices
   free((void *) indices);
-  free((void *) sortVertices);
 
-  // Write texture coordintes (TEMPORARY HACK: no entropy reduction yet)
   if(self->mTexCoords)
   {
+    // Convert texture coordinates to integers and calculate deltas (entropy-reduction)
+    intTexCoords = (CTMint *) malloc(sizeof(CTMint) * 2 * self->mVertexCount);
+    if(!intTexCoords)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      free((void *) sortVertices);
+      return CTM_FALSE;
+    }
+    _ctmMakeTexCoordDeltas(self, intTexCoords, sortVertices);
+
+    // Write texture coordinates
 #ifdef __DEBUG_
     printf("Texture coordinates: ");
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
-    if(!_ctmStreamWritePackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
+    if(!_ctmStreamWritePackedInts(self, intTexCoords, self->mVertexCount, 2))
+    {
+      free((void *) sortVertices);
+      free((void *) intTexCoords);
       return CTM_FALSE;
+    }
+
+    // Free temporary texture coordinate data
+    free((void *) intTexCoords);
   }
 
   // Write normals (TEMPORARY HACK: no entropy reduction yet)
@@ -571,8 +673,14 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
     if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
+    {
+      free((void *) sortVertices);
       return CTM_FALSE;
+    }
   }
+
+  // Free temporary data
+  free((void *) sortVertices);
 
   return CTM_TRUE;
 }
@@ -584,7 +692,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
   CTMuint * indices, * gridIndices, i;
-  CTMint * intVertices;
+  CTMint * intVertices, * intTexCoords;
   _CTMgrid grid;
 
   // Read MG2-specific header information from the stream
@@ -682,8 +790,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Restore vertices
   _ctmRestoreVertices(self, intVertices, gridIndices, &grid);
 
-  // Free temporary grid indices & integer vertices
-  free((void *) gridIndices);
+  // Free temporary integer vertices
   free((void *) intVertices);
 
   // Read triangle indices
@@ -691,17 +798,20 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   if(!indices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
+    free(gridIndices);
     return CTM_FALSE;
   }
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
     self->mError = CTM_FORMAT_ERROR;
     free(indices);
+    free(gridIndices);
     return CTM_FALSE;
   }
   if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
   {
     free((void *) indices);
+    free(gridIndices);
     return CTM_FALSE;
   }
 
@@ -713,18 +823,35 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Free temporary indices
   free(indices);
 
-  // Read texture coordintes (TEMPORARY HACK: no entropy reduction yet)
+  // Read texture coordintes
   if(self->mTexCoords)
   {
+    intTexCoords = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 2);
+    if(!indices)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      free((void *) gridIndices);
+      return CTM_FALSE;
+    }
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
     {
       self->mError = CTM_FORMAT_ERROR;
+      free((void *) intTexCoords);
+      free((void *) gridIndices);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
+    if(!_ctmStreamReadPackedInts(self, intTexCoords, self->mVertexCount, 2))
     {
+      free((void *) intTexCoords);
+      free((void *) gridIndices);
       return CTM_FALSE;
     }
+
+    // Restore texture coordinates
+    _ctmRestoreTexCoords(self, intTexCoords, gridIndices);
+
+    // Free temporary texture coordinate data
+    free((void *) intTexCoords);
   }
 
   // Read normals (TEMPORARY HACK: no entropy reduction yet)
@@ -733,13 +860,18 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
       self->mError = CTM_FORMAT_ERROR;
+      free((void *) gridIndices);
       return CTM_FALSE;
     }
     if(!_ctmStreamReadPackedFloats(self, self->mNormals, self->mVertexCount, 3))
     {
+      free((void *) gridIndices);
       return CTM_FALSE;
     }
   }
+
+  // Free temporary grid indices
+  free((void *) gridIndices);
 
   return CTM_TRUE;
 }
