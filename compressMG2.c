@@ -435,6 +435,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   _ctmStreamWrite(self, (void *) "HEAD", 4);
   _ctmStreamWriteUINT(self, 1); // MG2 header format version
   _ctmStreamWriteFLOAT(self, self->mVertexPrecision);
+  _ctmStreamWriteFLOAT(self, self->mTexCoordPrecision);
   _ctmStreamWriteFLOAT(self, grid.mMin[0]);
   _ctmStreamWriteFLOAT(self, grid.mMin[1]);
   _ctmStreamWriteFLOAT(self, grid.mMin[2]);
@@ -598,7 +599,13 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     return CTM_FALSE;
   }
   self->mVertexPrecision = _ctmStreamReadFLOAT(self);
-  if(self->mVertexPrecision == 0.0)
+  if(self->mVertexPrecision <= 0.0)
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  self->mTexCoordPrecision = _ctmStreamReadFLOAT(self);
+  if(self->mTexCoordPrecision <= 0.0)
   {
     self->mError = CTM_FORMAT_ERROR;
     return CTM_FALSE;
