@@ -181,11 +181,11 @@ static int _compareVertex(const void * elem1, const void * elem2)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmSetupVertices() - Setup the vertex array. Assign each vertex to a grid
+// _ctmSortVertices() - Setup the vertex array. Assign each vertex to a grid
 // box, and sort all vertices.
 //-----------------------------------------------------------------------------
-static void _ctmSetupVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
-  CTMfloat * aVertices, _CTMgrid * aGrid)
+static void _ctmSortVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
+  _CTMgrid * aGrid)
 {
   CTMuint i;
 
@@ -201,14 +201,6 @@ static void _ctmSetupVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices
   // Sort vertices. The elements are first sorted by their grid indices, and
   // scondly by their x coordinates.
   qsort((void *) aSortVertices, self->mVertexCount, sizeof(_CTMsortvertex), _compareVertex);
-
-  // Create new vertex array, with the sorted vertices
-  for(i = 0; i < self->mVertexCount; ++ i)
-  {
-    aVertices[i * 3] = self->mVertices[aSortVertices[i].mOriginalIndex * 3];
-    aVertices[i * 3 + 1] = self->mVertices[aSortVertices[i].mOriginalIndex * 3 + 1];
-    aVertices[i * 3 + 2] = self->mVertices[aSortVertices[i].mOriginalIndex * 3 + 2];
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -344,10 +336,10 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
 // _ctmMakeVertexDeltas() - Calculate various forms of derivatives in order to
 // reduce data entropy.
 //-----------------------------------------------------------------------------
-static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
-   CTMint * aIntVertices, _CTMsortvertex * aSortVertices, _CTMgrid * aGrid)
+static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
+  _CTMsortvertex * aSortVertices, _CTMgrid * aGrid)
 {
-  CTMuint i, prevGridIndex, idx;
+  CTMuint i, gridIdx, prevGridIndex, oldIdx;
   CTMfloat gridOrigin[3], scale;
   CTMint deltaX, prevDeltaX;
 
@@ -359,21 +351,24 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get grid box origin
-    idx = aSortVertices[i].mGridIndex;
-    _ctmGridIdxToPoint(aGrid, idx, gridOrigin);
+    gridIdx = aSortVertices[i].mGridIndex;
+    _ctmGridIdxToPoint(aGrid, gridIdx, gridOrigin);
+
+    // Get old vertex coordinate index (before vertex sorting)
+    oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Store delta to the grid box origin in the integer vertex array. For the
     // X axis (which is sorted) we also do the delta to the previous coordinate
     // in the box.
-    deltaX = floor(scale * (aVertices[i * 3] - gridOrigin[0]) + 0.5);
-    if(idx == prevGridIndex)
+    deltaX = floor(scale * (self->mVertices[oldIdx * 3] - gridOrigin[0]) + 0.5);
+    if(gridIdx == prevGridIndex)
       aIntVertices[i * 3] = deltaX - prevDeltaX;
     else
       aIntVertices[i * 3] = deltaX;
-    aIntVertices[i * 3 + 1] = floor(scale * (aVertices[i * 3 + 1] - gridOrigin[1]) + 0.5);
-    aIntVertices[i * 3 + 2] = floor(scale * (aVertices[i * 3 + 2] - gridOrigin[2]) + 0.5);
+    aIntVertices[i * 3 + 1] = floor(scale * (self->mVertices[oldIdx * 3 + 1] - gridOrigin[1]) + 0.5);
+    aIntVertices[i * 3 + 2] = floor(scale * (self->mVertices[oldIdx * 3 + 2] - gridOrigin[2]) + 0.5);
 
-    prevGridIndex = idx;
+    prevGridIndex = gridIdx;
     prevDeltaX = deltaX;
   }
 }
@@ -384,7 +379,7 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMfloat * aVertices,
 static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
   CTMuint * aGridIndices, _CTMgrid * aGrid)
 {
-  CTMuint i, prevGridIndex, idx;
+  CTMuint i, gridIdx, prevGridIndex;
   CTMfloat gridOrigin[3], scale;
   CTMint deltaX, prevDeltaX;
 
@@ -395,18 +390,18 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get grid box origin
-    idx = aGridIndices[i];
-    _ctmGridIdxToPoint(aGrid, idx, gridOrigin);
+    gridIdx = aGridIndices[i];
+    _ctmGridIdxToPoint(aGrid, gridIdx, gridOrigin);
 
     // Restore original point
     deltaX = aIntVertices[i * 3];
-    if(idx == prevGridIndex)
+    if(gridIdx == prevGridIndex)
       deltaX += prevDeltaX;
     self->mVertices[i * 3] = scale * deltaX + gridOrigin[0];
     self->mVertices[i * 3 + 1] = scale * aIntVertices[i * 3 + 1] + gridOrigin[1];
     self->mVertices[i * 3 + 2] = scale * aIntVertices[i * 3 + 2] + gridOrigin[2];
 
-    prevGridIndex = idx;
+    prevGridIndex = gridIdx;
     prevDeltaX = deltaX;
   }
 }
@@ -418,26 +413,29 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
 static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
   _CTMsortvertex * aSortVertices)
 {
- CTMuint i;
- CTMint u, v, idx, prevIdx, prevU, prevV;
+ CTMuint i, gridIdx, prevGridIdx, oldIdx;
+ CTMint u, v, prevU, prevV;
  CTMfloat scale;
 
   // Texture coordinate scaling factor
   scale = 1.0 / self->mTexCoordPrecision;
 
-  prevIdx = 0x7fffffff;
+  prevGridIdx = 0x7fffffff;
   prevU = prevV = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get grid box index
-    idx = aSortVertices[i].mGridIndex;
+    gridIdx = aSortVertices[i].mGridIndex;
+
+    // Get old texture coordinate index (before vertex sorting)
+    oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Convert to fixed point
-    u = floor(scale * self->mTexCoords[i * 2] + 0.5);
-    v = floor(scale * self->mTexCoords[i * 2 + 1] + 0.5);
+    u = floor(scale * self->mTexCoords[oldIdx * 2] + 0.5);
+    v = floor(scale * self->mTexCoords[oldIdx * 2 + 1] + 0.5);
 
     // Calculate delta (when feasible) and store it in the converted array
-    if(idx == prevIdx)
+    if(gridIdx == prevGridIdx)
     {
       aIntTexCoords[i * 2] = u - prevU;
       aIntTexCoords[i * 2 + 1] = v - prevV;
@@ -450,7 +448,7 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
 
     prevU = u;
     prevV = v;
-    prevIdx = idx;
+    prevGridIdx = gridIdx;
   }
 }
 
@@ -506,7 +504,6 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   _CTMgrid grid;
   _CTMsortvertex * sortVertices;
   CTMuint * indices, * gridIndices;
-  CTMfloat * vertices;
   CTMint * intVertices, * intTexCoords;
   CTMuint i;
 
@@ -539,25 +536,17 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-  vertices = (CTMfloat *) malloc(sizeof(CTMfloat) * 3 * self->mVertexCount);
-  if(!vertices)
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
-    free((void *) sortVertices);
-    return CTM_FALSE;
-  }
-  _ctmSetupVertices(self, sortVertices, vertices, &grid);
+  _ctmSortVertices(self, sortVertices, &grid);
 
   // Convert vertices to integers and calculate vertex deltas (entropy-reduction)
   intVertices = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
   if(!intVertices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
-    free((void *) vertices);
     free((void *) sortVertices);
     return CTM_FALSE;
   }
-  _ctmMakeVertexDeltas(self, vertices, intVertices, sortVertices, &grid);
+  _ctmMakeVertexDeltas(self, intVertices, sortVertices, &grid);
 
   // Write vertices
 #ifdef __DEBUG_
@@ -567,14 +556,12 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   if(!_ctmStreamWritePackedInts(self, intVertices, self->mVertexCount, 3))
   {
     free((void *) intVertices);
-    free((void *) vertices);
     free((void *) sortVertices);
     return CTM_FALSE;
   }
 
   // Free temporary data for the vertices
   free((void *) intVertices);
-  free((void *) vertices);
 
   // Prepare grid indices (deltas)
   gridIndices = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
