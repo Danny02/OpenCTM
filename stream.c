@@ -173,10 +173,10 @@ void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue)
 // from a stream, and uncompress it.
 //-----------------------------------------------------------------------------
 int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
-  CTMuint aCount, CTMuint aSize)
+  CTMuint aCount, CTMuint aSize, CTMint aSignedInts)
 {
   size_t packedSize, unpackedSize;
-  CTMuint i, k;
+  CTMuint i, k, x;
   CTMint value;
   unsigned char * packed, * tmp;
   unsigned char props[5];
@@ -231,6 +231,12 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
               (((CTMint) tmp[i + k * aCount + 2 * aCount * aSize]) << 8) |
               (((CTMint) tmp[i + k * aCount + aCount * aSize]) << 16) |
               (((CTMint) tmp[i + k * aCount]) << 24);
+      // Convert signed magnitude to two's complement?
+      if(aSignedInts)
+      {
+        x = (CTMuint) value;
+        value = (x & 1) ? -(CTMint)((x + 1) >> 1) : (CTMint)(x >> 1);
+      }
       aData[i * aSize + k] = value;
     }
   }
@@ -246,7 +252,7 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
 // write it to a stream.
 //-----------------------------------------------------------------------------
 int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
-  CTMuint aCount, CTMuint aSize)
+  CTMuint aCount, CTMuint aSize, CTMint aSignedInts)
 {
   int lzmaRes;
   CTMuint i, k;
@@ -268,6 +274,9 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
     for(k = 0; k < aSize; ++ k)
     {
       value = aData[i * aSize + k];
+      // Convert two's complement to signed magnitude?
+      if(aSignedInts)
+        value = value < 0 ? -1 - (value << 1) : value << 1;
       tmp[i + k * aCount + 3 * aCount * aSize] = value & 0x000000ff;
       tmp[i + k * aCount + 2 * aCount * aSize] = (value >> 8) & 0x000000ff;
       tmp[i + k * aCount + aCount * aSize] = (value >> 16) & 0x000000ff;

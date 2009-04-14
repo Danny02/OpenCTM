@@ -95,8 +95,8 @@ CTMfloat _ctmStreamReadFLOAT(_CTMcontext * self);
 void _ctmStreamWriteFLOAT(_CTMcontext * self, CTMfloat aValue);
 void _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue);
 void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue);
-int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize);
-int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize);
+int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
+int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
 int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
 int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
 

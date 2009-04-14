@@ -164,7 +164,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 
   // Write triangle indices
   _ctmStreamWrite(self, (void *) "INDX", 4);
-  if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
+  if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
   {
     free((void *) indices);
     return CTM_FALSE;
@@ -229,7 +229,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     free(indices);
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
   {
     free((void *) indices);
     return CTM_FALSE;

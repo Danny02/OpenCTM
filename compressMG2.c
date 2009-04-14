@@ -526,7 +526,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   printf("Vertices: ");
 #endif
   _ctmStreamWrite(self, (void *) "VERT", 4);
-  if(!_ctmStreamWritePackedInts(self, intVertices, self->mVertexCount, 3))
+  if(!_ctmStreamWritePackedInts(self, intVertices, self->mVertexCount, 3, CTM_FALSE))
   {
     free((void *) intVertices);
     free((void *) sortVertices);
@@ -553,7 +553,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   printf("Grid indices: ");
 #endif
   _ctmStreamWrite(self, (void *) "GIDX", 4);
-  if(!_ctmStreamWritePackedInts(self, (CTMint *) gridIndices, self->mVertexCount, 1))
+  if(!_ctmStreamWritePackedInts(self, (CTMint *) gridIndices, self->mVertexCount, 1, CTM_FALSE))
   {
     free((void *) gridIndices);
     free((void *) sortVertices);
@@ -587,7 +587,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   printf("Indices: ");
 #endif
   _ctmStreamWrite(self, (void *) "INDX", 4);
-  if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
+  if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
   {
     free((void *) indices);
     free((void *) sortVertices);
@@ -614,7 +614,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     printf("Texture coordinates: ");
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
-    if(!_ctmStreamWritePackedInts(self, intTexCoords, self->mVertexCount, 2))
+    if(!_ctmStreamWritePackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
     {
       free((void *) sortVertices);
       free((void *) intTexCoords);
@@ -716,7 +716,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedInts(self, intVertices, self->mVertexCount, 3))
+  if(!_ctmStreamReadPackedInts(self, intVertices, self->mVertexCount, 3, CTM_FALSE))
   {
     free((void *) intVertices);
     return CTM_FALSE;
@@ -736,7 +736,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     free((void *) intVertices);
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedInts(self, (CTMint *) gridIndices, self->mVertexCount, 1))
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) gridIndices, self->mVertexCount, 1, CTM_FALSE))
   {
     free((void *) gridIndices);
     free((void *) intVertices);
@@ -768,7 +768,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     free(gridIndices);
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3))
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
   {
     free((void *) indices);
     free(gridIndices);
@@ -800,7 +800,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       free((void *) gridIndices);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedInts(self, intTexCoords, self->mVertexCount, 2))
+    if(!_ctmStreamReadPackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
     {
       free((void *) intTexCoords);
       free((void *) gridIndices);
