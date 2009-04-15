@@ -10,6 +10,8 @@
 #include <windows.h>
 #endif
 
+#include "NameMangle.h"
+
 #define SZ_OK 0
 
 #define SZ_ERROR_DATA 1

@@ -33,7 +33,9 @@ Returns:
   SZ_ERROR_UNSUPPORTED - Unsupported properties
 */
 
+#ifndef LZMA_FOR_CTM
 SRes LzmaProps_Decode(CLzmaProps *p, const Byte *data, unsigned size);
+#endif /* LZMA_FOR_CTM */
 
 
 /* ---------- LZMA Decoder state ---------- */
@@ -66,7 +68,9 @@ typedef struct
 
 #define LzmaDec_Construct(p) { (p)->dic = 0; (p)->probs = 0; }
 
+#ifndef LZMA_FOR_CTM
 void LzmaDec_Init(CLzmaDec *p);
+#endif /* LZMA_FOR_CTM */
 
 /* There are two types of LZMA streams:
      0) Stream with end mark. That end mark adds about 6 bytes to compressed size.
@@ -126,12 +130,14 @@ LzmaDec_Allocate* can return:
   SZ_ERROR_MEM         - Memory allocation error
   SZ_ERROR_UNSUPPORTED - Unsupported properties
 */
-   
+
+#ifndef LZMA_FOR_CTM
 SRes LzmaDec_AllocateProbs(CLzmaDec *p, const Byte *props, unsigned propsSize, ISzAlloc *alloc);
 void LzmaDec_FreeProbs(CLzmaDec *p, ISzAlloc *alloc);
 
 SRes LzmaDec_Allocate(CLzmaDec *state, const Byte *prop, unsigned propsSize, ISzAlloc *alloc);
 void LzmaDec_Free(CLzmaDec *state, ISzAlloc *alloc);
+#endif /* LZMA_FOR_CTM */
 
 /* ---------- Dictionary Interface ---------- */
 
@@ -174,9 +180,10 @@ Returns:
   SZ_ERROR_DATA - Data error
 */
 
+#ifndef LZMA_FOR_CTM
 SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit,
     const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status);
-
+#endif /* LZMA_FOR_CTM */
 
 /* ---------- Buffer Interface ---------- */
 
@@ -191,9 +198,10 @@ finishMode:
   LZMA_FINISH_END - Stream must be finished after (*destLen).
 */
 
+#ifndef LZMA_FOR_CTM
 SRes LzmaDec_DecodeToBuf(CLzmaDec *p, Byte *dest, SizeT *destLen,
     const Byte *src, SizeT *srcLen, ELzmaFinishMode finishMode, ELzmaStatus *status);
-
+#endif /* LZMA_FOR_CTM */
 
 /* ---------- One Call Interface ---------- */
 
