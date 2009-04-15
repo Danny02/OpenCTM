@@ -27,10 +27,9 @@ typedef struct _CLzmaEncProps
 } CLzmaEncProps;
 
 void LzmaEncProps_Init(CLzmaEncProps *p);
-#ifndef LZMA_FOR_CTM
 void LzmaEncProps_Normalize(CLzmaEncProps *p);
 UInt32 LzmaEncProps_GetDictSize(const CLzmaEncProps *props2);
-#endif /* LZMA_FOR_CTM */
+
 
 /* ---------- CLzmaEncHandle Interface ---------- */
 
@@ -46,7 +45,6 @@ Returns:
 
 typedef void * CLzmaEncHandle;
 
-#ifndef LZMA_FOR_CTM
 CLzmaEncHandle LzmaEnc_Create(ISzAlloc *alloc);
 void LzmaEnc_Destroy(CLzmaEncHandle p, ISzAlloc *alloc, ISzAlloc *allocBig);
 SRes LzmaEnc_SetProps(CLzmaEncHandle p, const CLzmaEncProps *props);
@@ -55,7 +53,6 @@ SRes LzmaEnc_Encode(CLzmaEncHandle p, ISeqOutStream *outStream, ISeqInStream *in
     ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig);
 SRes LzmaEnc_MemEncode(CLzmaEncHandle p, Byte *dest, SizeT *destLen, const Byte *src, SizeT srcLen,
     int writeEndMark, ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig);
-#endif /* LZMA_FOR_CTM */
 
 /* ---------- One Call Interface ---------- */
 

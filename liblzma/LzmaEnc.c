@@ -50,9 +50,6 @@ void LzmaEncProps_Init(CLzmaEncProps *p)
   p->writeEndMark = 0;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEncProps_Normalize(CLzmaEncProps *p)
 {
   int level = p->level;
@@ -76,14 +73,12 @@ void LzmaEncProps_Normalize(CLzmaEncProps *p)
       #endif
 }
 
-#ifndef LZMA_FOR_CTM
 UInt32 LzmaEncProps_GetDictSize(const CLzmaEncProps *props2)
 {
   CLzmaEncProps props = *props2;
   LzmaEncProps_Normalize(&props);
   return props.dictSize;
 }
-#endif /* LZMA_FOR_CTM */
 
 /* #define LZMA_LOG_BSR */
 /* Define it for Intel's CPU */
@@ -95,7 +90,7 @@ UInt32 LzmaEncProps_GetDictSize(const CLzmaEncProps *props2)
 
 #define BSR2_RET(pos, res) { unsigned long i; _BitScanReverse(&i, (pos)); res = (i + i) + ((pos >> (i - 1)) & 1); }
 
-static UInt32 GetPosSlot1(UInt32 pos)
+UInt32 GetPosSlot1(UInt32 pos)
 {
   UInt32 res;
   BSR2_RET(pos, res);
@@ -109,9 +104,6 @@ static UInt32 GetPosSlot1(UInt32 pos)
 #define kNumLogBits (9 + (int)sizeof(size_t) / 2)
 #define kDicLogSizeMaxCompress ((kNumLogBits - 1) * 2 + 7)
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_FastPosInit(Byte *g_FastPos)
 {
   int c = 2, slotFast;
@@ -365,7 +357,6 @@ typedef struct _CLzmaEnc
   CSaveState saveState;
 } CLzmaEnc;
 
-#ifndef LZMA_FOR_CTM
 void LzmaEnc_SaveState(CLzmaEncHandle pp)
 {
   CLzmaEnc *p = (CLzmaEnc *)pp;
@@ -391,9 +382,7 @@ void LzmaEnc_SaveState(CLzmaEncHandle pp)
   memcpy(dest->reps, p->reps, sizeof(p->reps));
   memcpy(dest->litProbs, p->litProbs, (0x300 << p->lclp) * sizeof(CLzmaProb));
 }
-#endif /* LZMA_FOR_CTM */
 
-#ifndef LZMA_FOR_CTM
 void LzmaEnc_RestoreState(CLzmaEncHandle pp)
 {
   CLzmaEnc *dest = (CLzmaEnc *)pp;
@@ -419,11 +408,7 @@ void LzmaEnc_RestoreState(CLzmaEncHandle pp)
   memcpy(dest->reps, p->reps, sizeof(p->reps));
   memcpy(dest->litProbs, p->litProbs, (0x300 << dest->lclp) * sizeof(CLzmaProb));
 }
-#endif /* LZMA_FOR_CTM */
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 SRes LzmaEnc_SetProps(CLzmaEncHandle pp, const CLzmaEncProps *props2)
 {
   CLzmaEnc *p = (CLzmaEnc *)pp;
@@ -633,9 +618,6 @@ static void LitEnc_EncodeMatched(CRangeEnc *p, CLzmaProb *probs, UInt32 symbol, 
   while (symbol < 0x10000);
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_InitPriceTables(UInt32 *ProbPrices)
 {
   UInt32 i;
@@ -1712,9 +1694,6 @@ static void FillDistancesPrices(CLzmaEnc *p)
   p->matchPriceCount = 0;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_Construct(CLzmaEnc *p)
 {
   RangeEnc_Construct(&p->rc);
@@ -1739,9 +1718,6 @@ void LzmaEnc_Construct(CLzmaEnc *p)
   p->saveState.litProbs = 0;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 CLzmaEncHandle LzmaEnc_Create(ISzAlloc *alloc)
 {
   void *p;
@@ -1751,9 +1727,6 @@ CLzmaEncHandle LzmaEnc_Create(ISzAlloc *alloc)
   return p;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_FreeLits(CLzmaEnc *p, ISzAlloc *alloc)
 {
   alloc->Free(alloc, p->litProbs);
@@ -1762,9 +1735,6 @@ void LzmaEnc_FreeLits(CLzmaEnc *p, ISzAlloc *alloc)
   p->saveState.litProbs = 0;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_Destruct(CLzmaEnc *p, ISzAlloc *alloc, ISzAlloc *allocBig)
 {
   #ifdef COMPRESS_MF_MT
@@ -1775,9 +1745,6 @@ void LzmaEnc_Destruct(CLzmaEnc *p, ISzAlloc *alloc, ISzAlloc *allocBig)
   RangeEnc_Free(&p->rc, alloc);
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_Destroy(CLzmaEncHandle p, ISzAlloc *alloc, ISzAlloc *allocBig)
 {
   LzmaEnc_Destruct((CLzmaEnc *)p, alloc, allocBig);
@@ -1999,9 +1966,6 @@ static SRes LzmaEnc_Alloc(CLzmaEnc *p, UInt32 keepWindowSize, ISzAlloc *alloc, I
   return SZ_OK;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_Init(CLzmaEnc *p)
 {
   UInt32 i;
@@ -2060,9 +2024,6 @@ void LzmaEnc_Init(CLzmaEnc *p)
   p->lpMask = (1 << p->lp) - 1;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_InitPrices(CLzmaEnc *p)
 {
   if (!p->fastMode)
@@ -2104,7 +2065,6 @@ static SRes LzmaEnc_Prepare(CLzmaEncHandle pp, ISeqInStream *inStream, ISeqOutSt
   return LzmaEnc_AllocAndInit(p, 0, alloc, allocBig);
 }
 
-#ifndef LZMA_FOR_CTM
 SRes LzmaEnc_PrepareForLzma2(CLzmaEncHandle pp,
     ISeqInStream *inStream, UInt32 keepWindowSize,
     ISzAlloc *alloc, ISzAlloc *allocBig)
@@ -2113,7 +2073,6 @@ SRes LzmaEnc_PrepareForLzma2(CLzmaEncHandle pp,
   p->inStream = inStream;
   return LzmaEnc_AllocAndInit(p, keepWindowSize, alloc, allocBig);
 }
-#endif /* LZMA_FOR_CTM */
 
 static void LzmaEnc_SetInputBuf(CLzmaEnc *p, const Byte *src, SizeT srcLen)
 {
@@ -2122,7 +2081,6 @@ static void LzmaEnc_SetInputBuf(CLzmaEnc *p, const Byte *src, SizeT srcLen)
   p->seqBufInStream.rem = srcLen;
 }
 
-#ifndef LZMA_FOR_CTM
 SRes LzmaEnc_MemPrepare(CLzmaEncHandle pp, const Byte *src, SizeT srcLen,
     UInt32 keepWindowSize, ISzAlloc *alloc, ISzAlloc *allocBig)
 {
@@ -2131,11 +2089,7 @@ SRes LzmaEnc_MemPrepare(CLzmaEncHandle pp, const Byte *src, SizeT srcLen,
   p->inStream = &p->seqBufInStream.funcTable;
   return LzmaEnc_AllocAndInit(p, keepWindowSize, alloc, allocBig);
 }
-#endif /* LZMA_FOR_CTM */
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void LzmaEnc_Finish(CLzmaEncHandle pp)
 {
   #ifdef COMPRESS_MF_MT
@@ -2170,23 +2124,18 @@ static size_t MyWrite(void *pp, const void *data, size_t size)
 }
 
 
-#ifndef LZMA_FOR_CTM
 UInt32 LzmaEnc_GetNumAvailableBytes(CLzmaEncHandle pp)
 {
   const CLzmaEnc *p = (CLzmaEnc *)pp;
   return p->matchFinder.GetNumAvailableBytes(p->matchFinderObj);
 }
-#endif /* LZMA_FOR_CTM */
 
-#ifndef LZMA_FOR_CTM
 const Byte *LzmaEnc_GetCurBuf(CLzmaEncHandle pp)
 {
   const CLzmaEnc *p = (CLzmaEnc *)pp;
   return p->matchFinder.GetPointerToCurrentPos(p->matchFinderObj) - p->additionalOffset;
 }
-#endif /* LZMA_FOR_CTM */
 
-#ifndef LZMA_FOR_CTM
 SRes LzmaEnc_CodeOneMemBlock(CLzmaEncHandle pp, Bool reInit,
     Byte *dest, size_t *destLen, UInt32 desiredPackSize, UInt32 *unpackSize)
 {
@@ -2220,11 +2169,7 @@ SRes LzmaEnc_CodeOneMemBlock(CLzmaEncHandle pp, Bool reInit,
 
   return res;
 }
-#endif /* LZMA_FOR_CTM */
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 SRes LzmaEnc_Encode(CLzmaEncHandle pp, ISeqOutStream *outStream, ISeqInStream *inStream, ICompressProgress *progress,
     ISzAlloc *alloc, ISzAlloc *allocBig)
 {
@@ -2259,9 +2204,6 @@ SRes LzmaEnc_Encode(CLzmaEncHandle pp, ISeqOutStream *outStream, ISeqInStream *i
   return res;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 SRes LzmaEnc_WriteProperties(CLzmaEncHandle pp, Byte *props, SizeT *size)
 {
   CLzmaEnc *p = (CLzmaEnc *)pp;
@@ -2291,9 +2233,6 @@ SRes LzmaEnc_WriteProperties(CLzmaEncHandle pp, Byte *props, SizeT *size)
   return SZ_OK;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 SRes LzmaEnc_MemEncode(CLzmaEncHandle pp, Byte *dest, SizeT *destLen, const Byte *src, SizeT srcLen,
     int writeEndMark, ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig)
 {

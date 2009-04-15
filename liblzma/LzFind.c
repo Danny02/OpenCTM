@@ -42,20 +42,11 @@ static int LzInWindow_Create(CMatchFinder *p, UInt32 keepSizeReserv, ISzAlloc *a
   return (p->bufferBase != 0);
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 Byte *MatchFinder_GetPointerToCurrentPos(CMatchFinder *p) { return p->buffer; }
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 Byte MatchFinder_GetIndexByte(CMatchFinder *p, Int32 index) { return p->buffer[index]; }
 
-static UInt32 MatchFinder_GetNumAvailableBytes(CMatchFinder *p) { return p->streamPos - p->pos; }
+UInt32 MatchFinder_GetNumAvailableBytes(CMatchFinder *p) { return p->streamPos - p->pos; }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void MatchFinder_ReduceOffsets(CMatchFinder *p, UInt32 subValue)
 {
   p->posLimit -= subValue;
@@ -87,9 +78,6 @@ static void MatchFinder_ReadBlock(CMatchFinder *p)
   }
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void MatchFinder_MoveBlock(CMatchFinder *p)
 {
   memmove(p->bufferBase,
@@ -98,16 +86,12 @@ void MatchFinder_MoveBlock(CMatchFinder *p)
   p->buffer = p->bufferBase + p->keepSizeBefore;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 int MatchFinder_NeedMove(CMatchFinder *p)
 {
   /* if (p->streamEndWasReached) return 0; */
   return ((size_t)(p->bufferBase + p->blockSize - p->buffer) <= p->keepSizeAfter);
 }
 
-#ifndef LZMA_FOR_CTM
 void MatchFinder_ReadIfRequired(CMatchFinder *p)
 {
   if (p->streamEndWasReached)
@@ -115,7 +99,6 @@ void MatchFinder_ReadIfRequired(CMatchFinder *p)
   if (p->keepSizeAfter >= p->streamPos - p->pos)
     MatchFinder_ReadBlock(p);
 }
-#endif /* LZMA_FOR_CTM */
 
 static void MatchFinder_CheckAndMoveAndRead(CMatchFinder *p)
 {
@@ -275,9 +258,6 @@ static void MatchFinder_SetLimits(CMatchFinder *p)
   p->posLimit = p->pos + limit;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void MatchFinder_Init(CMatchFinder *p)
 {
   UInt32 i;
@@ -297,9 +277,6 @@ static UInt32 MatchFinder_GetSubValue(CMatchFinder *p)
   return (p->pos - p->historySize - 1) & kNormalizeMask;
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 void MatchFinder_Normalize3(UInt32 subValue, CLzRef *items, UInt32 numItems)
 {
   UInt32 i;
@@ -363,9 +340,6 @@ static UInt32 * Hc_GetMatchesSpec(UInt32 lenLimit, UInt32 curMatch, UInt32 pos, 
   }
 }
 
-#ifdef LZMA_FOR_CTM
-static
-#endif /* LZMA_FOR_CTM */
 UInt32 * GetMatchesSpec1(UInt32 lenLimit, UInt32 curMatch, UInt32 pos, const Byte *cur, CLzRef *son,
     UInt32 _cyclicBufferPos, UInt32 _cyclicBufferSize, UInt32 cutValue,
     UInt32 *distances, UInt32 maxLen)
@@ -508,7 +482,6 @@ static UInt32 Bt2_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
   GET_MATCHES_FOOTER(offset, 1)
 }
 
-#ifndef LZMA_FOR_CTM
 UInt32 Bt3Zip_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
 {
   UInt32 offset;
@@ -519,7 +492,6 @@ UInt32 Bt3Zip_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
   offset = 0;
   GET_MATCHES_FOOTER(offset, 2)
 }
-#endif /* LZMA_FOR_CTM */
 
 static UInt32 Bt3_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
 {
@@ -650,7 +622,6 @@ static UInt32 Hc4_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
   MOVE_POS_RET
 }
 
-#ifndef LZMA_FOR_CTM
 UInt32 Hc3Zip_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
 {
   UInt32 offset;
@@ -662,7 +633,6 @@ UInt32 Hc3Zip_MatchFinder_GetMatches(CMatchFinder *p, UInt32 *distances)
     distances, 2) - (distances));
   MOVE_POS_RET
 }
-#endif /* LZMA_FOR_CTM */
 
 static void Bt2_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
 {
@@ -677,7 +647,6 @@ static void Bt2_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
   while (--num != 0);
 }
 
-#ifndef LZMA_FOR_CTM
 void Bt3Zip_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
 {
   do
@@ -690,7 +659,6 @@ void Bt3Zip_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
   }
   while (--num != 0);
 }
-#endif /* LZMA_FOR_CTM */
 
 static void Bt3_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
 {
@@ -740,7 +708,6 @@ static void Hc4_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
   while (--num != 0);
 }
 
-#ifndef LZMA_FOR_CTM
 void Hc3Zip_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
 {
   do
@@ -754,7 +721,6 @@ void Hc3Zip_MatchFinder_Skip(CMatchFinder *p, UInt32 num)
   }
   while (--num != 0);
 }
-#endif /* LZMA_FOR_CTM */
 
 void MatchFinder_CreateVTable(CMatchFinder *p, IMatchFinder *vTable)
 {
