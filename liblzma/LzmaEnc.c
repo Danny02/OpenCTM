@@ -90,7 +90,7 @@ UInt32 LzmaEncProps_GetDictSize(const CLzmaEncProps *props2)
 
 #define BSR2_RET(pos, res) { unsigned long i; _BitScanReverse(&i, (pos)); res = (i + i) + ((pos >> (i - 1)) & 1); }
 
-UInt32 GetPosSlot1(UInt32 pos)
+static UInt32 GetPosSlot1(UInt32 pos)
 {
   UInt32 res;
   BSR2_RET(pos, res);
