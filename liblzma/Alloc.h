@@ -8,6 +8,8 @@ Public domain */
 
 #include <stddef.h>
 
+#include "NameMangle.h"
+
 void *MyAlloc(size_t size);
 void MyFree(void *address);
 
