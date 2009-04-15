@@ -28,8 +28,8 @@
 
 LZMADIR = liblzma
 CC = gcc
-CFLAGS = -O3 -W -Wall -c -I$(LZMADIR)
-CFLAGS_LZMA = -O3 -W -Wall -c
+CFLAGS = -O3 -W -Wall -c -I$(LZMADIR) -DLZMA_FOR_CTM
+CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_FOR_CTM
 AR = ar
 ARFLAGS = rcs
 RM = rm -f

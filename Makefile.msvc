@@ -27,8 +27,8 @@
 
 LZMADIR = liblzma
 CC = cl
-CFLAGS = /nologo /Ox /W3 /c /I$(LZMADIR)
-CFLAGS_LZMA = /nologo /Ox /W3 /c
+CFLAGS = /nologo /Ox /W3 /c /I$(LZMADIR) /DLZMA_FOR_CTM
+CFLAGS_LZMA = /nologo /Ox /W3 /c /DLZMA_FOR_CTM
 AR = lib
 ARFLAGS = /nologo
 RM = del /Q
