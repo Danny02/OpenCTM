@@ -413,9 +413,9 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
 static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
   _CTMsortvertex * aSortVertices)
 {
- CTMuint i, oldIdx;
- CTMint u, v, prevU, prevV;
- CTMfloat scale;
+  CTMuint i, oldIdx;
+  CTMint u, v, prevU, prevV;
+  CTMfloat scale;
 
   // Texture coordinate scaling factor
   scale = 1.0 / self->mTexCoordPrecision;
@@ -445,9 +445,9 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
 //-----------------------------------------------------------------------------
 static void _ctmRestoreTexCoords(_CTMcontext * self, CTMint * aIntTexCoords)
 {
- CTMuint i;
- CTMint u, v, prevU, prevV;
- CTMfloat scale;
+  CTMuint i;
+  CTMint u, v, prevU, prevV;
+  CTMfloat scale;
 
   // Texture coordinate scaling factor
   scale = self->mTexCoordPrecision;
