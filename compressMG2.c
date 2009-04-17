@@ -35,6 +35,10 @@
 #include <stdio.h>
 #endif
 
+// We use a hard coded fixed point precision for normal deltas
+#define NORMAL_PRECISION 1024.0  // 3 x 10 bits per normal
+
+
 //-----------------------------------------------------------------------------
 // _CTMgrid - 3D space subdivision grid.
 //-----------------------------------------------------------------------------
@@ -93,7 +97,10 @@ static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
   }
 
   // Determine optimal grid resolution, based on the number of vertices and
-  // the bounding box
+  // the bounding box.
+  // NOTE: This algorithm is quite crude, and could very well be optimized for
+  // better compression levels in the future without affecting the file format
+  // or backward compatibility at all.
   for(i = 0; i < 3; ++ i)
     factor[i] = aGrid->mMax[i] - aGrid->mMin[i];
   sum = factor[0] + factor[1] + factor[2];
@@ -377,7 +384,7 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
 // _ctmRestoreVertices() - Calculate inverse derivatives of the vertices.
 //-----------------------------------------------------------------------------
 static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
-  CTMuint * aGridIndices, _CTMgrid * aGrid)
+  CTMuint * aGridIndices, _CTMgrid * aGrid, CTMfloat * aVertices)
 {
   CTMuint i, gridIdx, prevGridIndex;
   CTMfloat gridOrigin[3], scale;
@@ -397,9 +404,9 @@ static void _ctmRestoreVertices(_CTMcontext * self, CTMint * aIntVertices,
     deltaX = aIntVertices[i * 3];
     if(gridIdx == prevGridIndex)
       deltaX += prevDeltaX;
-    self->mVertices[i * 3] = scale * deltaX + gridOrigin[0];
-    self->mVertices[i * 3 + 1] = scale * aIntVertices[i * 3 + 1] + gridOrigin[1];
-    self->mVertices[i * 3 + 2] = scale * aIntVertices[i * 3 + 2] + gridOrigin[2];
+    aVertices[i * 3] = scale * deltaX + gridOrigin[0];
+    aVertices[i * 3 + 1] = scale * aIntVertices[i * 3 + 1] + gridOrigin[1];
+    aVertices[i * 3 + 2] = scale * aIntVertices[i * 3 + 2] + gridOrigin[2];
 
     prevGridIndex = gridIdx;
     prevDeltaX = deltaX;
@@ -430,7 +437,9 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, CTMint * aIntTexCoords,
     u = floor(scale * self->mTexCoords[oldIdx * 2] + 0.5);
     v = floor(scale * self->mTexCoords[oldIdx * 2 + 1] + 0.5);
 
-    // Calculate delta and store it in the converted array
+    // Calculate delta and store it in the converted array. NOTE: Here we rely
+    // on the fact that vertices are sorted, and usually close to each other,
+    // which means that texture coordinates should also be close to each other...
     aIntTexCoords[i * 2] = u - prevU;
     aIntTexCoords[i * 2 + 1] = v - prevV;
 
@@ -469,6 +478,144 @@ static void _ctmRestoreTexCoords(_CTMcontext * self, CTMint * aIntTexCoords)
 }
 
 //-----------------------------------------------------------------------------
+// _ctmCalcSmoothNormals() - Calculate the smooth normals for a given mesh.
+// These are used as the nominal normals for normal deltas & reconstruction.
+//-----------------------------------------------------------------------------
+static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
+  CTMuint * aIndices, CTMfloat * aSmoothNormals)
+{
+  CTMuint i, j, k, tri[3];
+  CTMfloat len;
+  CTMfloat v1[3], v2[3], n[3];
+
+  // Clear smooth normals array
+  for(i = 0; i < 3 * self->mVertexCount; ++ i)
+    aSmoothNormals[i] = 0.0;
+
+  // Calculate sums of all neigbouring triangle normals for each vertex
+  for(i = 0; i < self->mTriangleCount; ++ i)
+  {
+    // Get triangle corner indices
+    for(j = 0; j < 3; ++ j)
+      tri[j] = aIndices[i * 3 + j];
+
+    // Calculate the normalized cross product of two triangle edges (i.e. the
+    // flat triangle normal)
+    for(j = 0; j < 3; ++ j)
+    {
+      v1[j] = aVertices[tri[1] * 3 + j] - aVertices[tri[0] * 3 + j];
+      v2[j] = aVertices[tri[2] * 3 + j] - aVertices[tri[0] * 3 + j];
+    }
+    n[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    n[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    n[3] = v1[0] * v2[1] - v1[1] * v2[0];
+    len = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+    if(len > 1e-10)
+      len = 1.0 / len;
+    else
+      len = 1.0;
+    for(j = 0; j < 3; ++ j)
+      n[j] *= len;
+
+    // Add the flat normal to all three triangle vertices
+    for(k = 0; k < 3; ++ k)
+      for(j = 0; j < 3; ++ j)
+        aSmoothNormals[tri[k] * 3 + j] += n[j];
+  }
+
+  // Normalize the normal sums, which gives the unit length smooth normals
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    len = sqrt(aSmoothNormals[i * 3] * aSmoothNormals[i * 3] + 
+               aSmoothNormals[i * 3 + 1] * aSmoothNormals[i * 3 + 1] +
+               aSmoothNormals[i * 3 + 2] * aSmoothNormals[i * 3 + 2]);
+    if(len > 1e-10)
+      len = 1.0 / len;
+    else
+      len = 1.0;
+    for(j = 0; j < 3; ++ j)
+      aSmoothNormals[i * 3 + j] *= len;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// _ctmMakeNormalDeltas() - Calculate various forms of derivatives in order
+// to reduce data entropy.
+//-----------------------------------------------------------------------------
+static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
+  _CTMsortvertex * aSortVertices)
+{
+  CTMuint i, j, oldIdx;
+  CTMfloat scale;
+  CTMfloat * smoothNormals;
+
+  // Allocate temporary memory for the nominal vertex normals
+  smoothNormals = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * self->mVertexCount);
+  if(!smoothNormals)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+
+  // Calculate smooth normals
+  _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
+
+  // Normal fixed point scaling factor
+  scale = NORMAL_PRECISION;
+
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    // Get old normal index (before vertex sorting)
+    oldIdx = aSortVertices[i].mOriginalIndex;
+
+    // Calculate delta between nominal normal and the actual normal, and convert to fixed point
+    for(j = 0; j < 3; ++ j)
+      aIntNormals[i * 3 + j] = floor(scale * (self->mNormals[oldIdx * 3 + j] - smoothNormals[oldIdx * 3 + j]) + 0.5);
+  }
+
+  // Free temporary resources
+  free(smoothNormals);
+
+  return CTM_TRUE;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmRestoreNormals() - Calculate inverse derivatives of the normals.
+//-----------------------------------------------------------------------------
+static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
+{
+  CTMuint i, j;
+  CTMfloat scale;
+  CTMfloat * smoothNormals;
+
+  // Allocate temporary memory for the nominal vertex normals
+  smoothNormals = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * self->mVertexCount);
+  if(!smoothNormals)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+
+  // Calculate smooth normals
+  _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
+
+  // Normal fixed point scaling factor
+  scale = 1.0 / NORMAL_PRECISION;
+
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    // Calculate inverse delta
+    for(j = 0; j < 3; ++ j)
+      self->mNormals[i * 3 + j] = aIntNormals[i * 3 + j] * scale + smoothNormals[i * 3 + j];
+  }
+
+  // Free temporary resources
+  free(smoothNormals);
+
+  return CTM_TRUE;
+}
+
+//-----------------------------------------------------------------------------
 // _ctmCompressMesh_MG2() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
 //-----------------------------------------------------------------------------
@@ -477,7 +624,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   _CTMgrid grid;
   _CTMsortvertex * sortVertices;
   CTMuint * indices, * gridIndices;
-  CTMint * intVertices, * intTexCoords;
+  CTMint * intVertices, * intTexCoords, * intNormals;
   CTMuint i;
 
 #ifdef __DEBUG_
@@ -625,18 +772,37 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     free((void *) intTexCoords);
   }
 
-  // Write normals (TEMPORARY HACK: no entropy reduction yet)
   if(self->mNormals)
   {
+    // Convert normals to integers and calculate deltas (entropy-reduction)
+    intNormals = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
+    if(!intNormals)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      free((void *) sortVertices);
+      return CTM_FALSE;
+    }
+    if(!_ctmMakeNormalDeltas(self, intNormals, sortVertices))
+    {
+      free((void *) sortVertices);
+      free((void *) intNormals);
+      return CTM_FALSE;
+    }
+
+    // Write normals
 #ifdef __DEBUG_
     printf("Normals: ");
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
-    if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
+    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
     {
       free((void *) sortVertices);
+      free((void *) intNormals);
       return CTM_FALSE;
     }
+
+    // Free temporary normal data
+    free((void *) intNormals);
   }
 
   // Free temporary data
@@ -652,7 +818,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
   CTMuint * indices, * gridIndices, i;
-  CTMint * intVertices, * intTexCoords;
+  CTMint * intVertices, * intTexCoords, * intNormals;
   _CTMgrid grid;
 
   // Read MG2-specific header information from the stream
@@ -748,7 +914,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     gridIndices[i] += gridIndices[i - 1];
 
   // Restore vertices
-  _ctmRestoreVertices(self, intVertices, gridIndices, &grid);
+  _ctmRestoreVertices(self, intVertices, gridIndices, &grid, self->mVertices);
 
   // Free temporary integer vertices
   free((void *) intVertices);
@@ -814,20 +980,40 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     free((void *) intTexCoords);
   }
 
-  // Read normals (TEMPORARY HACK: no entropy reduction yet)
+  // Read normals
   if(self->mNormals)
   {
+    intNormals = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 3);
+    if(!indices)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      free((void *) gridIndices);
+      return CTM_FALSE;
+    }
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
       self->mError = CTM_FORMAT_ERROR;
+      free((void *) intNormals);
       free((void *) gridIndices);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedFloats(self, self->mNormals, self->mVertexCount, 3))
+    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
     {
+      free((void *) intNormals);
       free((void *) gridIndices);
       return CTM_FALSE;
     }
+
+    // Restore normals
+    if(!_ctmRestoreNormals(self, intNormals))
+    {
+      free((void *) intNormals);
+      free((void *) gridIndices);
+      return CTM_FALSE;
+    }
+
+    // Free temporary normals data
+    free((void *) intNormals);
   }
 
   // Free temporary grid indices
