@@ -36,7 +36,8 @@
 #endif
 
 // We use a hard coded fixed point precision for normal deltas
-#define NORMAL_PRECISION 1024.0  // 3 x 10 bits per normal
+#define NORMAL_PRECISION       1024.0 // .10 bits per normal component
+#define NORMAL_SCALE_PRECISION 256.0  // .8 bits for the normal scale
 
 
 //-----------------------------------------------------------------------------
@@ -508,7 +509,7 @@ static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
     }
     n[0] = v1[1] * v2[2] - v1[2] * v2[1];
     n[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    n[3] = v1[0] * v2[1] - v1[1] * v2[0];
+    n[2] = v1[0] * v2[1] - v1[1] * v2[0];
     len = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
     if(len > 1e-10)
       len = 1.0 / len;
@@ -547,7 +548,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 {
   CTMuint i, j, oldIdx;
   CTMfloat scale;
-  CTMfloat * smoothNormals;
+  CTMfloat * smoothNormals, n[3];
 
   // Allocate temporary memory for the nominal vertex normals
   smoothNormals = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * self->mVertexCount);
@@ -560,17 +561,35 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
   // Calculate smooth normals
   _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
 
-  // Normal fixed point scaling factor
-  scale = NORMAL_PRECISION;
-
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get old normal index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
+    // Calculate normal scale (should always be 1.0 for unit length normals)
+    scale = sqrt(self->mNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
+                 self->mNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
+                 self->mNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]);
+    if(scale < 1e-10)
+      scale = 1.0;
+
+    // Invert scale if the normal is negative compared to the predicted smooth normal
+    if((smoothNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
+        smoothNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
+        smoothNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]) < 0.0)
+      scale = -scale;
+
+    // Store the normal scale in the first element of the four normal elements
+    aIntNormals[i * 4] = floor(NORMAL_SCALE_PRECISION * scale + 0.5);
+
+    // Normalize the normal (1 / scale)
+    scale = 1.0 / scale;
+    for(j = 0; j < 3; ++ j)
+      n[j] = self->mNormals[oldIdx * 3 + j] * scale;
+
     // Calculate delta between nominal normal and the actual normal, and convert to fixed point
     for(j = 0; j < 3; ++ j)
-      aIntNormals[i * 3 + j] = floor(scale * (self->mNormals[oldIdx * 3 + j] - smoothNormals[oldIdx * 3 + j]) + 0.5);
+      aIntNormals[i * 4 + 1 + j] = floor(NORMAL_PRECISION * (n[j] - smoothNormals[oldIdx * 3 + j]) + 0.5);
   }
 
   // Free temporary resources
@@ -599,14 +618,14 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
   // Calculate smooth normals
   _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
 
-  // Normal fixed point scaling factor
-  scale = 1.0 / NORMAL_PRECISION;
-
   for(i = 0; i < self->mVertexCount; ++ i)
   {
+    // Get the normal scale from the first element of the four normal elements
+    scale = aIntNormals[i * 4] * (1.0 / NORMAL_SCALE_PRECISION) * (1.0 / NORMAL_PRECISION);
+
     // Calculate inverse delta
     for(j = 0; j < 3; ++ j)
-      self->mNormals[i * 3 + j] = aIntNormals[i * 3 + j] * scale + smoothNormals[i * 3 + j];
+      self->mNormals[i * 3 + j] = aIntNormals[i * 4 + 1 + j] * scale + smoothNormals[i * 3 + j];
   }
 
   // Free temporary resources
@@ -775,7 +794,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   if(self->mNormals)
   {
     // Convert normals to integers and calculate deltas (entropy-reduction)
-    intNormals = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
+    intNormals = (CTMint *) malloc(sizeof(CTMint) * 4 * self->mVertexCount);
     if(!intNormals)
     {
       self->mError = CTM_OUT_OF_MEMORY;
@@ -794,7 +813,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     printf("Normals: ");
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
-    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
+    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 4, CTM_TRUE))
     {
       free((void *) sortVertices);
       free((void *) intNormals);
@@ -983,7 +1002,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Read normals
   if(self->mNormals)
   {
-    intNormals = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 3);
+    intNormals = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 4);
     if(!indices)
     {
       self->mError = CTM_OUT_OF_MEMORY;
@@ -997,7 +1016,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       free((void *) gridIndices);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
+    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 4, CTM_TRUE))
     {
       free((void *) intNormals);
       free((void *) gridIndices);
