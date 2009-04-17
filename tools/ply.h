@@ -31,10 +31,10 @@ class Vector3f
 
 /// Import a PLY file to a stream.
 void PLY_Import(std::istream &aStream, std::vector<Vector3f> &aPoints, std::vector<int> &aIndices,
-  std::vector<Vector2f> &aTexCoords);
+  std::vector<Vector2f> &aTexCoords, std::vector<Vector3f> &aNormals);
 
 /// Export a PLY file to a stream.
 void PLY_Export(std::ostream &aStream, std::vector<Vector3f> &aPoints, std::vector<int> &aIndices,
-  std::vector<Vector2f> &aTexCoords);
+  std::vector<Vector2f> &aTexCoords, std::vector<Vector3f> &aNormals);
 
 #endif // __PLY_H_

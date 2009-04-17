@@ -47,7 +47,7 @@ Vector3f ParseVertex(string &aString, int aX, int aY, int aZ)
   return result;
 }
 
-/// Parse texture coordinates from a vertexs string.
+/// Parse texture coordinates from a vertex string.
 Vector2f ParseTexCoord(string &aString, int aS, int aT)
 {
   int maxPos = aS;
@@ -69,6 +69,31 @@ Vector2f ParseTexCoord(string &aString, int aS, int aT)
   return result;
 }
 
+/// Parse normals from a vertex string.
+Vector3f ParseNormal(string &aString, int aNX, int aNY, int aNZ)
+{
+  int maxPos = aNX;
+  if(aNY > maxPos) maxPos = aNY;
+  if(aNZ > maxPos) maxPos = aNZ;
+
+  Vector3f result;
+
+  istringstream sstr(aString);
+  for(int i = 0; i <= maxPos; ++ i)
+  {
+    float value;
+    sstr >> value;
+    if(i == aNX)
+      result.x = value;
+    else if(i == aNY)
+      result.y = value;
+    else if(i == aNZ)
+      result.z = value;
+  }
+
+  return result;
+}
+
 /// Parse a face string.
 void ParseFace(string &aString, int &aIdx1, int &aIdx2, int &aIdx3)
 {
@@ -84,16 +109,17 @@ void ParseFace(string &aString, int &aIdx1, int &aIdx2, int &aIdx3)
 
 /// Import a PLY file from a stream.
 void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords)
+  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
 {
   // Clear the mesh
   aPoints.clear();
   aTexCoords.clear();
+  aNormals.clear();
   aIndices.clear();
 
   // Read header
   unsigned int count, vertexCount = 0, faceCount = 0;
-  int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, propCnt = 0;
+  int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, nxPos = -1, nyPos = -1, nzPos = -1, propCnt = 0;
   string elementType("");
   string str;
   getline(aStream, str);
@@ -138,6 +164,12 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
           sPos = propCnt;
         else if(porpName == string("t"))
           tPos = propCnt;
+        else if(porpName == string("nx"))
+          nxPos = propCnt;
+        else if(porpName == string("ny"))
+          nyPos = propCnt;
+        else if(porpName == string("nz"))
+          nzPos = propCnt;
       }
       else if(elementType == string("face"))
       {
@@ -167,12 +199,16 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
   aPoints.resize(vertexCount);
   if(sPos >= 0)
     aTexCoords.resize(vertexCount);
+  if(nxPos >= 0)
+    aNormals.resize(vertexCount);
   for(unsigned int i = 0; i < vertexCount; ++ i)
   {
     getline(aStream, str);
     aPoints[i] = ParseVertex(str, xPos, yPos, zPos);
     if(sPos >= 0)
       aTexCoords[i] = ParseTexCoord(str, sPos, tPos);
+    if(nxPos >= 0)
+      aNormals[i] = ParseNormal(str, nxPos, nyPos, nzPos);
   }
 
   // Read faces
@@ -190,7 +226,7 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
 
 /// Export a PLY file to a stream.
 void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords)
+  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
 {
   // Write header
   aStream << "ply" << endl;
@@ -204,6 +240,12 @@ void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
     aStream << "property float s" << endl;
     aStream << "property float t" << endl;
   }
+  if(aNormals.size() > 0)
+  {
+    aStream << "property float nx" << endl;
+    aStream << "property float ny" << endl;
+    aStream << "property float nz" << endl;
+  }
   aStream << "element face " << aIndices.size() / 3 << endl;
   aStream << "property list uchar int vertex_indices" << endl;
   aStream << "end_header" << endl;
@@ -216,7 +258,11 @@ void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
                aPoints[i].z;
     if(aTexCoords.size() > 0)
       aStream << " " << aTexCoords[i].x << " " <<
-                 aTexCoords[i].y;
+                        aTexCoords[i].y;
+    if(aNormals.size() > 0)
+      aStream << " " << aNormals[i].x << " " <<
+                        aNormals[i].y << " " <<
+                        aNormals[i].z;
     aStream << endl;
   }
 

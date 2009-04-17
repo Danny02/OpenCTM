@@ -51,12 +51,12 @@ string ExtractFileExt(const string &aString)
 // LoadPLY()
 //-----------------------------------------------------------------------------
 void LoadPLY(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords)
+  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
 {
   ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
   if(fin.fail())
     throw runtime_error("Could not open input file.");
-  PLY_Import(fin, aPoints, aIndices, aTexCoords);
+  PLY_Import(fin, aPoints, aIndices, aTexCoords, aNormals);
   fin.close();
 }
 
@@ -64,12 +64,12 @@ void LoadPLY(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
 // SavePLY()
 //-----------------------------------------------------------------------------
 void SavePLY(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords)
+  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
 {
   ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
   if(fout.fail())
     throw runtime_error("Could not open output file.");
-  PLY_Export(fout, aPoints, aIndices, aTexCoords);
+  PLY_Export(fout, aPoints, aIndices, aTexCoords, aNormals);
   fout.close();
 }
 
@@ -77,7 +77,7 @@ void SavePLY(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
 // LoadCTM()
 //-----------------------------------------------------------------------------
 void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords)
+  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
 {
   // Import OpenCTM file
   CTMcontext ctm = 0;
@@ -105,8 +105,16 @@ void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
     }
     else
       aTexCoords.clear();
+    CTMfloat * normals = 0;
+    if(ctmGetInteger(ctm, CTM_HAS_NORMALS) == CTM_TRUE)
+    {
+      aNormals.resize(vertCount);
+      normals = &aNormals[0].x;
+    }
+    else
+      aNormals.clear();
     ctmGetMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
-               (CTMuint*) &aIndices[0], aIndices.size() / 3, texCoords, NULL);
+               (CTMuint*) &aIndices[0], aIndices.size() / 3, texCoords, normals);
     CheckCTMError(ctm);
 
     // Free OpenCTM context
@@ -125,7 +133,7 @@ void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
 // SaveCTM()
 //-----------------------------------------------------------------------------
 void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords)
+  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
 {
   // Export OpenCTM file
   CTMcontext ctm = 0;
@@ -139,9 +147,12 @@ void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
     CTMfloat * texCoords = 0;
     if(aTexCoords.size() > 0)
       texCoords = &aTexCoords[0].x;
+    CTMfloat * normals = 0;
+    if(aNormals.size() > 0)
+      normals = &aNormals[0].x;
     ctmDefineMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
                   (const CTMuint*) &aIndices[0], aIndices.size() / 3, texCoords,
-                  NULL);
+                  normals);
     CheckCTMError(ctm);
 
     // Export file
@@ -187,14 +198,15 @@ int main(int argc, char ** argv)
     vector<Vector3f> points;
     vector<int> indices;
     vector<Vector2f> texCoords;
+    vector<Vector3f> normals;
 
     // Load PLY file
     cout << "Loading " << inFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(inFile));
     if(fileExt == string(".PLY"))
-      LoadPLY(inFile, points, indices, texCoords);
+      LoadPLY(inFile, points, indices, texCoords, normals);
     else if(fileExt == string(".CTM"))
-      LoadCTM(inFile, points, indices, texCoords);
+      LoadCTM(inFile, points, indices, texCoords, normals);
     else
       throw runtime_error("Unknown input file extension.");
 
@@ -202,9 +214,9 @@ int main(int argc, char ** argv)
     cout << "Saving " << outFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(outFile));
     if(fileExt == string(".PLY"))
-      SavePLY(outFile, points, indices, texCoords);
+      SavePLY(outFile, points, indices, texCoords, normals);
     else if(fileExt == string(".CTM"))
-      SaveCTM(outFile, points, indices, texCoords);
+      SaveCTM(outFile, points, indices, texCoords, normals);
     else
       throw runtime_error("Unknown output file extension.");
   }
