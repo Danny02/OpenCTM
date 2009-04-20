@@ -466,7 +466,7 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     return;
   }
   formatVersion = _ctmStreamReadUINT(self);
-  if((formatVersion < 0x0100) || (formatVersion > CTM_FORMAT_VERSION))
+  if(formatVersion > _CTM_FORMAT_VERSION)
   {
     self->mError = CTM_FORMAT_ERROR;
     return;
@@ -613,7 +613,7 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
 
   // Write header to stream
   _ctmStreamWrite(self, (void *) "OCTM", 4);
-  _ctmStreamWriteUINT(self, CTM_FORMAT_VERSION);
+  _ctmStreamWriteUINT(self, _CTM_FORMAT_VERSION);
   switch(self->mMethod)
   {
     case CTM_METHOD_RAW:

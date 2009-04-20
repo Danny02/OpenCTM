@@ -74,6 +74,9 @@ typedef struct {
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
+// OpenCTM file format version (0.1).
+#define _CTM_FORMAT_VERSION 0x00000001
+
 // Flags for the Flags field in the OpenCTM file header
 #define _CTM_HAS_TEXCOORDS_BIT 0x00000001
 #define _CTM_HAS_NORMALS_BIT   0x00000002

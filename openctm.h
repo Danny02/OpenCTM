@@ -133,23 +133,25 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
+/// OpenCTM API version (0.1).
+#define CTM_API_VERSION 0x00000001
+
 /// Boolean TRUE.
 #define CTM_TRUE 1
 
 /// Boolean FALSE.
 #define CTM_FALSE 0
 
-/// OpenCTM file format version (1.0).
-#define CTM_FORMAT_VERSION 0x0100
-
-/// Single precision floating point type.
+/// Single precision floating point type (IEEE 754 32 bits wide).
 typedef float CTMfloat;
 
-/// Signed integer (at least 32 bits wide).
-typedef int CTMint;
+/// Signed integer (32 bits wide).
+typedef int32_t CTMint;
 
-/// Unsigned integer (at least 32 bits wide).
-typedef unsigned int CTMuint;
+/// Unsigned integer (32 bits wide).
+typedef uint32_t CTMuint;
 
 /// OpenCTM context handle.
 typedef void * CTMcontext;
