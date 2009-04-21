@@ -29,22 +29,39 @@
 #define __OPENCTM_INTERNAL_H_
 
 //-----------------------------------------------------------------------------
+// _CTMfloatmap - Internal representation of a floating point based vertex map
+// (used for texture maps and attribute maps).
+//-----------------------------------------------------------------------------
+typedef struct _CTMfloatmap_struct _CTMfloatmap;
+struct _CTMfloatmap_struct {
+  char * mName;         // Unique name
+  CTMfloat mPrecision;  // Precision for this map
+  CTMfloat * mValues;   // Attribute/texutre coordinate values (per vertex)
+  _CTMfloatmap * mNext; // Pointer to the next map in the list (linked list)
+};
+
+//-----------------------------------------------------------------------------
 // _CTMcontext - Internal CTM context structure.
 //-----------------------------------------------------------------------------
 typedef struct {
   // Vertices
-  CTMfloat *mVertices;
-  CTMuint  mVertexCount;
+  CTMfloat * mVertices;
+  CTMuint mVertexCount;
 
   // Indices
-  CTMuint  *mIndices;
-  CTMuint  mTriangleCount;
-
-  // Texture coordinates (optional)
-  CTMfloat *mTexCoords;
+  CTMuint * mIndices;
+  CTMuint mTriangleCount;
 
   // Normals (optional)
-  CTMfloat *mNormals;
+  CTMfloat * mNormals;
+
+  // Multiple sets of texture coordinate maps (optional)
+  CTMuint mTexMapCount;
+  _CTMfloatmap * mTexMaps;
+
+  // Multiple sets of custom vertex attribute maps (optional)
+  CTMuint mAttribMapCount;
+  _CTMfloatmap * mAttribMaps;
 
   // Last error code
   CTMerror mError;
@@ -54,9 +71,6 @@ typedef struct {
 
   // Vertex coordinate precision
   CTMfloat mVertexPrecision;
-
-  // Texture coordinate precision
-  CTMfloat mTexCoordPrecision;
 
   // File comment
   char * mFileComment;
@@ -74,12 +88,8 @@ typedef struct {
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
-// OpenCTM file format version (0.1).
-#define _CTM_FORMAT_VERSION 0x00000001
-
-// Flags for the Flags field in the OpenCTM file header
-#define _CTM_HAS_TEXCOORDS_BIT 0x00000001
-#define _CTM_HAS_NORMALS_BIT   0x00000002
+// OpenCTM file format version (0.2).
+#define _CTM_FORMAT_VERSION 0x00000002
 
 //-----------------------------------------------------------------------------
 // Macros
@@ -102,11 +112,6 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount,
 int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
 int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
 int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
-
-//-----------------------------------------------------------------------------
-// Funcion prototypes for pack.c
-//-----------------------------------------------------------------------------
-unsigned char * _ctmPackFloats(CTMfloat * aData, CTMuint aCount, CTMuint * aSize);
 
 //-----------------------------------------------------------------------------
 // Funcion prototypes for compressRAW.c

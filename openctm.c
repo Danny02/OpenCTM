@@ -33,24 +33,42 @@
 #include "internal.h"
 
 //-----------------------------------------------------------------------------
+// _ctmFreeMapList() - Free a float map list.
+//-----------------------------------------------------------------------------
+static void _ctmFreeMapList(_CTMfloatmap * aMapList)
+{
+  _CTMfloatmap * map, * nextMap;
+  map = aMapList;
+  while(map)
+  {
+    if(map->mName)
+      free(map->mName);
+    nextMap = map->mNext;
+    free(map);
+  }
+}
+
+//-----------------------------------------------------------------------------
 // _ctmClearMesh() - Clear the mesh in a CTM context.
 //-----------------------------------------------------------------------------
 static void _ctmClearMesh(_CTMcontext * self)
 {
-  if(self->mVertices)
-    free(self->mVertices);
-  if(self->mIndices)
-    free(self->mIndices);
-  if(self->mTexCoords)
-    free(self->mTexCoords);
-  if(self->mNormals)
-    free(self->mNormals);
+  // Clear externally assigned mesh arrays
   self->mVertices = (CTMfloat *) 0;
-  self->mIndices = (CTMuint *) 0;
-  self->mTexCoords = (CTMfloat *) 0;
-  self->mNormals = (CTMfloat *) 0;
   self->mVertexCount = 0;
+  self->mIndices = (CTMuint *) 0;
   self->mTriangleCount = 0;
+  self->mNormals = (CTMfloat *) 0;
+
+  // Free texture coordinate map list
+  _ctmFreeMapList(self->mTexMaps);
+  self->mTexMaps = (_CTMfloatmap *) 0;
+  self->mTexMapCount = 0;
+
+  // Free attribute map list
+  _ctmFreeMapList(self->mAttribMaps);
+  self->mAttribMaps = (_CTMfloatmap *) 0;
+  self->mAttribMapCount = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -68,7 +86,6 @@ CTMcontext ctmNewContext(void)
   self->mError = CTM_NO_ERROR;
   self->mMethod = CTM_METHOD_MG1;
   self->mVertexPrecision = 1.0 / 1024.0;
-  self->mTexCoordPrecision = 1.0 / 4096.0;
 
   return (CTMcontext) self;
 }
@@ -81,15 +98,10 @@ void ctmFreeContext(CTMcontext aContext)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
-  // Free all resources
-  if(self->mVertices)
-    free(self->mVertices);
-  if(self->mIndices)
-    free(self->mIndices);
-  if(self->mTexCoords)
-    free(self->mTexCoords);
-  if(self->mNormals)
-    free(self->mNormals);
+  // Free all mesh resources
+  _ctmClearMesh(self);
+
+  // Free the file comment
   if(self->mFileComment)
     free(self->mFileComment);
 
@@ -129,8 +141,11 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty)
     case CTM_TRIANGLE_COUNT:
       return self->mTriangleCount;
 
-    case CTM_HAS_TEX_COORDS:
-      return self->mTexCoords ? CTM_TRUE : CTM_FALSE;
+    case CTM_TEX_MAP_COUNT:
+      return self->mTexMapCount;
+
+    case CTM_ATTRIB_MAP_COUNT:
+      return self->mAttribMapCount;
 
     case CTM_HAS_NORMALS:
       return self->mNormals ? CTM_TRUE : CTM_FALSE;
@@ -140,6 +155,89 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty)
   }
 
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+// ctmGetIntegerArray()
+//-----------------------------------------------------------------------------
+const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMproperty aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return 0;
+
+  switch(aProperty)
+  {
+    case CTM_INDICES:
+      return self->mIndices;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return (CTMuint *) 0;
+}
+
+//-----------------------------------------------------------------------------
+// ctmGetFloatArray()
+//-----------------------------------------------------------------------------
+const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
+  if(!self) return 0;
+
+  // Did the user request a texture map?
+  if((aProperty >= CTM_TEX_MAP_1) &&
+     ((aProperty - CTM_TEX_MAP_1) < self->mTexMapCount))
+  {
+    map = self->mTexMaps;
+    i = CTM_TEX_MAP_1;
+    while(map && (i != aProperty))
+    {
+      map = map->mNext;
+      ++ i;
+    }
+    if(!map)
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return (CTMuint *) 0;
+    }
+    return map->mValues;
+  }
+
+  // Did the user request an attribute map?
+  if((aProperty >= CTM_ATTRIB_MAP_1) &&
+     ((aProperty - CTM_ATTRIB_MAP_1) < self->mAttribMapCount))
+  {
+    map = self->mAttribMaps;
+    i = CTM_ATTRIB_MAP_1;
+    while(map && (i != aProperty))
+    {
+      map = map->mNext;
+      ++ i;
+    }
+    if(!map)
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return (CTMuint *) 0;
+    }
+    return map->mValues;
+  }
+
+  switch(aProperty)
+  {
+    case CTM_VERTICES:
+      return self->mVertices;
+
+    case CTM_NORMALS:
+      return self->mNormals;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return (CTMuint *) 0;
 }
 
 //-----------------------------------------------------------------------------
