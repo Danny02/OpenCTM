@@ -29,6 +29,15 @@
 #define __OPENCTM_INTERNAL_H_
 
 //-----------------------------------------------------------------------------
+// Constants
+//-----------------------------------------------------------------------------
+// OpenCTM file format version (0.2).
+#define _CTM_FORMAT_VERSION  0x00000002
+
+// Flags for the Mesh flags field of the file header
+#define _CTM_HAS_NORMALS_BIT 0x00000001
+
+//-----------------------------------------------------------------------------
 // _CTMfloatmap - Internal representation of a floating point based vertex map
 // (used for texture maps and attribute maps).
 //-----------------------------------------------------------------------------
@@ -44,6 +53,9 @@ struct _CTMfloatmap_struct {
 // _CTMcontext - Internal CTM context structure.
 //-----------------------------------------------------------------------------
 typedef struct {
+  // Context mode (import or export)
+  CTMcontextmode mMode;
+
   // Vertices
   CTMfloat * mVertices;
   CTMuint mVertexCount;
@@ -84,12 +96,6 @@ typedef struct {
   // User data (for stream read/write - usually the stream handle)
   void * mUserData;
 } _CTMcontext;
-
-//-----------------------------------------------------------------------------
-// Constants
-//-----------------------------------------------------------------------------
-// OpenCTM file format version (0.2).
-#define _CTM_FORMAT_VERSION 0x00000002
 
 //-----------------------------------------------------------------------------
 // Macros

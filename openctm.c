@@ -35,14 +35,20 @@
 //-----------------------------------------------------------------------------
 // _ctmFreeMapList() - Free a float map list.
 //-----------------------------------------------------------------------------
-static void _ctmFreeMapList(_CTMfloatmap * aMapList)
+static void _ctmFreeMapList(_CTMcontext * self, _CTMfloatmap * aMapList)
 {
   _CTMfloatmap * map, * nextMap;
   map = aMapList;
   while(map)
   {
+    // Free internally allocated array (if we are in import mode)
+    if((self->mMode == CTM_IMPORT) && map->mValues)
+      free(map->mValues);
+
+    // Free map name
     if(map->mName)
       free(map->mName);
+
     nextMap = map->mNext;
     free(map);
   }
@@ -53,6 +59,17 @@ static void _ctmFreeMapList(_CTMfloatmap * aMapList)
 //-----------------------------------------------------------------------------
 static void _ctmClearMesh(_CTMcontext * self)
 {
+  // Free internally allocated mesh arrays
+  if(self->mMode == CTM_IMPORT)
+  {
+    if(self->mVertices)
+      free(self->mVertices);
+    if(self->mIndices)
+      free(self->mIndices);
+    if(self->mNormals)
+      free(self->mNormals);
+  }
+
   // Clear externally assigned mesh arrays
   self->mVertices = (CTMfloat *) 0;
   self->mVertexCount = 0;
@@ -61,12 +78,12 @@ static void _ctmClearMesh(_CTMcontext * self)
   self->mNormals = (CTMfloat *) 0;
 
   // Free texture coordinate map list
-  _ctmFreeMapList(self->mTexMaps);
+  _ctmFreeMapList(self, self->mTexMaps);
   self->mTexMaps = (_CTMfloatmap *) 0;
   self->mTexMapCount = 0;
 
   // Free attribute map list
-  _ctmFreeMapList(self->mAttribMaps);
+  _ctmFreeMapList(self, self->mAttribMaps);
   self->mAttribMaps = (_CTMfloatmap *) 0;
   self->mAttribMapCount = 0;
 }
@@ -74,7 +91,7 @@ static void _ctmClearMesh(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 // ctmNewContext()
 //-----------------------------------------------------------------------------
-CTMcontext ctmNewContext(void)
+CTMcontext ctmNewContext(CTMcontextmode aMode)
 {
   _CTMcontext * self;
 
@@ -83,6 +100,7 @@ CTMcontext ctmNewContext(void)
 
   // Initialize structure (set null pointers and zero array lengths)
   memset(self, 0, sizeof(_CTMcontext));
+  self->mMode = aMode;
   self->mError = CTM_NO_ERROR;
   self->mMethod = CTM_METHOD_MG1;
   self->mVertexPrecision = 1.0 / 1024.0;
@@ -163,7 +181,7 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty)
 const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMproperty aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return 0;
+  if(!self) return (CTMuint *) 0;
 
   switch(aProperty)
   {
@@ -185,7 +203,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
   CTMuint i;
-  if(!self) return 0;
+  if(!self) return (CTMfloat *) 0;
 
   // Did the user request a texture map?
   if((aProperty >= CTM_TEX_MAP_1) &&
@@ -201,7 +219,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
     if(!map)
     {
       self->mError = CTM_INVALID_ARGUMENT;
-      return (CTMuint *) 0;
+      return (CTMfloat *) 0;
     }
     return map->mValues;
   }
@@ -220,7 +238,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
     if(!map)
     {
       self->mError = CTM_INVALID_ARGUMENT;
-      return (CTMuint *) 0;
+      return (CTMfloat *) 0;
     }
     return map->mValues;
   }
@@ -237,7 +255,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
       self->mError = CTM_INVALID_ARGUMENT;
   }
 
-  return (CTMuint *) 0;
+  return (CTMfloat *) 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -268,6 +286,13 @@ void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   // Check arguments
   if((aMethod != CTM_METHOD_RAW) && (aMethod != CTM_METHOD_MG1) &&
      (aMethod != CTM_METHOD_MG2))
@@ -287,6 +312,13 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
+
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
 
   // Check arguments
   if(aPrecision <= 0.0)
@@ -308,6 +340,13 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
   CTMfloat avgEdgeLength, * p1, * p2;
   CTMuint edgeCount, i, j;
   if(!self) return;
+
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
 
   // Check arguments
   if(aRelPrecision <= 0.0)
@@ -347,20 +386,55 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
 //-----------------------------------------------------------------------------
 // ctmTexCoordPrecision()
 //-----------------------------------------------------------------------------
-void ctmTexCoordPrecision(CTMcontext aContext, CTMfloat aPrecision)
+void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap,
+  CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   // Check arguments
-  if(aPrecision <= 0.0)
+  if((aPrecision <= 0.0) || (aTexMap < CTM_TEX_MAP_1) ||
+     ((aTexMap - CTM_TEX_MAP_1) >= self->mTexMapCount))
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
   }
 
-  // Set precision
-  self->mTexCoordPrecision = aPrecision;
+  // FIXME!
+}
+
+//-----------------------------------------------------------------------------
+// ctmAttribPrecision()
+//-----------------------------------------------------------------------------
+void ctmAttribPrecision(CTMcontext aContext, CTMproperty aAttribMap,
+  CTMfloat aPrecision)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // Check arguments
+  if((aPrecision <= 0.0) || (aAttribMap < CTM_ATTRIB_MAP_1) ||
+     ((aAttribMap - CTM_ATTRIB_MAP_1) >= self->mAttribMapCount))
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // FIXME!
 }
 
 //-----------------------------------------------------------------------------
@@ -371,6 +445,13 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment)
   _CTMcontext * self = (_CTMcontext *) aContext;
   int len;
   if(!self) return;
+
+  // You are only allowed to change file attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
 
   // Free the old comment string, if necessary
   if(self->mFileComment)
@@ -401,11 +482,17 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment)
 //-----------------------------------------------------------------------------
 void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
                    CTMuint aVertexCount, const CTMuint * aIndices,
-                   CTMuint aTriangleCount, const CTMfloat * aTexCoords,
-                   const CTMfloat * aNormals)
+                   CTMuint aTriangleCount, const CTMfloat * aNormals)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
+
+  // You are only allowed to (re)define the mesh in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
 
   // Check arguments
   if(!aVertices || !aIndices || !aVertexCount || !aTriangleCount)
@@ -417,96 +504,36 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
   // Clear the old mesh, if any
   _ctmClearMesh(self);
 
-  // Copy vertices
-  self->mVertices = (CTMfloat *) malloc(aVertexCount * sizeof(CTMfloat) * 3);
-  if(!self->mVertices)
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
-    return;
-  }
-  memcpy(self->mVertices, aVertices, aVertexCount * sizeof(CTMfloat) * 3);
+  // Set vertex array pointer
+  self->mVertices = (CTMfloat *) aVertices;
   self->mVertexCount = aVertexCount;
 
-  // Copy indices
-  self->mIndices = (CTMuint *) malloc(aTriangleCount * sizeof(CTMuint) * 3);
-  if(!self->mIndices)
-  {
-    _ctmClearMesh(self);
-    self->mError = CTM_OUT_OF_MEMORY;
-    return;
-  }
-  memcpy(self->mIndices, aIndices, aTriangleCount * sizeof(CTMuint) * 3);
+  // Set index array pointer
+  self->mIndices = (CTMuint *) aIndices;
   self->mTriangleCount = aTriangleCount;
 
-  // Copy texture coordinates
-  if(aTexCoords)
-  {
-    self->mTexCoords = (CTMfloat *) malloc(aVertexCount * sizeof(CTMfloat) * 2);
-    if(!self->mTexCoords)
-    {
-      _ctmClearMesh(self);
-      self->mError = CTM_OUT_OF_MEMORY;
-      return;
-    }
-    memcpy(self->mTexCoords, aTexCoords, aVertexCount * sizeof(CTMfloat) * 2);
-  }
-
-  // Copy normals
-  if(aNormals)
-  {
-    self->mNormals = (CTMfloat *) malloc(aVertexCount * sizeof(CTMfloat) * 3);
-    if(!self->mNormals)
-    {
-      _ctmClearMesh(self);
-      self->mError = CTM_OUT_OF_MEMORY;
-      return;
-    }
-    memcpy(self->mNormals, aNormals, aVertexCount * sizeof(CTMfloat) * 3);
-  }
+  // Set normal array pointer
+  self->mNormals = (CTMfloat *) aNormals;
 }
 
 //-----------------------------------------------------------------------------
-// ctmGetMesh()
+// ctmAddTexMap()
 //-----------------------------------------------------------------------------
-void ctmGetMesh(CTMcontext aContext, CTMfloat * aVertices,
-                CTMuint aVertexCount, CTMuint * aIndices,
-                CTMuint aTriangleCount, CTMfloat * aTexCoords,
-                CTMfloat * aNormals)
+CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
+  const char * aName)
 {
-  _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return;
+  // FIXME!
+  return CTM_NONE;
+}
 
-  // Check arguments
-  if(!aVertices || !aIndices || (aVertexCount > self->mVertexCount) ||
-     (aTriangleCount > self->mTriangleCount))
-  {
-    self->mError = CTM_INVALID_ARGUMENT;
-    return;
-  }
-
-  // Copy vertices
-  memcpy(aVertices, self->mVertices, aVertexCount * sizeof(CTMfloat) * 3);
-
-  // Copy indices
-  memcpy(aIndices, self->mIndices, aTriangleCount * sizeof(CTMuint) * 3);
-
-  // Copy (or clear) texture coordinates
-  if(aTexCoords)
-  {
-    if(self->mTexCoords)
-      memcpy(aTexCoords, self->mTexCoords, aVertexCount * sizeof(CTMfloat) * 2);
-    else
-      memset(aTexCoords, 0, aVertexCount * sizeof(CTMfloat) * 2);
-  }
-
-  // Copy (or clear) normals
-  if(aNormals)
-  {
-    if(self->mNormals)
-      memcpy(aNormals, self->mNormals, aVertexCount * sizeof(CTMfloat) * 3);
-    else
-      memset(aNormals, 0, aVertexCount * sizeof(CTMfloat) * 3);
-  }
+//-----------------------------------------------------------------------------
+// ctmAddAttribMap()
+//-----------------------------------------------------------------------------
+CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
+  const char * aName)
+{
+  // FIXME!
+  return CTM_NONE;
 }
 
 //-----------------------------------------------------------------------------
@@ -525,6 +552,13 @@ void ctmLoad(CTMcontext aContext, const char * aFileName)
   _CTMcontext * self = (_CTMcontext *) aContext;
   FILE * f;
   if(!self) return;
+
+  // You are only allowed to load data in import mode
+  if(self->mMode != CTM_IMPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
 
   // Open file stream
   f = fopen(aFileName, "rb");
@@ -550,6 +584,13 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
   CTMuint formatVersion, flags, method;
   if(!self) return;
 
+  // You are only allowed to load data in import mode
+  if(self->mMode != CTM_IMPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   // Initialize stream
   self->mReadFn = aReadFn;
   self->mUserData = aUserData;
@@ -564,7 +605,7 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     return;
   }
   formatVersion = _ctmStreamReadUINT(self);
-  if(formatVersion > _CTM_FORMAT_VERSION)
+  if(formatVersion != _CTM_FORMAT_VERSION)
   {
     self->mError = CTM_FORMAT_ERROR;
     return;
@@ -593,6 +634,8 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     self->mError = CTM_FORMAT_ERROR;
     return;
   }
+  self->mTexMapCount = _ctmStreamReadUINT(self);
+  self->mAttribMapCount = _ctmStreamReadUINT(self);
   flags = _ctmStreamReadUINT(self);
   _ctmStreamReadSTRING(self, &self->mFileComment);
 
@@ -610,16 +653,6 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     self->mError = CTM_OUT_OF_MEMORY;
     return;
   }
-  if(flags & _CTM_HAS_TEXCOORDS_BIT)
-  {
-    self->mTexCoords = (CTMfloat *) malloc(self->mVertexCount * sizeof(CTMfloat) * 2);
-    if(!self->mTexCoords)
-    {
-      _ctmClearMesh(self);
-      self->mError = CTM_OUT_OF_MEMORY;
-      return;
-    }
-  }
   if(flags & _CTM_HAS_NORMALS_BIT)
   {
     self->mNormals = (CTMfloat *) malloc(self->mVertexCount * sizeof(CTMfloat) * 3);
@@ -630,6 +663,12 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
       return;
     }
   }
+
+  // Allocate memory for texture maps
+  // FIXME!
+
+  // Allocate memory for attribute maps
+  // FIXME!
 
   // Uncompress from stream
   switch(self->mMethod)
@@ -666,6 +705,13 @@ void ctmSave(CTMcontext aContext, const char * aFileName)
   FILE * f;
   if(!self) return;
 
+  // You are only allowed to save data in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   // Open file stream
   f = fopen(aFileName, "wb");
   if(!f)
@@ -690,6 +736,13 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
   CTMuint flags;
   if(!self) return;
 
+  // You are only allowed to save data in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   // Check mesh integrity
   if(!self->mVertices || !self->mIndices || (self->mVertexCount < 1) ||
      (self->mTriangleCount < 1))
@@ -704,8 +757,6 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
 
   // Determine flags
   flags = 0;
-  if(self->mTexCoords)
-    flags |= _CTM_HAS_TEXCOORDS_BIT;
   if(self->mNormals)
     flags |= _CTM_HAS_NORMALS_BIT;
 
@@ -726,6 +777,8 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
   }
   _ctmStreamWriteUINT(self, self->mVertexCount);
   _ctmStreamWriteUINT(self, self->mTriangleCount);
+  _ctmStreamWriteUINT(self, self->mTexMapCount);
+  _ctmStreamWriteUINT(self, self->mAttribMapCount);
   _ctmStreamWriteUINT(self, flags);
   _ctmStreamWriteSTRING(self, self->mFileComment);
 

@@ -139,21 +139,31 @@ typedef void * CTMcontext;
 /// Error codes. All error codes are positive values, except for CTM_NO_ERROR,
 /// which is zero.
 typedef enum {
-  CTM_NO_ERROR         = 0, ///< No error (everything is OK).
-  CTM_INVALID_CONTEXT  = 1, ///< The OpenCTM context was invalid (e.g. NULL).
-  CTM_INVALID_ARGUMENT = 2, ///< A function argument was invalid.
-  CTM_INVALID_MESH     = 3, ///< The mesh was invalid (e.g. no vertices).
-  CTM_OUT_OF_MEMORY    = 4, ///< Not enough memory to proceed.
-  CTM_FILE_ERROR       = 5, ///< File I/O error.
-  CTM_FORMAT_ERROR     = 6, ///< File format error (e.g. unrecognized format).
-  CTM_LZMA_ERROR       = 7  ///< An error occured within the LZMA library.
+  CTM_NO_ERROR          = 0, ///< No error (everything is OK).
+  CTM_INVALID_CONTEXT   = 1, ///< The OpenCTM context was invalid (e.g. NULL).
+  CTM_INVALID_ARGUMENT  = 2, ///< A function argument was invalid.
+  CTM_INVALID_OPERATION = 3, ///< The operation is not allowed.
+  CTM_INVALID_MESH      = 4, ///< The mesh was invalid (e.g. no vertices).
+  CTM_OUT_OF_MEMORY     = 5, ///< Not enough memory to proceed.
+  CTM_FILE_ERROR        = 6, ///< File I/O error.
+  CTM_FORMAT_ERROR      = 7, ///< File format error (e.g. unrecognized format).
+  CTM_LZMA_ERROR        = 8  ///< An error occured within the LZMA library.
 } CTMerror;
+
+/// OpenCTM context mode (import or export). An OpenCTM context can be used
+/// for either importing data or exporting data.
+/// @see ctmNewContext().
+typedef enum {
+  CTM_IMPORT = 1,  ///< The OpenCTM context will be used for importing data.
+  CTM_EXPORT = 2   ///< The OpenCTM context will be used for exporting data.
+} CTMcontextmode;
 
 /// Arguments for the ctmGetInteger() and ctmGetString() functions.
 /// @note It is an error to query a string value with the ctmGetInteger()
 ///       function, or to query an integer value with the ctmGetString()
 ///       function.
 typedef enum {
+  CTM_NONE = 0,                 ///< Used as an error return value for some functions.
   CTM_VERTEX_COUNT = 1,         ///< Number of vertices in the mesh (integer).
   CTM_TRIANGLE_COUNT = 2,       ///< Number of triangles in the mesh (integer).
   CTM_HAS_NORMALS = 3,          ///< CTM_TRUE if the mesh has normals (integer).
@@ -208,8 +218,11 @@ typedef CTMuint (* CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserDa
 
 /// Create a new OpenCTM context. The context is used for all subsequent
 /// OpenCTM function calls. Several contexts can coexist at the same time.
+/// @param[in] aMode An OpenCTM context mode. Set this to CTM_IMPORT if the
+///             context will be used for importing data, or set it to CTM_EXPORT
+///             if it will be used for exporting data.
 /// @return An OpenCTM context handle (or NULL if no context could be created).
-CTMcontext ctmNewContext(void);
+CTMcontext ctmNewContext(CTMcontextmode aMode);
 
 /// Free an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -321,24 +334,26 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision);
 /// used by the MG2 compression method).
 /// @param[in] aContext An OpenCTM context that has been created by
 ///             ctmNewContext().
-/// @param[in] aTexMap A texture map index for a defined texture map.
+/// @param[in] aTexMap A texture map specifier for a defined texture map
+///             (CTM_TEX_MAP_1, ...).
 /// @param[in] aPrecision Fixed point precision. For instance, if this value is
 ///             0.001, all texture coordinates will be rounded to three decimals.
 ///             The default texture coordinate precision is 2^-12 ~= 0.00024.
 /// @see ctmAddTexMap().
-void ctmTexCoordPrecision(CTMcontext aContext, CTMint aTexMap, CTMfloat aPrecision);
+void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap, CTMfloat aPrecision);
 
 /// Set the attribute value precision for the specified attribute map (only
 /// used by the MG2 compression method).
 /// @param[in] aContext An OpenCTM context that has been created by
 ///             ctmNewContext().
-/// @param[in] aAttribMap A attribute map index for a defined attribute map.
+/// @param[in] aAttribMap An attribute map specifier for a defined attribute map
+///             (CTM_ATTRIB_MAP_1, ...).
 /// @param[in] aPrecision Fixed point precision. For instance, if this value is
 ///             0.001, all attribute values will be rounded to three decimals.
 ///             If the attributes represent integer values, set the precision
 ///             to 1.0. The default attribute precision is 2^-12 ~= 0.00024.
 /// @see ctmAddAttribMap().
-void ctmAttribPrecision(CTMcontext aContext, CTMint aAttribMap, CTMfloat aPrecision);
+void ctmAttribPrecision(CTMcontext aContext, CTMproperty aAttribMap, CTMfloat aPrecision);
 
 /// Set the file comment for the given OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -379,13 +394,14 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
 /// @param[in] aName A unique name for this texture map (zero terminated UTF-8
 ///             string). It is recommended that this name is human readable
 ///             (e.g. "Pigment" or "Normal map").
-/// @return A texture map index (0 and higher). If the function failed, it will
-///          return -1 (use ctmGetError() to determine the cause of the error).
+/// @return A texture map index (CTM_TEX_MAP_1 and higher). If the function
+///          failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///          to determine the cause of the error).
 /// @note A triangle mesh must have been defined before calling this function,
 ///        since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
-CTMint ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
-                    const char * aName);
+CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
+                         const char * aName);
 
 /// Define a custom vertex attribute map. Custom vertex attributes can be used
 /// for defining special per-vertex attributes, such as color, weight, ambient
@@ -398,14 +414,14 @@ CTMint ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
 /// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
 ///             string). It is recommended that this name is human readable
 ///             (e.g. "Color" or "Ambient occlusion").
-/// @return An attribute map index (0 and higher). If the function failed, it
-///          will return -1 (use ctmGetError() to determine the cause of the
-///          error).
+/// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
+///          failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///          to determine the cause of the error).
 /// @note A triangle mesh must have been defined before calling this function,
 ///        since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
-CTMint ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
-                       const char * aName);
+CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
+                            const char * aName);
 
 /// Load an OpenCTM format file. The mesh can be retrieved using ctmGetMesh().
 /// @param[in] aContext An OpenCTM context that has been created by
