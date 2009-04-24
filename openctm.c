@@ -621,6 +621,8 @@ CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
     return CTM_NONE;
   else
   {
+    // The default texture coordinate precision is 2^-12
+    map->mPrecision = 1.0 / 4096.0;
     ++ self->mTexMapCount;
     return CTM_TEX_MAP_1 + self->mTexMapCount - 1;
   }
@@ -642,6 +644,8 @@ CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
     return CTM_NONE;
   else
   {
+    // The default vertex attribute precision is 2^-8
+    map->mPrecision = 1.0 / 256.0;
     ++ self->mAttribMapCount;
     return CTM_TEX_MAP_1 + self->mAttribMapCount - 1;
   }
@@ -690,10 +694,10 @@ void ctmLoad(CTMcontext aContext, const char * aFileName)
 // _ctmAllocateFloatMaps()
 //-----------------------------------------------------------------------------
 static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
-  _CTMfloatmap ** aMapListPtr, CTMuint aCount)
+  _CTMfloatmap ** aMapListPtr, CTMuint aCount, CTMuint aChannels)
 {
   _CTMfloatmap ** mapListPtr;
-  CTMuint i;
+  CTMuint i, size;
 
   mapListPtr = aMapListPtr;
   for(i = 0; i < aCount; ++ i)
@@ -707,13 +711,15 @@ static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
     }
     memset(*mapListPtr, 0, sizeof(_CTMfloatmap));
 
-    // Allocate memory for the float array
-    (*mapListPtr)->mValues = (CTMfloat *) malloc(4 * sizeof(CTMfloat) * self->mVertexCount);
+    // Allocate & clear memory for the float array
+    size = aChannels * sizeof(CTMfloat) * self->mVertexCount;
+    (*mapListPtr)->mValues = (CTMfloat *) malloc(size);
     if(!(*mapListPtr)->mValues)
     {
       self->mError = CTM_OUT_OF_MEMORY;
       return CTM_FALSE;
     }
+    memset((*mapListPtr)->mValues, 0, size);
 
     // Next map...
     mapListPtr = &(*mapListPtr)->mNext;
@@ -812,8 +818,18 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
   }
 
   // Allocate memory for the texture and attribute maps (if any)
-  _ctmAllocateFloatMaps(self, &self->mTexMaps, self->mTexMapCount);
-  _ctmAllocateFloatMaps(self, &self->mAttribMaps, self->mAttribMapCount);
+  if(!_ctmAllocateFloatMaps(self, &self->mTexMaps, self->mTexMapCount, 2))
+  {
+    _ctmClearMesh(self);
+    self->mError = CTM_OUT_OF_MEMORY;
+    return;
+  }
+  if(!_ctmAllocateFloatMaps(self, &self->mAttribMaps, self->mAttribMapCount, 4))
+  {
+    _ctmClearMesh(self);
+    self->mError = CTM_OUT_OF_MEMORY;
+    return;
+  }
 
   // Uncompress from stream
   switch(self->mMethod)
