@@ -38,15 +38,15 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   CTMuint i;
   _CTMfloatmap * map;
 
-  // Write vertices
-  _ctmStreamWrite(self, (void *) "VERT", 4);
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-    _ctmStreamWriteFLOAT(self, self->mVertices[i]);
-
   // Write triangle indices
   _ctmStreamWrite(self, (void *) "INDX", 4);
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
     _ctmStreamWriteUINT(self, self->mIndices[i]);
+
+  // Write vertices
+  _ctmStreamWrite(self, (void *) "VERT", 4);
+  for(i = 0; i < self->mVertexCount * 3; ++ i)
+    _ctmStreamWriteFLOAT(self, self->mVertices[i]);
 
   // Write normals
   if(self->mNormals)
@@ -91,15 +91,6 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   CTMuint i;
   _CTMfloatmap * map;
 
-  // Read vertices
-  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
-  {
-    self->mError = CTM_FORMAT_ERROR;
-    return 0;
-  }
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-    self->mVertices[i] = _ctmStreamReadFLOAT(self);
-
   // Read triangle indices
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
@@ -108,6 +99,15 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   }
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
     self->mIndices[i] = _ctmStreamReadUINT(self);
+
+  // Read vertices
+  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return 0;
+  }
+  for(i = 0; i < self->mVertexCount * 3; ++ i)
+    self->mVertices[i] = _ctmStreamReadFLOAT(self);
 
   // Read normals
   if(self->mNormals)
