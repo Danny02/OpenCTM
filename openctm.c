@@ -51,6 +51,7 @@ static void _ctmFreeMapList(_CTMcontext * self, _CTMfloatmap * aMapList)
 
     nextMap = map->mNext;
     free(map);
+    map = nextMap;
   }
 }
 
@@ -390,6 +391,8 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap,
   CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
   if(!self) return;
 
   // You are only allowed to change compression attributes in export mode
@@ -400,14 +403,28 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap,
   }
 
   // Check arguments
-  if((aPrecision <= 0.0) || (aTexMap < CTM_TEX_MAP_1) ||
-     ((aTexMap - CTM_TEX_MAP_1) >= self->mTexMapCount))
+  if(aPrecision <= 0.0)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
   }
 
-  // FIXME!
+  // Find the indicated map
+  map = self->mTexMaps;
+  i = CTM_TEX_MAP_1;
+  while(map && (i != aTexMap))
+  {
+    ++ i;
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Update the precision
+  map->mPrecision = aPrecision;
 }
 
 //-----------------------------------------------------------------------------
@@ -417,6 +434,8 @@ void ctmAttribPrecision(CTMcontext aContext, CTMproperty aAttribMap,
   CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
   if(!self) return;
 
   // You are only allowed to change compression attributes in export mode
@@ -427,14 +446,28 @@ void ctmAttribPrecision(CTMcontext aContext, CTMproperty aAttribMap,
   }
 
   // Check arguments
-  if((aPrecision <= 0.0) || (aAttribMap < CTM_ATTRIB_MAP_1) ||
-     ((aAttribMap - CTM_ATTRIB_MAP_1) >= self->mAttribMapCount))
+  if(aPrecision <= 0.0)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
   }
 
-  // FIXME!
+  // Find the indicated map
+  map = self->mAttribMaps;
+  i = CTM_ATTRIB_MAP_1;
+  while(map && (i != aAttribMap))
+  {
+    ++ i;
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Update the precision
+  map->mPrecision = aPrecision;
 }
 
 //-----------------------------------------------------------------------------
@@ -517,13 +550,80 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
 }
 
 //-----------------------------------------------------------------------------
+// _ctmAddFloatMap()
+//-----------------------------------------------------------------------------
+static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
+  const CTMfloat * aValues, const char * aName, _CTMfloatmap ** aList)
+{
+  _CTMfloatmap * map;
+  CTMuint len;
+
+  // Allocate memory for a new map list item and append it to the list
+  if(!*aList)
+  {
+    *aList = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
+    map = *aList;
+  }
+  else
+  {
+    map = *aList;
+    while(map->mNext)
+      map = map->mNext;
+    map->mNext = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return (_CTMfloatmap *) 0;
+  }
+
+  // Init the map item
+  memset(map, 0, sizeof(_CTMfloatmap));
+  map->mPrecision = 1.0 / 1024.0;
+  map->mValues = (CTMfloat *) aValues;
+
+  // Set name of the map
+  if(aName)
+  {
+    // Get length of string (if empty, do nothing)
+    len = strlen(aName);
+    if(len)
+    {
+      // Copy the string
+      map->mName = (char *) malloc(len + 1);
+      if(!map->mName)
+      {
+        self->mError = CTM_OUT_OF_MEMORY;
+        free(map);
+        return (_CTMfloatmap *) 0;
+      }
+      strcpy(map->mName, aName);
+    }
+  }
+
+  return map;
+}
+
+//-----------------------------------------------------------------------------
 // ctmAddTexMap()
 //-----------------------------------------------------------------------------
 CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
   const char * aName)
 {
-  // FIXME!
-  return CTM_NONE;
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  if(!self) return CTM_NONE;
+
+  // Add a new texture map to the texture map list
+  map = _ctmAddFloatMap(self, aTexCoords, aName, &self->mTexMaps);
+  if(!map)
+    return CTM_NONE;
+  else
+  {
+    ++ self->mTexMapCount;
+    return CTM_TEX_MAP_1 + self->mTexMapCount - 1;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -532,8 +632,19 @@ CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
 CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
   const char * aName)
 {
-  // FIXME!
-  return CTM_NONE;
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  if(!self) return CTM_NONE;
+
+  // Add a new attribute map to the attribute map list
+  map = _ctmAddFloatMap(self, aAttribValues, aName, &self->mAttribMaps);
+  if(!map)
+    return CTM_NONE;
+  else
+  {
+    ++ self->mAttribMapCount;
+    return CTM_TEX_MAP_1 + self->mAttribMapCount - 1;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -573,6 +684,42 @@ void ctmLoad(CTMcontext aContext, const char * aFileName)
 
   // Close file stream
   fclose(f);
+}
+
+//-----------------------------------------------------------------------------
+// _ctmAllocateFloatMaps()
+//-----------------------------------------------------------------------------
+static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
+  _CTMfloatmap ** aMapListPtr, CTMuint aCount)
+{
+  _CTMfloatmap ** mapListPtr;
+  CTMuint i;
+
+  mapListPtr = aMapListPtr;
+  for(i = 0; i < aCount; ++ i)
+  {
+    // Allocate & clear memory for this map
+    *mapListPtr = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
+    if(!*mapListPtr)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      return CTM_FALSE;
+    }
+    memset(*mapListPtr, 0, sizeof(_CTMfloatmap));
+
+    // Allocate memory for the float array
+    (*mapListPtr)->mValues = (CTMfloat *) malloc(4 * sizeof(CTMfloat) * self->mVertexCount);
+    if(!(*mapListPtr)->mValues)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      return CTM_FALSE;
+    }
+
+    // Next map...
+    mapListPtr = &(*mapListPtr)->mNext;
+  }
+
+  return CTM_TRUE;
 }
 
 //-----------------------------------------------------------------------------
@@ -664,11 +811,9 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     }
   }
 
-  // Allocate memory for texture maps
-  // FIXME!
-
-  // Allocate memory for attribute maps
-  // FIXME!
+  // Allocate memory for the texture and attribute maps (if any)
+  _ctmAllocateFloatMaps(self, &self->mTexMaps, self->mTexMapCount);
+  _ctmAllocateFloatMaps(self, &self->mAttribMaps, self->mAttribMapCount);
 
   // Uncompress from stream
   switch(self->mMethod)
