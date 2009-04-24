@@ -129,9 +129,9 @@ void ctmFreeContext(CTMcontext aContext)
 }
 
 //-----------------------------------------------------------------------------
-// ctmError()
+// ctmGetError()
 //-----------------------------------------------------------------------------
-CTMerror ctmError(CTMcontext aContext)
+CTMerror ctmGetError(CTMcontext aContext)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMerror err;
