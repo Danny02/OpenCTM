@@ -882,6 +882,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
+    _ctmStreamWriteFLOAT(self, map->mPrecision);
     if(!_ctmStreamWritePackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
     {
       free((void *) sortVertices);
@@ -915,6 +916,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
     _ctmStreamWriteSTRING(self, map->mName);
+    _ctmStreamWriteFLOAT(self, map->mPrecision);
     if(!_ctmStreamWritePackedInts(self, intAttribs, self->mVertexCount, 4, CTM_TRUE))
     {
       free((void *) sortVertices);
@@ -1114,6 +1116,13 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       return CTM_FALSE;
     }
     _ctmStreamReadSTRING(self, &map->mName);
+    map->mPrecision = _ctmStreamReadFLOAT(self);
+    if(map->mPrecision <= 0.0)
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      free((void *) intTexCoords);
+      return CTM_FALSE;
+    }
     if(!_ctmStreamReadPackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
     {
       free((void *) intTexCoords);
@@ -1146,6 +1155,13 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       return CTM_FALSE;
     }
     _ctmStreamReadSTRING(self, &map->mName);
+    map->mPrecision = _ctmStreamReadFLOAT(self);
+    if(map->mPrecision <= 0.0)
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      free((void *) intAttribs);
+      return CTM_FALSE;
+    }
     if(!_ctmStreamReadPackedInts(self, intAttribs, self->mVertexCount, 4, CTM_TRUE))
     {
       free((void *) intAttribs);
