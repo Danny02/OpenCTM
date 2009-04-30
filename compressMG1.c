@@ -138,6 +138,7 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
 int _ctmCompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
+  _CTMfloatmap * map;
   CTMuint i;
 
   // Perpare (sort) indices
@@ -154,14 +155,6 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   // Calculate index deltas (entropy-reduction)
   _ctmMakeIndexDeltas(self, indices);
 
-  // Write vertices
-  _ctmStreamWrite(self, (void *) "VERT", 4);
-  if(!_ctmStreamWritePackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
-  {
-    free((void *) indices);
-    return CTM_FALSE;
-  }
-
   // Write triangle indices
   _ctmStreamWrite(self, (void *) "INDX", 4);
   if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
@@ -173,12 +166,12 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   // Free temporary resources
   free((void *) indices);
 
-  // Write texture coordintes
-  if(self->mTexCoords)
+  // Write vertices
+  _ctmStreamWrite(self, (void *) "VERT", 4);
+  if(!_ctmStreamWritePackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
   {
-    _ctmStreamWrite(self, (void *) "TEXC", 4);
-    if(!_ctmStreamWritePackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
-      return CTM_FALSE;
+    free((void *) indices);
+    return CTM_FALSE;
   }
 
   // Write normals
@@ -187,6 +180,28 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
     _ctmStreamWrite(self, (void *) "NORM", 4);
     if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
       return CTM_FALSE;
+  }
+
+  // Write texture maps
+  map = self->mTexMaps;
+  while(map)
+  {
+    _ctmStreamWrite(self, (void *) "TEXC", 4);
+    _ctmStreamWriteSTRING(self, map->mName);
+    if(!_ctmStreamWritePackedFloats(self, map->mValues, self->mVertexCount, 2))
+      return CTM_FALSE;
+    map = map->mNext;
+  }
+
+  // Write attribute maps
+  map = self->mAttribMaps;
+  while(map)
+  {
+    _ctmStreamWrite(self, (void *) "ATTR", 4);
+    _ctmStreamWriteSTRING(self, map->mName);
+    if(!_ctmStreamWritePackedFloats(self, map->mValues, self->mVertexCount, 4))
+      return CTM_FALSE;
+    map = map->mNext;
   }
 
   return CTM_TRUE;
@@ -199,6 +214,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 int _ctmUncompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
+  _CTMfloatmap * map;
   CTMuint i;
 
   // Allocate memory for the indices
@@ -206,19 +222,6 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
   if(!indices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
-    return CTM_FALSE;
-  }
-
-  // Read vertices
-  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
-  {
-    self->mError = CTM_FORMAT_ERROR;
-    free(indices);
-    return CTM_FALSE;
-  }
-  if(!_ctmStreamReadPackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
-  {
-    free((void *) indices);
     return CTM_FALSE;
   }
 
@@ -230,26 +233,24 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     return CTM_FALSE;
   }
   if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
+    return CTM_FALSE;
+
+  // Restore indices
+  _ctmRestoreIndices(self, indices);
+  for(i = 0; i < self->mTriangleCount * 3; ++ i)
+    self->mIndices[i] = indices[i];
+
+  // Free temporary resources
+  free(indices);
+
+  // Read vertices
+  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
   {
-    free((void *) indices);
+    self->mError = CTM_FORMAT_ERROR;
     return CTM_FALSE;
   }
-
-  // Read texture coordintes
-  if(self->mTexCoords)
-  {
-    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
-    {
-      self->mError = CTM_FORMAT_ERROR;
-      free(indices);
-      return CTM_FALSE;
-    }
-    if(!_ctmStreamReadPackedFloats(self, self->mTexCoords, self->mVertexCount * 2, 1))
-    {
-      free((void *) indices);
-      return CTM_FALSE;
-    }
-  }
+  if(!_ctmStreamReadPackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
+    return CTM_FALSE;
 
   // Read normals
   if(self->mNormals)
@@ -257,23 +258,41 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
       self->mError = CTM_FORMAT_ERROR;
-      free(indices);
       return CTM_FALSE;
     }
     if(!_ctmStreamReadPackedFloats(self, self->mNormals, self->mVertexCount, 3))
-    {
-      free((void *) indices);
       return CTM_FALSE;
-    }
   }
 
-  // Restore indices
-  _ctmRestoreIndices(self, indices);
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    self->mIndices[i] = indices[i];
+  // Read texture maps
+  map = self->mTexMaps;
+  while(map)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return 0;
+    }
+    _ctmStreamReadSTRING(self, &map->mName);
+    if(!_ctmStreamReadPackedFloats(self, map->mValues, self->mVertexCount, 2))
+      return CTM_FALSE;
+    map = map->mNext;
+  }
 
-  // Free indices
-  free(indices);
+  // Read vertex attribute maps
+  map = self->mAttribMaps;
+  while(map)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return 0;
+    }
+    _ctmStreamReadSTRING(self, &map->mName);
+    if(!_ctmStreamReadPackedFloats(self, map->mValues, self->mVertexCount, 4))
+      return CTM_FALSE;
+    map = map->mNext;
+  }
 
   return CTM_TRUE;
 }

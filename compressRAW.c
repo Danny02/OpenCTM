@@ -36,24 +36,17 @@
 int _ctmCompressMesh_RAW(_CTMcontext * self)
 {
   CTMuint i;
-
-  // Write vertices
-  _ctmStreamWrite(self, (void *) "VERT", 4);
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-    _ctmStreamWriteFLOAT(self, self->mVertices[i]);
+  _CTMfloatmap * map;
 
   // Write triangle indices
   _ctmStreamWrite(self, (void *) "INDX", 4);
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
     _ctmStreamWriteUINT(self, self->mIndices[i]);
 
-  // Write texture coordintes
-  if(self->mTexCoords)
-  {
-    _ctmStreamWrite(self, (void *) "TEXC", 4);
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
-      _ctmStreamWriteFLOAT(self, self->mTexCoords[i]);
-  }
+  // Write vertices
+  _ctmStreamWrite(self, (void *) "VERT", 4);
+  for(i = 0; i < self->mVertexCount * 3; ++ i)
+    _ctmStreamWriteFLOAT(self, self->mVertices[i]);
 
   // Write normals
   if(self->mNormals)
@@ -61,6 +54,28 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
     _ctmStreamWrite(self, (void *) "NORM", 4);
     for(i = 0; i < self->mVertexCount * 3; ++ i)
       _ctmStreamWriteFLOAT(self, self->mNormals[i]);
+  }
+
+  // Write texture maps
+  map = self->mTexMaps;
+  while(map)
+  {
+    _ctmStreamWrite(self, (void *) "TEXC", 4);
+    _ctmStreamWriteSTRING(self, map->mName);
+    for(i = 0; i < self->mVertexCount * 2; ++ i)
+      _ctmStreamWriteFLOAT(self, map->mValues[i]);
+    map = map->mNext;
+  }
+
+  // Write attribute maps
+  map = self->mAttribMaps;
+  while(map)
+  {
+    _ctmStreamWrite(self, (void *) "ATTR", 4);
+    _ctmStreamWriteSTRING(self, map->mName);
+    for(i = 0; i < self->mVertexCount * 4; ++ i)
+      _ctmStreamWriteFLOAT(self, map->mValues[i]);
+    map = map->mNext;
   }
 
   return 1;
@@ -74,15 +89,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 int _ctmUncompressMesh_RAW(_CTMcontext * self)
 {
   CTMuint i;
-
-  // Read vertices
-  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
-  {
-    self->mError = CTM_FORMAT_ERROR;
-    return 0;
-  }
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-    self->mVertices[i] = _ctmStreamReadFLOAT(self);
+  _CTMfloatmap * map;
 
   // Read triangle indices
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
@@ -93,17 +100,14 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
     self->mIndices[i] = _ctmStreamReadUINT(self);
 
-  // Read texture coordintes
-  if(self->mTexCoords)
+  // Read vertices
+  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
   {
-    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
-    {
-      self->mError = CTM_FORMAT_ERROR;
-      return 0;
-    }
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
-      self->mTexCoords[i] = _ctmStreamReadFLOAT(self);
+    self->mError = CTM_FORMAT_ERROR;
+    return 0;
   }
+  for(i = 0; i < self->mVertexCount * 3; ++ i)
+    self->mVertices[i] = _ctmStreamReadFLOAT(self);
 
   // Read normals
   if(self->mNormals)
@@ -115,6 +119,36 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     }
     for(i = 0; i < self->mVertexCount * 3; ++ i)
       self->mNormals[i] = _ctmStreamReadFLOAT(self);
+  }
+
+  // Read texture maps
+  map = self->mTexMaps;
+  while(map)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return 0;
+    }
+    _ctmStreamReadSTRING(self, &map->mName);
+    for(i = 0; i < self->mVertexCount * 2; ++ i)
+      map->mValues[i] = _ctmStreamReadFLOAT(self);
+    map = map->mNext;
+  }
+
+  // Read attribute maps
+  map = self->mAttribMaps;
+  while(map)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
+    {
+      self->mError = CTM_FORMAT_ERROR;
+      return 0;
+    }
+    _ctmStreamReadSTRING(self, &map->mName);
+    for(i = 0; i < self->mVertexCount * 4; ++ i)
+      map->mValues[i] = _ctmStreamReadFLOAT(self);
+    map = map->mNext;
   }
 
   return 1;

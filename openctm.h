@@ -61,22 +61,17 @@
  *   // Load the OpenCTM file
  *   ctmLoad(context, "mymesh.ctm");
  *
- *   // Transfer the mesh to our own mesh representation
+ *   // Access the mesh data
+ *   vertices = ctmGetFloatArray(context, CTM_VERTICES);
  *   vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
+ *   indices = ctmGetFloatArray(context, CTM_INDICES);
  *   triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
- *   vertices = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * vertCount);
- *   indices = (CTMuint *) malloc(3 * sizeof(CTMuint) * triCount);
- *   ctmGetMesh(context, vertices, vertCount, indices, triCount, NULL, NULL);
+ *
+ *   // Deal with the mesh (e.g. transcode it to our internal representation)
+ *   // ...
  *
  *   // Free the context
  *   ctmFreeContext(context);
- *
- *   // Deal with our mesh
- *   // ...
- *
- *   //Free our mesh
- *   free(indices);
- *   free(vertices);
  * @endcode
  *
  * @subsection example_create_sec Creating a CTM file
@@ -98,35 +93,20 @@
  *   // Create a new context
  *   context = ctmNewContext();
  *
- *   // Transfer the mesh from our own mesh representation to the OpenCTM
- *   // context
- *   ctmDefineMesh(context, vertices, vertCount, indices, triCount, NULL, NULL);
- *
- *   //Free our mesh
- *   free(indices);
- *   free(vertices);
+ *   // Define our mesh representation to OpenCTM (store references to it in
+ *   // the context)
+ *   ctmDefineMesh(context, vertices, vertCount, indices, triCount, NULL);
  *
  *   // Save the OpenCTM file
  *   ctmSave(context, "mymesh.ctm");
  *
  *   // Free the context
  *   ctmFreeContext(context);
+ *
+ *   //Free our mesh
+ *   free(indices);
+ *   free(vertices);
  * @endcode
- *
- * @section format_sec File format
- *
- * The file format is quite complex, since OpenCTM uses several steps of data
- * processing in order to reduce as much redundant information as possible.
- *
- * Some of the techniques that are used are:
- * @li Data reordering.
- * @li Differentiation ("delta to neighbours").
- * @li Data interleaving.
- * @li Entropy coding (LZMA).
- *
- * Because of the complexity of these data operations, it is left to the user
- * of OpenCTM to read the commented source code as a substitute for a plain
- * text specification of the file format.
  */
 
 #ifdef __cplusplus
@@ -135,8 +115,8 @@ extern "C" {
 
 #include <stdint.h>
 
-/// OpenCTM API version (0.1).
-#define CTM_API_VERSION 0x00000001
+/// OpenCTM API version (0.2).
+#define CTM_API_VERSION 0x00000002
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
@@ -159,26 +139,56 @@ typedef void * CTMcontext;
 /// Error codes. All error codes are positive values, except for CTM_NO_ERROR,
 /// which is zero.
 typedef enum {
-  CTM_NO_ERROR         = 0, ///< No error (everything is OK).
-  CTM_INVALID_CONTEXT  = 1, ///< The OpenCTM context was invalid (e.g. NULL).
-  CTM_INVALID_ARGUMENT = 2, ///< A function argument was invalid.
-  CTM_INVALID_MESH     = 3, ///< The mesh was invalid (e.g. no vertices).
-  CTM_OUT_OF_MEMORY    = 4, ///< Not enough memory to proceed.
-  CTM_FILE_ERROR       = 5, ///< File I/O error.
-  CTM_FORMAT_ERROR     = 6, ///< File format error (e.g. unrecognized format).
-  CTM_LZMA_ERROR       = 7  ///< An error occured within the LZMA library.
+  CTM_NO_ERROR          = 0, ///< No error (everything is OK).
+  CTM_INVALID_CONTEXT   = 1, ///< The OpenCTM context was invalid (e.g. NULL).
+  CTM_INVALID_ARGUMENT  = 2, ///< A function argument was invalid.
+  CTM_INVALID_OPERATION = 3, ///< The operation is not allowed.
+  CTM_INVALID_MESH      = 4, ///< The mesh was invalid (e.g. no vertices).
+  CTM_OUT_OF_MEMORY     = 5, ///< Not enough memory to proceed.
+  CTM_FILE_ERROR        = 6, ///< File I/O error.
+  CTM_FORMAT_ERROR      = 7, ///< File format error (e.g. unrecognized format).
+  CTM_LZMA_ERROR        = 8  ///< An error occured within the LZMA library.
 } CTMerror;
+
+/// OpenCTM context mode (import or export). An OpenCTM context can be used
+/// for either importing data or exporting data.
+/// @see ctmNewContext().
+typedef enum {
+  CTM_IMPORT = 1,  ///< The OpenCTM context will be used for importing data.
+  CTM_EXPORT = 2   ///< The OpenCTM context will be used for exporting data.
+} CTMcontextmode;
 
 /// Arguments for the ctmGetInteger() and ctmGetString() functions.
 /// @note It is an error to query a string value with the ctmGetInteger()
 ///       function, or to query an integer value with the ctmGetString()
 ///       function.
 typedef enum {
-  CTM_VERTEX_COUNT = 1,   ///< Number of vertices in the mesh (integer).
-  CTM_TRIANGLE_COUNT = 2, ///< Number of triangles in the mesh (integer).
-  CTM_HAS_TEX_COORDS = 3, ///< CTM_TRUE if the mesh has texture coordinates (integer).
-  CTM_HAS_NORMALS = 4,    ///< CTM_TRUE if the mesh has normals (integer).
-  CTM_FILE_COMMENT = 5    ///< File comment (string).
+  CTM_NONE = 0,                 ///< Used as an error return value for some functions.
+  CTM_VERTEX_COUNT = 1,         ///< Number of vertices in the mesh (integer).
+  CTM_TRIANGLE_COUNT = 2,       ///< Number of triangles in the mesh (integer).
+  CTM_HAS_NORMALS = 3,          ///< CTM_TRUE if the mesh has normals (integer).
+  CTM_TEX_MAP_COUNT = 4,        ///< Number of texture coordinate sets (integer).
+  CTM_ATTRIB_MAP_COUNT = 5,     ///< Number of custom attribute sets (integer).
+  CTM_FILE_COMMENT = 6,         ///< File comment (string).
+  CTM_INDICES = 7,              ///< Triangle indices (integer array).
+  CTM_VERTICES = 8,             ///< Vertex point coordinates (float array).
+  CTM_NORMALS = 9,              ///< Per vertex normals (float array).
+  CTM_TEX_MAP_1 = 0x0010000,    ///< Per vertex texture map 1 (float array).
+  CTM_TEX_MAP_2 = 0x0010001,    ///< Per vertex texture map 2 (float array).
+  CTM_TEX_MAP_3 = 0x0010002,    ///< Per vertex texture map 3 (float array).
+  CTM_TEX_MAP_4 = 0x0010003,    ///< Per vertex texture map 4 (float array).
+  CTM_TEX_MAP_5 = 0x0010004,    ///< Per vertex texture map 5 (float array).
+  CTM_TEX_MAP_6 = 0x0010005,    ///< Per vertex texture map 6 (float array).
+  CTM_TEX_MAP_7 = 0x0010006,    ///< Per vertex texture map 7 (float array).
+  CTM_TEX_MAP_8 = 0x0010007,    ///< Per vertex texture map 8 (float array).
+  CTM_ATTRIB_MAP_1 = 0x0020000, ///< Per vertex attribute map 1 (float array).
+  CTM_ATTRIB_MAP_2 = 0x0020001, ///< Per vertex attribute map 2 (float array).
+  CTM_ATTRIB_MAP_3 = 0x0020002, ///< Per vertex attribute map 3 (float array).
+  CTM_ATTRIB_MAP_4 = 0x0020003, ///< Per vertex attribute map 4 (float array).
+  CTM_ATTRIB_MAP_5 = 0x0020004, ///< Per vertex attribute map 5 (float array).
+  CTM_ATTRIB_MAP_6 = 0x0020005, ///< Per vertex attribute map 6 (float array).
+  CTM_ATTRIB_MAP_7 = 0x0020006, ///< Per vertex attribute map 7 (float array).
+  CTM_ATTRIB_MAP_8 = 0x0020007  ///< Per vertex attribute map 8 (float array).
 } CTMproperty;
 
 /// Supported compression methods.
@@ -208,33 +218,68 @@ typedef CTMuint (* CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserDa
 
 /// Create a new OpenCTM context. The context is used for all subsequent
 /// OpenCTM function calls. Several contexts can coexist at the same time.
+/// @param[in] aMode An OpenCTM context mode. Set this to CTM_IMPORT if the
+///             context will be used for importing data, or set it to CTM_EXPORT
+///             if it will be used for exporting data.
 /// @return An OpenCTM context handle (or NULL if no context could be created).
-CTMcontext ctmNewContext(void);
+CTMcontext ctmNewContext(CTMcontextmode aMode);
 
 /// Free an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
+///             ctmNewContext().
 /// @see ctmNewContext()
 void ctmFreeContext(CTMcontext aContext);
 
 /// Returns the latest error. Calling this function will return the last
 /// produced error code, or CTM_NO_ERROR (zero) if no error has occured since
-/// the last call to ctmError(). When this function is called, the internal
+/// the last call to ctmGetError(). When this function is called, the internal
 /// error varibale will be reset to CTM_NO_ERROR.
 /// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
+///             ctmNewContext().
 /// @return An OpenCTM error code.
 /// @see CTMerror
-CTMerror ctmError(CTMcontext aContext);
+CTMerror ctmGetError(CTMcontext aContext);
 
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
+///             ctmNewContext().
 /// @param[in] aProperty Which property to return.
 /// @return An integer value, representing the OpenCTM context property given
-///         by \c aProperty.
+///          by \c aProperty.
 /// @see CTMproperty
 CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty);
+
+/// Get an integer array from an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aProperty Which array to return.
+/// @return An integer array. If the requested array does not exist, or
+///          if \c aProperty does not indicate an integer array, the function
+///          returns NULL.
+/// @note The array is only valid as long as the OpenCTM context is valid, or
+///       until the corresponding array changes within the OpenCTM contxt
+///       Trying to access an invalid array will result in undefined
+///       behaviour. Therefor it is recommended that the array is copied to
+///       a new variable if it is to be used other than directly after the call
+///       to ctmGetIntegerArray().
+/// @see CTMproperty
+const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMproperty aProperty);
+
+/// Get a floating point array from an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aProperty Which array to return.
+/// @return A floating point array. If the requested array does not exist, or
+///          if \c aProperty does not indicate a float array, the function
+///          returns NULL.
+/// @note The array is only valid as long as the OpenCTM context is valid, or
+///       until the corresponding array changes within the OpenCTM contxt
+///       Trying to access an invalid array will result in undefined
+///       behaviour. Therefor it is recommended that the array is copied to
+///       a new variable if it is to be used other than directly after the call
+///       to ctmGetFloatArray().
+/// @see CTMproperty
+const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty);
 
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -274,25 +319,41 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
 /// Set the vertex coordinate precision, relative to the mesh dimensions (only
 /// used by the MG2 compression method).
 /// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
+///             ctmNewContext().
 /// @param[in] aRelPrecision Relative precision. This factor is multiplied by the
-///            average triangle edge length in the mesh in order to obtain the
-///            final, fixed point precision. For instance, if aRelPrecision is 
-///            0.01, and the average edge length is 3.7, then the fixed point
-///            precision is set to 0.037.
-/// @note The mesh must have been devined using the ctmDefineMesh() function
-///       before calling this function.
+///             average triangle edge length in the mesh in order to obtain the
+///             final, fixed point precision. For instance, if aRelPrecision is 
+///             0.01, and the average edge length is 3.7, then the fixed point
+///             precision is set to 0.037.
+/// @note The mesh must have been defined using the ctmDefineMesh() function
+///        before calling this function.
 /// @see ctmVertexPrecision().
 void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision);
 
-/// Set the texture coordinate precision (only used by the MG2 compression
-/// method).
+/// Set the texture coordinate precision for the specified texture map (only
+/// used by the MG2 compression method).
 /// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
+///             ctmNewContext().
+/// @param[in] aTexMap A texture map specifier for a defined texture map
+///             (CTM_TEX_MAP_1, ...).
 /// @param[in] aPrecision Fixed point precision. For instance, if this value is
 ///             0.001, all texture coordinates will be rounded to three decimals.
 ///             The default texture coordinate precision is 2^-12 ~= 0.00024.
-void ctmTexCoordPrecision(CTMcontext aContext, CTMfloat aPrecision);
+/// @see ctmAddTexMap().
+void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap, CTMfloat aPrecision);
+
+/// Set the attribute value precision for the specified attribute map (only
+/// used by the MG2 compression method).
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aAttribMap An attribute map specifier for a defined attribute map
+///             (CTM_ATTRIB_MAP_1, ...).
+/// @param[in] aPrecision Fixed point precision. For instance, if this value is
+///             0.001, all attribute values will be rounded to three decimals.
+///             If the attributes represent integer values, set the precision
+///             to 1.0. The default attribute precision is 2^-12 ~= 0.00024.
+/// @see ctmAddAttribMap().
+void ctmAttribPrecision(CTMcontext aContext, CTMproperty aAttribMap, CTMfloat aPrecision);
 
 /// Set the file comment for the given OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -311,51 +372,56 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment);
 ///            make one triangle).
 /// @param[in] aTriangleCount The number of triangles in \c aIndices (there
 ///            must be exactly 3 x \c aTriangleCount indices in \c aIndices).
-/// @param[in] aTexCoords An array of texture coordinates (or NULL if there are
-///            no texture coordinates). Each texture coordinate is made up by
-///            two consecutive floats, and there must be \c aVertexCount
-///            texture coordinates.
 /// @param[in] aNormals An array of per-vertex normals (or NULL if there are
 ///            no normals). Each nromal is made up by three consecutive floats,
 ///            and there must be \c aVertexCount normals. All normals must have
 ///            unit length.
-/// @see ctmSave(), ctmSaveCustom().
+/// @see ctmAddTexMap(), ctmAddAttribMap(), ctmSave(), ctmSaveCustom().
 void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
                    CTMuint aVertexCount, const CTMuint * aIndices,
-                   CTMuint aTriangleCount, const CTMfloat * aTexCoords,
-                   const CTMfloat * aNormals);
+                   CTMuint aTriangleCount, const CTMfloat * aNormals);
 
-/// Retrieve the triangle mesh from the OpenCTM context. The arrays must have
-/// been allocated by the caller, and should have enough capacity to hold the
-/// entire mesh (use ctmGetInteger() to determine the size of the mesh).
+/// Define a texture map. There can be several texture maps in a mesh. The first
+/// defined texture map is considered the "primary" texture map. Many
+/// applications only support a single texture map, and the recommended
+/// behaviour is for them to extrect the primary texture map from an OpenCTM
+/// file.
 /// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aVertices An array that will receive the vertices (three
-///            consecutive floats make one vertex).
-/// @param[in] aVertexCount The number of vertices that \c aVertices (and
-///            optionally \c aTexCoords) can hold.
-/// @param[in] aIndices An array that will receive the vertex indices (three
-///            consecutive integers make one triangle).
-/// @param[in] aTriangleCount The number of triangles that \c aIndices can hold
-///            (each triangle is made up of three indices).
-/// @param[in] aTexCoords An array that will receive the texture coordinates
-///            (or NULL if texture coordinates are not requested). Each texture
-///            coordinate is made up by two consecutive floats, and there must
-///            be \c aVertexCount texture coordinates. If the mesh does not
-///            have any texture coordinates, and \c aTexCoords is non-NULL, the
-///            array is zero-filled.
-/// @param[in] aNormals An array that will receive the normals (or NULL if
-///            normals are not requested). Each nromal is made up by three
-///            consecutive floats, and there must be \c aVertexCount normals.
-///            If the mesh does not have any normals, and \c aNormals is
-///            non-NULL, the array is zero-filled..
-/// @note The mesh should have been loaded by calling ctmLoad() or
-///        ctmLoadCustom() prior to calling this function.
-/// @see ctmGetInteger(), ctmLoad(), ctmLoadCustom().
-void ctmGetMesh(CTMcontext aContext, CTMfloat * aVertices,
-                CTMuint aVertexCount, CTMuint * aIndices,
-                CTMuint aTriangleCount, CTMfloat * aTexCoords,
-                CTMfloat * aNormals);
+///             ctmNewContext().
+/// @param[in] aTexCoords An array of texture coordinates. Each texture
+///             coordinate is made up by two consecutive floats, and there must
+///             be as many coordinates as there are vertices in the mesh.
+/// @param[in] aName A unique name for this texture map (zero terminated UTF-8
+///             string). It is recommended that this name is human readable
+///             (e.g. "Pigment" or "Normal map").
+/// @return A texture map index (CTM_TEX_MAP_1 and higher). If the function
+///          failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///          to determine the cause of the error).
+/// @note A triangle mesh must have been defined before calling this function,
+///        since the number of vertices is defined by the triangle mesh.
+/// @see ctmDefineMesh().
+CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
+                         const char * aName);
+
+/// Define a custom vertex attribute map. Custom vertex attributes can be used
+/// for defining special per-vertex attributes, such as color, weight, ambient
+/// occlusion factor, etc.
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aAttribValues An array of attribute values. Each attribute value
+///             is made up by four consecutive floats, and there must be as many
+///             values as there are vertices in the mesh.
+/// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
+///             string). It is recommended that this name is human readable
+///             (e.g. "Color" or "Ambient occlusion").
+/// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
+///          failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///          to determine the cause of the error).
+/// @note A triangle mesh must have been defined before calling this function,
+///        since the number of vertices is defined by the triangle mesh.
+/// @see ctmDefineMesh().
+CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
+                            const char * aName);
 
 /// Load an OpenCTM format file. The mesh can be retrieved using ctmGetMesh().
 /// @param[in] aContext An OpenCTM context that has been created by

@@ -16,7 +16,7 @@ using namespace std;
 void CheckCTMError(CTMcontext aContext)
 {
   CTMerror err;
-  if(err = ctmError(aContext))
+  if(err = ctmGetError(aContext))
   {
     stringstream ss;
     ss << "CTM failed with error code " << err;
@@ -84,7 +84,7 @@ void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
   try
   {
     // Create OpenCTM context
-    ctm = ctmNewContext();
+    ctm = ctmNewContext(CTM_IMPORT);
     CheckCTMError(ctm);
 
     // Import file
@@ -92,29 +92,61 @@ void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
     ctmLoad(ctm, aFileName.c_str());
     CheckCTMError(ctm);
 
-    // Extract mesh
+    // Extract mesh info
     CTMuint vertCount = ctmGetInteger(ctm, CTM_VERTEX_COUNT);
     CTMuint triCount = ctmGetInteger(ctm, CTM_TRIANGLE_COUNT);
-    aPoints.resize(vertCount);
-    aIndices.resize(triCount * 3);
-    CTMfloat * texCoords = 0;
-    if(ctmGetInteger(ctm, CTM_HAS_TEX_COORDS) == CTM_TRUE)
-    {
-      aTexCoords.resize(vertCount);
-      texCoords = &aTexCoords[0].x;
-    }
-    else
-      aTexCoords.clear();
-    CTMfloat * normals = 0;
+    CTMuint texMapCount = ctmGetInteger(ctm, CTM_TEX_MAP_COUNT);
+    const CTMuint * indices = ctmGetIntegerArray(ctm, CTM_INDICES);
+    const CTMfloat * vertices, * normals = 0, * texCoords = 0;
+    vertices = ctmGetFloatArray(ctm, CTM_VERTICES);
     if(ctmGetInteger(ctm, CTM_HAS_NORMALS) == CTM_TRUE)
+      normals = ctmGetFloatArray(ctm, CTM_NORMALS);
+    if(texMapCount > 0)
+      texCoords = ctmGetFloatArray(ctm, CTM_TEX_MAP_1);
+
+    CheckCTMError(ctm);
+
+    // Copy index data
+    aIndices.resize(triCount * 3);
+    for(CTMuint i = 0; i < triCount * 3; ++ i)
+      aIndices[i] = indices[i];
+
+    // Copy point data
+    aPoints.resize(vertCount);
+    for(CTMuint i = 0; i < vertCount; ++ i)
+    {
+      aPoints[i].x = vertices[i * 3];
+      aPoints[i].y = vertices[i * 3 + 1];
+      aPoints[i].z = vertices[i * 3 + 2];
+    }
+
+    // Copy normal data
+    if(normals)
     {
       aNormals.resize(vertCount);
-      normals = &aNormals[0].x;
+      for(CTMuint i = 0; i < vertCount; ++ i)
+      {
+        aNormals[i].x = normals[i * 3];
+        aNormals[i].y = normals[i * 3 + 1];
+        aNormals[i].z = normals[i * 3 + 2];
+      }
     }
     else
       aNormals.clear();
-    ctmGetMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
-               (CTMuint*) &aIndices[0], aIndices.size() / 3, texCoords, normals);
+
+    // Copy texture map data
+    if(texCoords)
+    {
+      aTexCoords.resize(vertCount);
+      for(CTMuint i = 0; i < vertCount; ++ i)
+      {
+        aTexCoords[i].x = texCoords[i * 2];
+        aTexCoords[i].y = texCoords[i * 2 + 1];
+      }
+    }
+    else
+      aTexCoords.clear();
+
     CheckCTMError(ctm);
 
     // Free OpenCTM context
@@ -140,19 +172,21 @@ void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
   try
   {
     // Create OpenCTM context
-    ctm = ctmNewContext();
+    ctm = ctmNewContext(CTM_EXPORT);
     CheckCTMError(ctm);
 
     // Define mesh
-    CTMfloat * texCoords = 0;
-    if(aTexCoords.size() > 0)
-      texCoords = &aTexCoords[0].x;
     CTMfloat * normals = 0;
     if(aNormals.size() > 0)
       normals = &aNormals[0].x;
     ctmDefineMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
-                  (const CTMuint*) &aIndices[0], aIndices.size() / 3, texCoords,
+                  (const CTMuint*) &aIndices[0], aIndices.size() / 3,
                   normals);
+    CheckCTMError(ctm);
+
+    // Define texture coordinates
+    if(aTexCoords.size() > 0)
+      ctmAddTexMap(ctm, &aTexCoords[0].x, "Diffuse color");
     CheckCTMError(ctm);
 
     // Export file
