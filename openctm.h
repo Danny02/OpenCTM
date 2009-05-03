@@ -281,6 +281,24 @@ const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMproperty aProperty);
 /// @see CTMproperty
 const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty);
 
+/// Get a reference to the named texture map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aName The name of the texture map that should be returned.
+/// @return A reference to a texture map. If the texture map was found,
+///          a value of CTM_TEX_MAP_1 or higher is returned, otherwise CTM_NONE
+///          is returned.
+CTMproperty ctmGetNamedTexMap(CTMcontext aContext, const char * aName);
+
+/// Get a reference to the named vertex attribute map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aName The name of the attribute map that should be returned.
+/// @return A reference to an attribute map. If the attribute map was found,
+///          a value of CTM_ATTRIB_MAP_1 or higher is returned, otherwise
+///          CTM_NONE is returned.
+CTMproperty ctmGetNamedAttribMap(CTMcontext aContext, const char * aName);
+
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().

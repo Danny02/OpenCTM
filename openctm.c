@@ -260,6 +260,56 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
 }
 
 //-----------------------------------------------------------------------------
+// ctmGetNamedTexMap()
+//-----------------------------------------------------------------------------
+CTMproperty ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint result;
+  if(!self) return CTM_NONE;
+
+  map = self->mTexMaps;
+  result = CTM_TEX_MAP_1;
+  while(map && (strcmp(aName, map->mName) != 0))
+  {
+    map = map->mNext;
+    ++ result;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return CTM_NONE;
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+// ctmGetNamedAttribMap()
+//-----------------------------------------------------------------------------
+CTMproperty ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint result;
+  if(!self) return CTM_NONE;
+
+  map = self->mAttribMaps;
+  result = CTM_ATTRIB_MAP_1;
+  while(map && (strcmp(aName, map->mName) != 0))
+  {
+    map = map->mNext;
+    ++ result;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return CTM_NONE;
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
 // ctmGetString()
 //-----------------------------------------------------------------------------
 const char * ctmGetString(CTMcontext aContext, CTMproperty aProperty)
