@@ -56,7 +56,7 @@
  *   CTMfloat   * vertices;
  *
  *   // Create a new context
- *   context = ctmNewContext();
+ *   context = ctmNewContext(CTM_IMPORT);
  *
  *   // Load the OpenCTM file
  *   ctmLoad(context, "mymesh.ctm");
@@ -91,7 +91,7 @@
  *   // ...
  *
  *   // Create a new context
- *   context = ctmNewContext();
+ *   context = ctmNewContext(CTM_EXPORT);
  *
  *   // Define our mesh representation to OpenCTM (store references to it in
  *   // the context)
@@ -103,7 +103,7 @@
  *   // Free the context
  *   ctmFreeContext(context);
  *
- *   //Free our mesh
+ *   // Free our mesh
  *   free(indices);
  *   free(vertices);
  * @endcode
@@ -158,37 +158,37 @@ typedef enum {
   CTM_EXPORT = 2   ///< The OpenCTM context will be used for exporting data.
 } CTMcontextmode;
 
-/// Arguments for the ctmGetInteger() and ctmGetString() functions.
-/// @note It is an error to query a string value with the ctmGetInteger()
-///       function, or to query an integer value with the ctmGetString()
-///       function.
+/// Enumerators for referencing internal OpenCTM state variables.
+/// @note For the information query function, it is an error to query a value of
+///        the wrong type (e.g. to query a string value with the ctmGetInteger()
+///        function).
 typedef enum {
-  CTM_NONE = 0,                 ///< Used as an error return value for some functions.
-  CTM_VERTEX_COUNT = 1,         ///< Number of vertices in the mesh (integer).
-  CTM_TRIANGLE_COUNT = 2,       ///< Number of triangles in the mesh (integer).
-  CTM_HAS_NORMALS = 3,          ///< CTM_TRUE if the mesh has normals (integer).
-  CTM_TEX_MAP_COUNT = 4,        ///< Number of texture coordinate sets (integer).
-  CTM_ATTRIB_MAP_COUNT = 5,     ///< Number of custom attribute sets (integer).
-  CTM_FILE_COMMENT = 6,         ///< File comment (string).
-  CTM_INDICES = 7,              ///< Triangle indices (integer array).
-  CTM_VERTICES = 8,             ///< Vertex point coordinates (float array).
-  CTM_NORMALS = 9,              ///< Per vertex normals (float array).
-  CTM_TEX_MAP_1 = 0x0010000,    ///< Per vertex texture map 1 (float array).
-  CTM_TEX_MAP_2 = 0x0010001,    ///< Per vertex texture map 2 (float array).
-  CTM_TEX_MAP_3 = 0x0010002,    ///< Per vertex texture map 3 (float array).
-  CTM_TEX_MAP_4 = 0x0010003,    ///< Per vertex texture map 4 (float array).
-  CTM_TEX_MAP_5 = 0x0010004,    ///< Per vertex texture map 5 (float array).
-  CTM_TEX_MAP_6 = 0x0010005,    ///< Per vertex texture map 6 (float array).
-  CTM_TEX_MAP_7 = 0x0010006,    ///< Per vertex texture map 7 (float array).
-  CTM_TEX_MAP_8 = 0x0010007,    ///< Per vertex texture map 8 (float array).
-  CTM_ATTRIB_MAP_1 = 0x0020000, ///< Per vertex attribute map 1 (float array).
-  CTM_ATTRIB_MAP_2 = 0x0020001, ///< Per vertex attribute map 2 (float array).
-  CTM_ATTRIB_MAP_3 = 0x0020002, ///< Per vertex attribute map 3 (float array).
-  CTM_ATTRIB_MAP_4 = 0x0020003, ///< Per vertex attribute map 4 (float array).
-  CTM_ATTRIB_MAP_5 = 0x0020004, ///< Per vertex attribute map 5 (float array).
-  CTM_ATTRIB_MAP_6 = 0x0020005, ///< Per vertex attribute map 6 (float array).
-  CTM_ATTRIB_MAP_7 = 0x0020006, ///< Per vertex attribute map 7 (float array).
-  CTM_ATTRIB_MAP_8 = 0x0020007  ///< Per vertex attribute map 8 (float array).
+  CTM_NONE = 0,                  ///< Used as an error return value for some functions.
+  CTM_VERTEX_COUNT = 1,          ///< Number of vertices in the mesh (integer).
+  CTM_TRIANGLE_COUNT = 2,        ///< Number of triangles in the mesh (integer).
+  CTM_HAS_NORMALS = 3,           ///< CTM_TRUE if the mesh has normals (integer).
+  CTM_TEX_MAP_COUNT = 4,         ///< Number of texture coordinate sets (integer).
+  CTM_ATTRIB_MAP_COUNT = 5,      ///< Number of custom attribute sets (integer).
+  CTM_FILE_COMMENT = 6,          ///< File comment (string).
+  CTM_INDICES = 7,               ///< Triangle indices (integer array).
+  CTM_VERTICES = 8,              ///< Vertex point coordinates (float array).
+  CTM_NORMALS = 9,               ///< Per vertex normals (float array).
+  CTM_TEX_MAP_1 = 0x00010000,    ///< Per vertex texture map 1 (float array).
+  CTM_TEX_MAP_2 = 0x00010001,    ///< Per vertex texture map 2 (float array).
+  CTM_TEX_MAP_3 = 0x00010002,    ///< Per vertex texture map 3 (float array).
+  CTM_TEX_MAP_4 = 0x00010003,    ///< Per vertex texture map 4 (float array).
+  CTM_TEX_MAP_5 = 0x00010004,    ///< Per vertex texture map 5 (float array).
+  CTM_TEX_MAP_6 = 0x00010005,    ///< Per vertex texture map 6 (float array).
+  CTM_TEX_MAP_7 = 0x00010006,    ///< Per vertex texture map 7 (float array).
+  CTM_TEX_MAP_8 = 0x00010007,    ///< Per vertex texture map 8 (float array).
+  CTM_ATTRIB_MAP_1 = 0x00020000, ///< Per vertex attribute map 1 (float array).
+  CTM_ATTRIB_MAP_2 = 0x00020001, ///< Per vertex attribute map 2 (float array).
+  CTM_ATTRIB_MAP_3 = 0x00020002, ///< Per vertex attribute map 3 (float array).
+  CTM_ATTRIB_MAP_4 = 0x00020003, ///< Per vertex attribute map 4 (float array).
+  CTM_ATTRIB_MAP_5 = 0x00020004, ///< Per vertex attribute map 5 (float array).
+  CTM_ATTRIB_MAP_6 = 0x00020005, ///< Per vertex attribute map 6 (float array).
+  CTM_ATTRIB_MAP_7 = 0x00020006, ///< Per vertex attribute map 7 (float array).
+  CTM_ATTRIB_MAP_8 = 0x00020007  ///< Per vertex attribute map 8 (float array).
 } CTMproperty;
 
 /// Supported compression methods.
