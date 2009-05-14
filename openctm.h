@@ -480,14 +480,14 @@ void ctmLoad(CTMcontext aContext, const char * aFileName);
 void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData);
 
 /// Save an OpenCTM format file. The mesh must have been defined by
-/// ctmDefineMesh() (or possibly by ctmLoad()).
+/// ctmDefineMesh().
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be saved.
 void ctmSave(CTMcontext aContext, const char * aFileName);
 
 /// Save an OpenCTM format file using a custom stream write function. The mesh
-/// must have been defined by ctmDefineMesh() (or possibly by ctmLoad()).
+/// must have been defined by ctmDefineMesh().
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aWriteFn Pointer to a custom stream write function.
