@@ -55,7 +55,7 @@ struct _CTMfloatmap_struct {
 //-----------------------------------------------------------------------------
 typedef struct {
   // Context mode (import or export)
-  CTMcontextmode mMode;
+  CTMenum mMode;
 
   // Vertices
   CTMfloat * mVertices;
@@ -77,10 +77,10 @@ typedef struct {
   _CTMfloatmap * mAttribMaps;
 
   // Last error code
-  CTMerror mError;
+  CTMenum mError;
 
   // The selected compression method
-  CTMmethod mMethod;
+  CTMenum mMethod;
 
   // Vertex coordinate precision
   CTMfloat mVertexPrecision;

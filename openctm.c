@@ -96,7 +96,7 @@ static void _ctmClearMesh(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 // ctmNewContext()
 //-----------------------------------------------------------------------------
-CTMcontext ctmNewContext(CTMcontextmode aMode)
+CTMcontext ctmNewContext(CTMenum aMode)
 {
   _CTMcontext * self;
 
@@ -106,7 +106,7 @@ CTMcontext ctmNewContext(CTMcontextmode aMode)
   // Initialize structure (set null pointers and zero array lengths)
   memset(self, 0, sizeof(_CTMcontext));
   self->mMode = aMode;
-  self->mError = CTM_NO_ERROR;
+  self->mError = CTM_NONE;
   self->mMethod = CTM_METHOD_MG1;
   self->mVertexPrecision = 1.0 / 1024.0;
 
@@ -135,23 +135,23 @@ void ctmFreeContext(CTMcontext aContext)
 //-----------------------------------------------------------------------------
 // ctmGetError()
 //-----------------------------------------------------------------------------
-CTMerror ctmGetError(CTMcontext aContext)
+CTMenum ctmGetError(CTMcontext aContext)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMerror err;
+  CTMenum err;
 
   if(!self) return CTM_INVALID_CONTEXT;
 
   // Get error code and reset error state
   err = self->mError;
-  self->mError = CTM_NO_ERROR;
+  self->mError = CTM_NONE;
   return err;
 }
 
 //-----------------------------------------------------------------------------
 // ctmGetInteger()
 //-----------------------------------------------------------------------------
-CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty)
+CTMuint ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return 0;
@@ -183,7 +183,7 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMproperty aProperty)
 //-----------------------------------------------------------------------------
 // ctmGetIntegerArray()
 //-----------------------------------------------------------------------------
-const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMproperty aProperty)
+const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return (CTMuint *) 0;
@@ -203,7 +203,7 @@ const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMproperty aProperty)
 //-----------------------------------------------------------------------------
 // ctmGetFloatArray()
 //-----------------------------------------------------------------------------
-const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
+const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -266,7 +266,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty)
 //-----------------------------------------------------------------------------
 // ctmGetNamedTexMap()
 //-----------------------------------------------------------------------------
-CTMproperty ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
+CTMenum ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -291,8 +291,8 @@ CTMproperty ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
 //-----------------------------------------------------------------------------
 // ctmGetTexMapString()
 //-----------------------------------------------------------------------------
-const char * ctmGetTexMapString(CTMcontext aContext, CTMproperty aTexMap,
-  CTMproperty aProperty)
+const char * ctmGetTexMapString(CTMcontext aContext, CTMenum aTexMap,
+  CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -330,7 +330,7 @@ const char * ctmGetTexMapString(CTMcontext aContext, CTMproperty aTexMap,
 //-----------------------------------------------------------------------------
 // ctmGetNamedAttribMap()
 //-----------------------------------------------------------------------------
-CTMproperty ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)
+CTMenum ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -355,7 +355,7 @@ CTMproperty ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)
 //-----------------------------------------------------------------------------
 // ctmGetString()
 //-----------------------------------------------------------------------------
-const char * ctmGetString(CTMcontext aContext, CTMproperty aProperty)
+const char * ctmGetString(CTMcontext aContext, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return 0;
@@ -375,7 +375,7 @@ const char * ctmGetString(CTMcontext aContext, CTMproperty aProperty)
 //-----------------------------------------------------------------------------
 // ctmCompressionMethod()
 //-----------------------------------------------------------------------------
-void ctmCompressionMethod(CTMcontext aContext, CTMmethod aMethod)
+void ctmCompressionMethod(CTMcontext aContext, CTMenum aMethod)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -480,7 +480,7 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
 //-----------------------------------------------------------------------------
 // ctmTexCoordPrecision()
 //-----------------------------------------------------------------------------
-void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap,
+void ctmTexCoordPrecision(CTMcontext aContext, CTMenum aTexMap,
   CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
@@ -523,7 +523,7 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMproperty aTexMap,
 //-----------------------------------------------------------------------------
 // ctmAttribPrecision()
 //-----------------------------------------------------------------------------
-void ctmAttribPrecision(CTMcontext aContext, CTMproperty aAttribMap,
+void ctmAttribPrecision(CTMcontext aContext, CTMenum aAttribMap,
   CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
@@ -723,7 +723,7 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
 //-----------------------------------------------------------------------------
 // ctmAddTexMap()
 //-----------------------------------------------------------------------------
-CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
+CTMenum ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
   const char * aName, const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
@@ -746,7 +746,7 @@ CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
 //-----------------------------------------------------------------------------
 // ctmAddAttribMap()
 //-----------------------------------------------------------------------------
-CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
+CTMenum ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
   const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
@@ -961,6 +961,9 @@ void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
     case CTM_METHOD_MG2:
       _ctmUncompressMesh_MG2(self);
       break;
+
+    default:
+      self->mError = CTM_INTERNAL_ERROR;
   }
 }
 
@@ -1045,12 +1048,18 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
     case CTM_METHOD_RAW:
       _ctmStreamWrite(self, (void *) "RAW\0", 4);
       break;
+
     case CTM_METHOD_MG1:
       _ctmStreamWrite(self, (void *) "MG1\0", 4);
       break;
+
     case CTM_METHOD_MG2:
       _ctmStreamWrite(self, (void *) "MG2\0", 4);
       break;
+
+    default:
+      self->mError = CTM_INTERNAL_ERROR;
+      return;
   }
   _ctmStreamWriteUINT(self, self->mVertexCount);
   _ctmStreamWriteUINT(self, self->mTriangleCount);
@@ -1073,5 +1082,9 @@ void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
     case CTM_METHOD_MG2:
       _ctmCompressMesh_MG2(self);
       break;
+
+    default:
+      self->mError = CTM_INTERNAL_ERROR;
+      return;
   }
 }

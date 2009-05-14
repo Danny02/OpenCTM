@@ -15,7 +15,7 @@ using namespace std;
 //-----------------------------------------------------------------------------
 void CheckCTMError(CTMcontext aContext)
 {
-  CTMerror err;
+  CTMenum err;
   if(err = ctmGetError(aContext))
   {
     stringstream ss;
