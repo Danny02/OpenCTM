@@ -289,6 +289,45 @@ CTMproperty ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
 }
 
 //-----------------------------------------------------------------------------
+// ctmGetTexMapString()
+//-----------------------------------------------------------------------------
+const char * ctmGetTexMapString(CTMcontext aContext, CTMproperty aTexMap,
+  CTMproperty aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
+  if(!self) return (const char *) 0;
+
+  // Find the indicated map
+  map = self->mTexMaps;
+  i = CTM_TEX_MAP_1;
+  while(map && (i != aTexMap))
+  {
+    ++ i;
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return (const char *) 0;
+  }
+
+  // Get the requested string
+  switch(aProperty)
+  {
+    case CTM_FILE_NAME:
+      return (const char *) map->mFileName;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return (const char *) 0;
+
+}
+
+//-----------------------------------------------------------------------------
 // ctmGetNamedAttribMap()
 //-----------------------------------------------------------------------------
 CTMproperty ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)

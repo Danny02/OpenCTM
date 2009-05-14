@@ -173,6 +173,7 @@ typedef enum {
   CTM_INDICES = 7,               ///< Triangle indices (integer array).
   CTM_VERTICES = 8,              ///< Vertex point coordinates (float array).
   CTM_NORMALS = 9,               ///< Per vertex normals (float array).
+  CTM_FILE_NAME = 10,            ///< File name reference (texture map string).
   CTM_TEX_MAP_1 = 0x00010000,    ///< Per vertex texture map 1 (float array).
   CTM_TEX_MAP_2 = 0x00010001,    ///< Per vertex texture map 2 (float array).
   CTM_TEX_MAP_3 = 0x00010002,    ///< Per vertex texture map 3 (float array).
@@ -289,6 +290,22 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMproperty aProperty);
 ///          a value of CTM_TEX_MAP_1 or higher is returned, otherwise CTM_NONE
 ///          is returned.
 CTMproperty ctmGetNamedTexMap(CTMcontext aContext, const char * aName);
+
+/// Get information about a texture map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aTexMap Which texture map to query (CTM_TEX_MAP_1 or higher).
+/// @param[in] aProperty Which texture map property to return.
+/// @return A string value, representing the texture map property given
+///         by \c aProperty.
+/// @note The string is only valid as long as the texture map within the OpenCTM
+///       context is valid. Trying to access an invalid string will result in
+///       undefined behaviour. Therefor it is recommended that the string is
+///       copied to a new variable if it is to be used other than directly after
+///       the call to ctmGetTexMapString().
+/// @see CTMproperty
+const char * ctmGetTexMapString(CTMcontext aContext, CTMproperty aTexMap,
+                                CTMproperty aProperty);
 
 /// Get a reference to the named vertex attribute map.
 /// @param[in] aContext An OpenCTM context that has been created by
