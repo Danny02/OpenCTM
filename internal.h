@@ -31,8 +31,8 @@
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
-// OpenCTM file format version (0.2).
-#define _CTM_FORMAT_VERSION  0x00000002
+// OpenCTM file format version (0.3).
+#define _CTM_FORMAT_VERSION  0x00000003
 
 // Flags for the Mesh flags field of the file header
 #define _CTM_HAS_NORMALS_BIT 0x00000001
