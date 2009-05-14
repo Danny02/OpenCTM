@@ -405,38 +405,40 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
 /// behaviour is for them to extrect the primary texture map from an OpenCTM
 /// file.
 /// @param[in] aContext An OpenCTM context that has been created by
-///             ctmNewContext().
+///            ctmNewContext().
 /// @param[in] aTexCoords An array of texture coordinates. Each texture
-///             coordinate is made up by two consecutive floats, and there must
-///             be as many coordinates as there are vertices in the mesh.
+///            coordinate is made up by two consecutive floats, and there must
+///            be as many coordinates as there are vertices in the mesh.
 /// @param[in] aName A unique name for this texture map (zero terminated UTF-8
-///             string). It is recommended that this name is human readable
-///             (e.g. "Pigment" or "Normal map").
+///            string). It is recommended that this name is human readable
+///            (e.g. "Pigment" or "Normal map").
+/// @param[in] aFileName A reference to a texture image file (zero terminated
+///            UTF-8 string). If no file name reference exists, pass NULL.
 /// @return A texture map index (CTM_TEX_MAP_1 and higher). If the function
-///          failed, it will return the zero valued CTM_NONE (use ctmGetError()
-///          to determine the cause of the error).
+///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///         to determine the cause of the error).
 /// @note A triangle mesh must have been defined before calling this function,
-///        since the number of vertices is defined by the triangle mesh.
+///       since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
 CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
-                         const char * aName);
+                         const char * aName, const char * aFileName);
 
 /// Define a custom vertex attribute map. Custom vertex attributes can be used
 /// for defining special per-vertex attributes, such as color, weight, ambient
 /// occlusion factor, etc.
 /// @param[in] aContext An OpenCTM context that has been created by
-///             ctmNewContext().
+///            ctmNewContext().
 /// @param[in] aAttribValues An array of attribute values. Each attribute value
-///             is made up by four consecutive floats, and there must be as many
-///             values as there are vertices in the mesh.
+///            is made up by four consecutive floats, and there must be as many
+///            values as there are vertices in the mesh.
 /// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
-///             string). It is recommended that this name is human readable
-///             (e.g. "Color" or "Ambient occlusion").
+///            string). It is recommended that this name is human readable
+///            (e.g. "Color" or "Ambient occlusion").
 /// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
-///          failed, it will return the zero valued CTM_NONE (use ctmGetError()
-///          to determine the cause of the error).
+///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///         to determine the cause of the error).
 /// @note A triangle mesh must have been defined before calling this function,
-///        since the number of vertices is defined by the triangle mesh.
+///       since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
 CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
                             const char * aName);

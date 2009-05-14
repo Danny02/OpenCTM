@@ -49,6 +49,10 @@ static void _ctmFreeMapList(_CTMcontext * self, _CTMfloatmap * aMapList)
     if(map->mName)
       free(map->mName);
 
+    // Free file name
+    if(map->mFileName)
+      free(map->mFileName);
+
     nextMap = map->mNext;
     free(map);
     map = nextMap;
@@ -603,7 +607,8 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
 // _ctmAddFloatMap()
 //-----------------------------------------------------------------------------
 static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
-  const CTMfloat * aValues, const char * aName, _CTMfloatmap ** aList)
+  const CTMfloat * aValues, const char * aName, const char * aFileName,
+  _CTMfloatmap ** aList)
 {
   _CTMfloatmap * map;
   CTMuint len;
@@ -652,6 +657,27 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
     }
   }
 
+  // Set file name reference for the map
+  if(aFileName)
+  {
+    // Get length of string (if empty, do nothing)
+    len = strlen(aFileName);
+    if(len)
+    {
+      // Copy the string
+      map->mFileName = (char *) malloc(len + 1);
+      if(!map->mFileName)
+      {
+        self->mError = CTM_OUT_OF_MEMORY;
+        if(map->mName)
+          free(map->mName);
+        free(map);
+        return (_CTMfloatmap *) 0;
+      }
+      strcpy(map->mFileName, aFileName);
+    }
+  }
+
   return map;
 }
 
@@ -659,14 +685,14 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
 // ctmAddTexMap()
 //-----------------------------------------------------------------------------
 CTMproperty ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
-  const char * aName)
+  const char * aName, const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
   if(!self) return CTM_NONE;
 
   // Add a new texture map to the texture map list
-  map = _ctmAddFloatMap(self, aTexCoords, aName, &self->mTexMaps);
+  map = _ctmAddFloatMap(self, aTexCoords, aName, aFileName, &self->mTexMaps);
   if(!map)
     return CTM_NONE;
   else
@@ -689,7 +715,8 @@ CTMproperty ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
   if(!self) return CTM_NONE;
 
   // Add a new attribute map to the attribute map list
-  map = _ctmAddFloatMap(self, aAttribValues, aName, &self->mAttribMaps);
+  map = _ctmAddFloatMap(self, aAttribValues, aName, (const char *) 0,
+                        &self->mAttribMaps);
   if(!map)
     return CTM_NONE;
   else

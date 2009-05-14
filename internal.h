@@ -44,6 +44,7 @@
 typedef struct _CTMfloatmap_struct _CTMfloatmap;
 struct _CTMfloatmap_struct {
   char * mName;         // Unique name
+  char * mFileName;     // File name reference (used only for texture maps)
   CTMfloat mPrecision;  // Precision for this map
   CTMfloat * mValues;   // Attribute/texutre coordinate values (per vertex)
   _CTMfloatmap * mNext; // Pointer to the next map in the list (linked list)

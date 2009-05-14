@@ -188,6 +188,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   {
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
+    _ctmStreamWriteSTRING(self, map->mFileName);
     if(!_ctmStreamWritePackedFloats(self, map->mValues, self->mVertexCount, 2))
       return CTM_FALSE;
     map = map->mNext;
@@ -274,6 +275,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
       return 0;
     }
     _ctmStreamReadSTRING(self, &map->mName);
+    _ctmStreamReadSTRING(self, &map->mFileName);
     if(!_ctmStreamReadPackedFloats(self, map->mValues, self->mVertexCount, 2))
       return CTM_FALSE;
     map = map->mNext;

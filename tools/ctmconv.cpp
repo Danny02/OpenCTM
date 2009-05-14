@@ -186,7 +186,7 @@ void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
 
     // Define texture coordinates
     if(aTexCoords.size() > 0)
-      ctmAddTexMap(ctm, &aTexCoords[0].x, "Diffuse color");
+      ctmAddTexMap(ctm, &aTexCoords[0].x, "Diffuse color", NULL);
     CheckCTMError(ctm);
 
     // Export file

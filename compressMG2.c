@@ -882,6 +882,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
+    _ctmStreamWriteSTRING(self, map->mFileName);
     _ctmStreamWriteFLOAT(self, map->mPrecision);
     if(!_ctmStreamWritePackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
     {
@@ -1116,6 +1117,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       return CTM_FALSE;
     }
     _ctmStreamReadSTRING(self, &map->mName);
+    _ctmStreamReadSTRING(self, &map->mFileName);
     map->mPrecision = _ctmStreamReadFLOAT(self);
     if(map->mPrecision <= 0.0)
     {

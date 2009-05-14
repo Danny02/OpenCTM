@@ -62,6 +62,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   {
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
+    _ctmStreamWriteSTRING(self, map->mFileName);
     for(i = 0; i < self->mVertexCount * 2; ++ i)
       _ctmStreamWriteFLOAT(self, map->mValues[i]);
     map = map->mNext;
@@ -131,6 +132,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
       return 0;
     }
     _ctmStreamReadSTRING(self, &map->mName);
+    _ctmStreamReadSTRING(self, &map->mFileName);
     for(i = 0; i < self->mVertexCount * 2; ++ i)
       map->mValues[i] = _ctmStreamReadFLOAT(self);
     map = map->mNext;
