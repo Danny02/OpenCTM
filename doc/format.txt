@@ -1,4 +1,4 @@
-OpenCTM Format Specification - Format version 1.0
+OpenCTM Format Specification - Format version 0.3
 =================================================
 
 Copyright (c) 2009 Marcus Geelnard
@@ -7,7 +7,7 @@ Copyright (c) 2009 Marcus Geelnard
 1. Introduction
 ---------------
 
-This document describes version 1.0 of the OpenCTM file format.
+This document describes version 0.3 of the OpenCTM file format.
 
 
 2. File format specification
@@ -42,16 +42,18 @@ The file must start with a header, which looks as follows:
 Offset  Type      Description
 -------------------------------------------------------------------------------
 0       Integer   Magic identifier (0x4d54434f, or "OCTM" when read as ASCII).
-4       Integer   File format version (0x00000100 = version 1.0).
+4       Integer   File format version (0x00000003 = version 0.3).
 8       Integer   Compression method, which can be one of the following:
                     0x00574152 -> Use the RAW compression method.
                     0x0031474d -> Use the MG1 compression method.
+                    0x0032474d -> Use the MG2 compression method.
 12      Integer   Vertex count.
 16      Integer   Triangle count.
-20      Integer   Boolean flags, or:ed together:
-                    0x00000001 -> The file contains texture coordinates.
-                    0x00000002 -> The file contains per-vertex normals.
-24      String    File comment.
+20      Integer   Texture map count.
+24      Integer   Attribute map count.
+28      Integer   Boolean flags, or:ed together:
+                    0x00000001 -> The file contains per-vertex normals.
+32      String    File comment.
 
 The length of the file header is varibale, since it contains fields of variable
 length.
@@ -66,8 +68,8 @@ dictated by the length of the file header.
 The format of the body data is specific for each compression method, which is
 defined by the "Compression method" field in the header.
 
-The body data contains the vertex, index, texture coordinate and normal data,
-usually in a compressed form.
+The body data contains the vertex, index, normal, texture map and attribute map
+data, usually in a compressed form.
 
 
 3. Recommendations
@@ -82,7 +84,7 @@ systems.
 Here are the recommendations:
 
 1) The "up" direction of 3D coordinates should be the positive Z axis.
-2) The unit of 3D coordinates should be millimeters (mm).
+2) The unit of 3D coordinates should be meters (m).
 3) Given the three coordinates of a triangle (P1, P2, P3), the front/up
    direction of the triangle ("flat normal") should be defined by the
    normalized cross product: (P2 - P1) X (P3 - P1).
