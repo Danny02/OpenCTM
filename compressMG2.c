@@ -36,8 +36,8 @@
 #endif
 
 // We use a hard coded fixed point precision for normal deltas
-#define NORMAL_PRECISION       1024.0 // .10 bits per normal component
-#define NORMAL_SCALE_PRECISION 256.0  // .8 bits for the normal scale
+#define NORMAL_PRECISION       1024.0f // .10 bits per normal component
+#define NORMAL_SCALE_PRECISION 256.0f  // .8 bits for the normal scale
 
 
 //-----------------------------------------------------------------------------
@@ -105,15 +105,15 @@ static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
   for(i = 0; i < 3; ++ i)
     factor[i] = aGrid->mMax[i] - aGrid->mMin[i];
   sum = factor[0] + factor[1] + factor[2];
-  if(sum > 1e-30)
+  if(sum > 1e-30f)
   {
-    sum = 1.0 / sum;
+    sum = 1.0f / sum;
     for(i = 0; i < 3; ++ i)
       factor[i] *= sum;
-    wantedGrids = pow(100.0 * self->mVertexCount, 1.0 / 3.0);
+    wantedGrids = powf(100.0f * self->mVertexCount, 1.0f / 3.0f);
     for(i = 0; i < 3; ++ i)
     {
-      aGrid->mDivision[i] = ceil(wantedGrids * factor[i]);
+      aGrid->mDivision[i] = (CTMuint) ceilf(wantedGrids * factor[i]);
       if(aGrid->mDivision[i] < 1)
         aGrid->mDivision[i] = 1;
     }
@@ -142,7 +142,7 @@ static CTMuint _ctmPointToGridIdx(_CTMgrid * aGrid, CTMfloat * aPoint)
 
   for(i = 0; i < 3; ++ i)
   {
-    idx[i] = floor((aPoint[i] - aGrid->mMin[i]) / aGrid->mSize[i]);
+    idx[i] = (CTMuint) floorf((aPoint[i] - aGrid->mMin[i]) / aGrid->mSize[i]);
     if(idx[i] >= aGrid->mDivision[i])
       idx[i] = aGrid->mDivision[i] - 1;
   }
@@ -352,7 +352,7 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
   CTMint deltaX, prevDeltaX;
 
   // Vertex scaling factor
-  scale = 1.0 / self->mVertexPrecision;
+  scale = 1.0f / self->mVertexPrecision;
 
   prevGridIndex = 0x7fffffff;
   prevDeltaX = 0;
@@ -368,13 +368,13 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
     // Store delta to the grid box origin in the integer vertex array. For the
     // X axis (which is sorted) we also do the delta to the previous coordinate
     // in the box.
-    deltaX = floor(scale * (self->mVertices[oldIdx * 3] - gridOrigin[0]) + 0.5);
+    deltaX = (CTMint) floorf(scale * (self->mVertices[oldIdx * 3] - gridOrigin[0]) + 0.5f);
     if(gridIdx == prevGridIndex)
       aIntVertices[i * 3] = deltaX - prevDeltaX;
     else
       aIntVertices[i * 3] = deltaX;
-    aIntVertices[i * 3 + 1] = floor(scale * (self->mVertices[oldIdx * 3 + 1] - gridOrigin[1]) + 0.5);
-    aIntVertices[i * 3 + 2] = floor(scale * (self->mVertices[oldIdx * 3 + 2] - gridOrigin[2]) + 0.5);
+    aIntVertices[i * 3 + 1] = (CTMint) floorf(scale * (self->mVertices[oldIdx * 3 + 1] - gridOrigin[1]) + 0.5f);
+    aIntVertices[i * 3 + 2] = (CTMint) floorf(scale * (self->mVertices[oldIdx * 3 + 2] - gridOrigin[2]) + 0.5f);
 
     prevGridIndex = gridIdx;
     prevDeltaX = deltaX;
@@ -427,7 +427,7 @@ static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
 
   // Clear smooth normals array
   for(i = 0; i < 3 * self->mVertexCount; ++ i)
-    aSmoothNormals[i] = 0.0;
+    aSmoothNormals[i] = 0.0f;
 
   // Calculate sums of all neigbouring triangle normals for each vertex
   for(i = 0; i < self->mTriangleCount; ++ i)
@@ -446,11 +446,11 @@ static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
     n[0] = v1[1] * v2[2] - v1[2] * v2[1];
     n[1] = v1[2] * v2[0] - v1[0] * v2[2];
     n[2] = v1[0] * v2[1] - v1[1] * v2[0];
-    len = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-    if(len > 1e-10)
-      len = 1.0 / len;
+    len = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+    if(len > 1e-10f)
+      len = 1.0f / len;
     else
-      len = 1.0;
+      len = 1.0f;
     for(j = 0; j < 3; ++ j)
       n[j] *= len;
 
@@ -463,13 +463,13 @@ static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
   // Normalize the normal sums, which gives the unit length smooth normals
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    len = sqrt(aSmoothNormals[i * 3] * aSmoothNormals[i * 3] + 
-               aSmoothNormals[i * 3 + 1] * aSmoothNormals[i * 3 + 1] +
-               aSmoothNormals[i * 3 + 2] * aSmoothNormals[i * 3 + 2]);
-    if(len > 1e-10)
-      len = 1.0 / len;
+    len = sqrtf(aSmoothNormals[i * 3] * aSmoothNormals[i * 3] + 
+                aSmoothNormals[i * 3 + 1] * aSmoothNormals[i * 3 + 1] +
+                aSmoothNormals[i * 3 + 2] * aSmoothNormals[i * 3 + 2]);
+    if(len > 1e-10f)
+      len = 1.0f / len;
     else
-      len = 1.0;
+      len = 1.0f;
     for(j = 0; j < 3; ++ j)
       aSmoothNormals[i * 3 + j] *= len;
   }
@@ -503,29 +503,29 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
     oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Calculate normal scale (should always be 1.0 for unit length normals)
-    scale = sqrt(self->mNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
-                 self->mNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
-                 self->mNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]);
-    if(scale < 1e-10)
-      scale = 1.0;
+    scale = sqrtf(self->mNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
+                  self->mNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
+                  self->mNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]);
+    if(scale < 1e-10f)
+      scale = 1.0f;
 
     // Invert scale if the normal is negative compared to the predicted smooth normal
     if((smoothNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
         smoothNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
-        smoothNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]) < 0.0)
+        smoothNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]) < 0.0f)
       scale = -scale;
 
     // Store the normal scale in the first element of the four normal elements
-    aIntNormals[i * 4] = floor(NORMAL_SCALE_PRECISION * scale + 0.5);
+    aIntNormals[i * 4] = (CTMint) floorf(NORMAL_SCALE_PRECISION * scale + 0.5f);
 
     // Normalize the normal (1 / scale)
-    scale = 1.0 / scale;
+    scale = 1.0f / scale;
     for(j = 0; j < 3; ++ j)
       n[j] = self->mNormals[oldIdx * 3 + j] * scale;
 
     // Calculate delta between nominal normal and the actual normal, and convert to fixed point
     for(j = 0; j < 3; ++ j)
-      aIntNormals[i * 4 + 1 + j] = floor(NORMAL_PRECISION * (n[j] - smoothNormals[oldIdx * 3 + j]) + 0.5);
+      aIntNormals[i * 4 + 1 + j] = (CTMint) floorf(NORMAL_PRECISION * (n[j] - smoothNormals[oldIdx * 3 + j]) + 0.5f);
   }
 
   // Free temporary resources
@@ -557,7 +557,7 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get the normal scale from the first element of the four normal elements
-    scale = aIntNormals[i * 4] * (1.0 / NORMAL_SCALE_PRECISION) * (1.0 / NORMAL_PRECISION);
+    scale = aIntNormals[i * 4] * (1.0f / NORMAL_SCALE_PRECISION) * (1.0f / NORMAL_PRECISION);
 
     // Calculate inverse delta
     for(j = 0; j < 3; ++ j)
@@ -582,7 +582,7 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
   CTMfloat scale;
 
   // Texture coordinate scaling factor
-  scale = 1.0 / aMap->mPrecision;
+  scale = 1.0f / aMap->mPrecision;
 
   prevU = prevV = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
@@ -591,8 +591,8 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
     oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Convert to fixed point
-    u = floor(scale * aMap->mValues[oldIdx * 2] + 0.5);
-    v = floor(scale * aMap->mValues[oldIdx * 2 + 1] + 0.5);
+    u = (CTMint) floorf(scale * aMap->mValues[oldIdx * 2] + 0.5f);
+    v = (CTMint) floorf(scale * aMap->mValues[oldIdx * 2 + 1] + 0.5f);
 
     // Calculate delta and store it in the converted array. NOTE: Here we rely
     // on the fact that vertices are sorted, and usually close to each other,
@@ -647,7 +647,7 @@ static void _ctmMakeAttribDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
   CTMfloat scale;
 
   // Texture coordinate scaling factor
-  scale = 1.0 / aMap->mPrecision;
+  scale = 1.0f / aMap->mPrecision;
 
   for(j = 0; j < 4; ++ j)
     prev[j] = 0;
@@ -664,7 +664,7 @@ static void _ctmMakeAttribDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
     // the geometry)...
     for(j = 0; j < 4; ++ j)
     {
-      value[j] = floor(scale * aMap->mValues[oldIdx * 4 + j] + 0.5);
+      value[j] = (CTMint) floorf(scale * aMap->mValues[oldIdx * 4 + j] + 0.5f);
       aIntAttribs[i * 4 + j] = value[j] - prev[j];
       prev[j] = value[j];
     }
@@ -960,7 +960,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     return CTM_FALSE;
   }
   self->mVertexPrecision = _ctmStreamReadFLOAT(self);
-  if(self->mVertexPrecision <= 0.0)
+  if(self->mVertexPrecision <= 0.0f)
   {
     self->mError = CTM_FORMAT_ERROR;
     return CTM_FALSE;
@@ -1119,7 +1119,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     _ctmStreamReadSTRING(self, &map->mName);
     _ctmStreamReadSTRING(self, &map->mFileName);
     map->mPrecision = _ctmStreamReadFLOAT(self);
-    if(map->mPrecision <= 0.0)
+    if(map->mPrecision <= 0.0f)
     {
       self->mError = CTM_FORMAT_ERROR;
       free((void *) intTexCoords);
@@ -1158,7 +1158,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
     _ctmStreamReadSTRING(self, &map->mName);
     map->mPrecision = _ctmStreamReadFLOAT(self);
-    if(map->mPrecision <= 0.0)
+    if(map->mPrecision <= 0.0f)
     {
       self->mError = CTM_FORMAT_ERROR;
       free((void *) intAttribs);

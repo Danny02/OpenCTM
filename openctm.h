@@ -113,7 +113,16 @@
 extern "C" {
 #endif
 
+// Get system specific type definitions for sized integers. We use the C99
+// standard stdint.h for this.
+#ifdef _MSC_VER
+// MS Visual Studio does not support C99
+typedef int int32_t;
+typedef unsigned int uint32_t;
+#else
 #include <stdint.h>
+#endif
+
 
 /// OpenCTM API version (0.3).
 #define CTM_API_VERSION 0x00000003

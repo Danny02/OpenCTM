@@ -32,6 +32,7 @@
 #include "openctm.h"
 #include "internal.h"
 
+
 //-----------------------------------------------------------------------------
 // _ctmFreeMapList() - Free a float map list.
 //-----------------------------------------------------------------------------
@@ -108,7 +109,7 @@ CTMcontext ctmNewContext(CTMenum aMode)
   self->mMode = aMode;
   self->mError = CTM_NONE;
   self->mMethod = CTM_METHOD_MG1;
-  self->mVertexPrecision = 1.0 / 1024.0;
+  self->mVertexPrecision = 1.0f / 1024.0f;
 
   return (CTMcontext) self;
 }
@@ -212,7 +213,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
 
   // Did the user request a texture map?
   if((aProperty >= CTM_TEX_MAP_1) &&
-     ((aProperty - CTM_TEX_MAP_1) < self->mTexMapCount))
+     ((CTMuint)(aProperty - CTM_TEX_MAP_1) < self->mTexMapCount))
   {
     map = self->mTexMaps;
     i = CTM_TEX_MAP_1;
@@ -223,7 +224,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
     }
     if(!map)
     {
-      self->mError = CTM_INVALID_ARGUMENT;
+      self->mError = CTM_INTERNAL_ERROR;
       return (CTMfloat *) 0;
     }
     return map->mValues;
@@ -231,7 +232,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
 
   // Did the user request an attribute map?
   if((aProperty >= CTM_ATTRIB_MAP_1) &&
-     ((aProperty - CTM_ATTRIB_MAP_1) < self->mAttribMapCount))
+     ((CTMuint)(aProperty - CTM_ATTRIB_MAP_1) < self->mAttribMapCount))
   {
     map = self->mAttribMaps;
     i = CTM_ATTRIB_MAP_1;
@@ -242,7 +243,7 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
     }
     if(!map)
     {
-      self->mError = CTM_INVALID_ARGUMENT;
+      self->mError = CTM_INTERNAL_ERROR;
       return (CTMfloat *) 0;
     }
     return map->mValues;
@@ -415,7 +416,7 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
   }
 
   // Check arguments
-  if(aPrecision <= 0.0)
+  if(aPrecision <= 0.0f)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
@@ -443,7 +444,7 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
   }
 
   // Check arguments
-  if(aRelPrecision <= 0.0)
+  if(aRelPrecision <= 0.0f)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
@@ -451,7 +452,7 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
 
   // Calculate the average edge length (Note: we actually sum up all the half-
   // edges, so in a proper solid mesh all connected edges are counted twice)
-  avgEdgeLength = 0.0;
+  avgEdgeLength = 0.0f;
   edgeCount = 0;
   for(i = 0; i < self->mTriangleCount; ++ i)
   {
@@ -459,9 +460,9 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
     for(j = 0; j < 3; ++ j)
     {
       p2 = &self->mVertices[self->mIndices[i * 3 + j] * 3];
-      avgEdgeLength += sqrt((p2[0] - p1[0]) * (p2[0] - p1[0]) +
-                            (p2[1] - p1[1]) * (p2[1] - p1[1]) +
-                            (p2[2] - p1[2]) * (p2[2] - p1[2]));
+      avgEdgeLength += sqrtf((p2[0] - p1[0]) * (p2[0] - p1[0]) +
+                             (p2[1] - p1[1]) * (p2[1] - p1[1]) +
+                             (p2[2] - p1[2]) * (p2[2] - p1[2]));
       p1 = p2;
       ++ edgeCount;
     }
@@ -496,7 +497,7 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMenum aTexMap,
   }
 
   // Check arguments
-  if(aPrecision <= 0.0)
+  if(aPrecision <= 0.0f)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
@@ -539,7 +540,7 @@ void ctmAttribPrecision(CTMcontext aContext, CTMenum aAttribMap,
   }
 
   // Check arguments
-  if(aPrecision <= 0.0)
+  if(aPrecision <= 0.0f)
   {
     self->mError = CTM_INVALID_ARGUMENT;
     return;
@@ -674,7 +675,7 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
 
   // Init the map item
   memset(map, 0, sizeof(_CTMfloatmap));
-  map->mPrecision = 1.0 / 1024.0;
+  map->mPrecision = 1.0f / 1024.0f;
   map->mValues = (CTMfloat *) aValues;
 
   // Set name of the map
@@ -737,7 +738,7 @@ CTMenum ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
   else
   {
     // The default texture coordinate precision is 2^-12
-    map->mPrecision = 1.0 / 4096.0;
+    map->mPrecision = 1.0f / 4096.0f;
     ++ self->mTexMapCount;
     return CTM_TEX_MAP_1 + self->mTexMapCount - 1;
   }
@@ -761,7 +762,7 @@ CTMenum ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
   else
   {
     // The default vertex attribute precision is 2^-8
-    map->mPrecision = 1.0 / 256.0;
+    map->mPrecision = 1.0f / 256.0f;
     ++ self->mAttribMapCount;
     return CTM_TEX_MAP_1 + self->mAttribMapCount - 1;
   }
