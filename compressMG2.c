@@ -592,7 +592,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
     // theta resolution vary with the x/y circumference (i.e. sin(phi)).
     intPhi = (CTMint) floorf(phi * (NORMAL_PRECISION / PI) + 0.5f);
     phi = intPhi * (PI / NORMAL_PRECISION);
-    thetaScale = (sinf(phi) * NORMAL_PRECISION) / (2.0f * PI);
+    thetaScale = (1.0f + sinf(phi) * (NORMAL_PRECISION - 1.0f)) / (2.0f * PI);
     aIntNormals[i * 3 + 1] = intPhi;
     aIntNormals[i * 3 + 2] = (CTMint) floorf(theta * thetaScale + 0.5f);
   }
@@ -630,7 +630,7 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 
     // Get phi and theta (spherical coordinates, relative to the smooth normal).
     phi = aIntNormals[i * 3 + 1] * (PI / NORMAL_PRECISION);
-    thetaScale = (2.0f * PI) / (NORMAL_PRECISION * sinf(phi));
+    thetaScale = (2.0f * PI) / (1.0f + (NORMAL_PRECISION - 1.0f) * sinf(phi));
     theta = aIntNormals[i * 3 + 2] * thetaScale;
 
     // Convert the normal from the angular representation (phi, theta) back to
