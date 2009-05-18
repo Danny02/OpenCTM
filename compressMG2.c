@@ -35,8 +35,13 @@
 #include <stdio.h>
 #endif
 
+// We need PI
+#ifndef PI
+#define PI 3.141592653589793238462643
+#endif
+
 // We use a hard coded fixed point precision for normal deltas
-#define NORMAL_PRECISION       1024.0f // .10 bits per normal component
+#define NORMAL_PRECISION       1024.0f // .10 bits per angular normal component
 #define NORMAL_SCALE_PRECISION 256.0f  // .8 bits for the normal scale
 
 
@@ -476,31 +481,17 @@ static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmNormalizedCrossProduct() - c = (a x b) / |a x b|
-//-----------------------------------------------------------------------------
-static void _ctmNormalizedCrossProduct(CTMfloat * a, CTMfloat * b, CTMfloat * c)
-{
-  float len;
-  c[0] = a[1] * b[2] - a[2] * b[1];
-  c[1] = a[2] * b[0] - a[0] * b[2];
-  c[2] = a[0] * b[1] - a[1] * b[0];
-  len = sqrtf(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]);
-  if(len > 1.0e-20f)
-  {
-    len = 1.0f / len;
-    c[0] *= len;
-    c[1] *= len;
-    c[2] *= len;
-  }
-}
-
-//-----------------------------------------------------------------------------
-// _ctmMakeNormalCoordSys() - Create a ortho-normalized coordinate system where
-// the Z-axis is aligned with the given normal.
+// _ctmMakeNormalCoordSys() - Create an ortho-normalized coordinate system
+// where the Z-axis is aligned with the given normal.
+// Note 1: This function is central to how the compressed normal data is
+//  interpreted, and it can not be changed (mathematically) without making the
+//  coder/decoder incompatible with other versions of the library!
+// Note 2: Since we do this for every single normal, this routine needs to be
+//  fast. The current implementation uses: 12 MUL, 1 DIV, 1 SQRT, ~6 ADD.
 //-----------------------------------------------------------------------------
 static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
 {
-  CTMfloat weight, * x, * y, * z, v1[3], v2[3];
+  CTMfloat len, * x, * y, * z;
   CTMuint i;
 
   // Pointers to the basis axes (aBasisAxes is a 3x3 matrix)
@@ -508,32 +499,31 @@ static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
   y = &aBasisAxes[3];
   z = &aBasisAxes[6];
 
-  // Z = normal
+  // Z = normal (must be unit length!)
   for(i = 0; i < 3; ++ i)
     z[i] = aNormal[i];
 
-  // Compute cross product: v1 = Z x normal
-  v1[0] =  -aNormal[1];
-  v1[1] =  aNormal[0];
-  v1[2] =  0.0f;
+  // Calculate a vector that is guaranteed to be orthogonal to the normal, non-
+  // zero, and a continuous function of the normal (no discrete jumps):
+  // X = (0,0,1) x normal + (1,0,0) x normal
+  x[0] =  -aNormal[1];
+  x[1] =  aNormal[0] - aNormal[2];
+  x[2] =  aNormal[1];
 
-  // Compute cross product: v2 = X x normal
-  v2[0] =  0.0f;
-  v2[1] =  -aNormal[2];
-  v2[2] =  aNormal[1];
+  // Normalize the new X axis (note: |x[2]| = |x[0]|)
+  len = sqrtf(2.0 * x[0] * x[0] + x[1] * x[1]);
+  if(len > 1.0e-20f)
+  {
+    len = 1.0f / len;
+    x[0] *= len;
+    x[1] *= len;
+    x[2] *= len;
+  }
 
-  // Interpolate between v1 and v2 based on the angle between the Z-axis and
-  // the normal -> v1 is guaranteed to not coincide with the normal, it is
-  // non-zero, and it is a continous (not discrete) function of the normal
-  weight = fabsf(aNormal[2]);
-  for(i = 0; i < 3; ++ i)
-    v1[i] = (1.0f - weight) * v1[i] + weight * v2[i];
-
-  // Calculate the normalized cross product: X = v1 x Z
-  _ctmNormalizedCrossProduct(v1, z, x);
-
-  // Calculate the normalized cross product: Y = Z x X
-  _ctmNormalizedCrossProduct(z, x, y);
+  // Let Y = Z x X  (no normalization needed, since |Z| = |X| = 1)
+  y[0] = z[1] * x[2] - z[2] * x[1];
+  y[1] = z[2] * x[0] - z[0] * x[2];
+  y[2] = z[0] * x[1] - z[1] * x[0];
 }
 
 //-----------------------------------------------------------------------------
@@ -543,9 +533,9 @@ static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
 static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
   _CTMsortvertex * aSortVertices)
 {
-  CTMuint i, j, oldIdx;
-  CTMfloat scale;
-  CTMfloat * smoothNormals, n[3];
+  CTMuint i, j, oldIdx, intPhi;
+  CTMfloat scale, phi, theta, thetaScale;
+  CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
   smoothNormals = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * self->mVertexCount);
@@ -577,16 +567,33 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
       scale = -scale;
 
     // Store the normal scale in the first element of the four normal elements
-    aIntNormals[i * 4] = (CTMint) floorf(NORMAL_SCALE_PRECISION * scale + 0.5f);
+    aIntNormals[i * 3] = (CTMint) floorf(NORMAL_SCALE_PRECISION * scale + 0.5f);
 
     // Normalize the normal (1 / scale)
     scale = 1.0f / scale;
     for(j = 0; j < 3; ++ j)
       n[j] = self->mNormals[oldIdx * 3 + j] * scale;
 
-    // Calculate delta between nominal normal and the actual normal, and convert to fixed point
+    // Convert the normal to angular representation (phi, theta) in a coordinate
+    // system where the nominal (smooth) normal is the Z-axis
+    _ctmMakeNormalCoordSys(&smoothNormals[oldIdx * 3], basisAxes);
     for(j = 0; j < 3; ++ j)
-      aIntNormals[i * 4 + 1 + j] = (CTMint) floorf(NORMAL_PRECISION * (n[j] - smoothNormals[oldIdx * 3 + j]) + 0.5f);
+      n2[j] = basisAxes[j * 3] * n[0] +
+              basisAxes[j * 3 + 1] * n[1] +
+              basisAxes[j * 3 + 2] * n[2];
+    if(n2[2] >= 1.0f)
+      phi = 0.0f;
+    else
+      phi = acosf(n2[2]);
+    theta = atan2f(n2[1], n2[0]);
+
+    // Round phi and theta (spherical coordinates) to integers. Note: We let the
+    // theta resolution vary with the x/y circumference (i.e. sin(phi)).
+    intPhi = (CTMint) floorf(phi * (NORMAL_PRECISION / PI) + 0.5f);
+    phi = intPhi * (PI / NORMAL_PRECISION);
+    thetaScale = (sinf(phi) * NORMAL_PRECISION) / (2.0f * PI);
+    aIntNormals[i * 3 + 1] = intPhi;
+    aIntNormals[i * 3 + 2] = (CTMint) floorf(theta * thetaScale + 0.5f);
   }
 
   // Free temporary resources
@@ -601,8 +608,8 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 {
   CTMuint i, j;
-  CTMfloat scale;
-  CTMfloat * smoothNormals;
+  CTMfloat scale, phi, theta, thetaScale;
+  CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
   smoothNormals = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * self->mVertexCount);
@@ -612,17 +619,33 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
     return CTM_FALSE;
   }
 
-  // Calculate smooth normals
+  // Calculate smooth normals (nominal normals)
   _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
 
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get the normal scale from the first element of the four normal elements
-    scale = aIntNormals[i * 4] * (1.0f / NORMAL_SCALE_PRECISION) * (1.0f / NORMAL_PRECISION);
+    scale = aIntNormals[i * 3] * (1.0f / NORMAL_SCALE_PRECISION);
 
-    // Calculate inverse delta
+    // Get phi and theta (spherical coordinates, relative to the smooth normal).
+    phi = aIntNormals[i * 3 + 1] * (PI / NORMAL_PRECISION);
+    thetaScale = (2.0f * PI) / (NORMAL_PRECISION * sinf(phi));
+    theta = aIntNormals[i * 3 + 2] * thetaScale;
+
+    // Convert the normal from the angular representation (phi, theta) back to
+    // cartesian coordinates
+    n2[0] = sinf(phi) * cosf(theta);
+    n2[1] = sinf(phi) * sinf(theta);
+    n2[2] = cosf(phi);
+    _ctmMakeNormalCoordSys(&smoothNormals[i * 3], basisAxes);
     for(j = 0; j < 3; ++ j)
-      self->mNormals[i * 3 + j] = aIntNormals[i * 4 + 1 + j] * scale + smoothNormals[i * 3 + j];
+      n[j] = basisAxes[j] * n2[0] +
+             basisAxes[3 + j] * n2[1] +
+             basisAxes[6 + j] * n2[2];
+
+    // Apply normal scale, and output to the normals array
+    for(j = 0; j < 3; ++ j)
+      self->mNormals[i * 3 + j] = n[j] * scale;
   }
 
   // Free temporary resources
@@ -893,7 +916,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   if(self->mNormals)
   {
     // Convert normals to integers and calculate deltas (entropy-reduction)
-    intNormals = (CTMint *) malloc(sizeof(CTMint) * 4 * self->mVertexCount);
+    intNormals = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
     if(!intNormals)
     {
       self->mError = CTM_OUT_OF_MEMORY;
@@ -912,7 +935,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     printf("Normals: ");
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
-    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 4, CTM_TRUE))
+    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
     {
       free((void *) sortVertices);
       free((void *) intNormals);
@@ -1132,7 +1155,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Read normals
   if(self->mNormals)
   {
-    intNormals = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 4);
+    intNormals = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 3);
     if(!intNormals)
     {
       self->mError = CTM_OUT_OF_MEMORY;
@@ -1144,7 +1167,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       free((void *) intNormals);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 4, CTM_TRUE))
+    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
     {
       free((void *) intNormals);
       return CTM_FALSE;
