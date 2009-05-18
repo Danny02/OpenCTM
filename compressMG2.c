@@ -476,6 +476,67 @@ static void _ctmCalcSmoothNormals(_CTMcontext * self, CTMfloat * aVertices,
 }
 
 //-----------------------------------------------------------------------------
+// _ctmNormalizedCrossProduct() - c = (a x b) / |a x b|
+//-----------------------------------------------------------------------------
+static void _ctmNormalizedCrossProduct(CTMfloat * a, CTMfloat * b, CTMfloat * c)
+{
+  float len;
+  c[0] = a[1] * b[2] - a[2] * b[1];
+  c[1] = a[2] * b[0] - a[0] * b[2];
+  c[2] = a[0] * b[1] - a[1] * b[0];
+  len = sqrtf(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]);
+  if(len > 1.0e-20f)
+  {
+    len = 1.0f / len;
+    c[0] *= len;
+    c[1] *= len;
+    c[2] *= len;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// _ctmMakeNormalCoordSys() - Create a ortho-normalized coordinate system where
+// the Z-axis is aligned with the given normal.
+//-----------------------------------------------------------------------------
+static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
+{
+  CTMfloat weight, * x, * y, * z, v1[3], v2[3];
+  CTMuint i;
+
+  // Pointers to the basis axes (aBasisAxes is a 3x3 matrix)
+  x = aBasisAxes;
+  y = &aBasisAxes[3];
+  z = &aBasisAxes[6];
+
+  // Z = normal
+  for(i = 0; i < 3; ++ i)
+    z[i] = aNormal[i];
+
+  // Compute cross product: v1 = Z x normal
+  v1[0] =  -aNormal[1];
+  v1[1] =  aNormal[0];
+  v1[2] =  0.0f;
+
+  // Compute cross product: v2 = X x normal
+  v2[0] =  0.0f;
+  v2[1] =  -aNormal[2];
+  v2[2] =  aNormal[1];
+
+  // Interpolate between v1 and v2 based on the angle between the Z-axis and
+  // the normal -> v1 is guaranteed to not coincide with the normal, it is
+  // non-zero, and it is a continous (not discrete) function of the normal
+  weight = fabsf(aNormal[2]);
+  for(i = 0; i < 3; ++ i)
+    v1[i] = (1.0f - weight) * v1[i] + weight * v2[i];
+
+  // Calculate the normalized cross product: X = v1 x Z
+  _ctmNormalizedCrossProduct(v1, z, x);
+
+  // Calculate the normalized cross product: Y = Z x X
+  _ctmNormalizedCrossProduct(z, x, y);
+}
+
+//-----------------------------------------------------------------------------
 // _ctmMakeNormalDeltas() - Calculate various forms of derivatives in order
 // to reduce data entropy.
 //-----------------------------------------------------------------------------
