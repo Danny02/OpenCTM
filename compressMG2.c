@@ -41,8 +41,8 @@
 #endif
 
 // We use a hard coded fixed point precision for normal deltas
-#define NORMAL_PRECISION       1024.0f // .10 bits per angular normal component
-#define NORMAL_SCALE_PRECISION 256.0f  // .8 bits for the normal scale
+#define NORMAL_PRECISION      1024.0f // .10 bits per angular normal component
+#define NORMAL_MAGN_PRECISION 256.0f  // .8 bits for the normal magnitude
 
 
 //-----------------------------------------------------------------------------
@@ -527,14 +527,14 @@ static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmMakeNormalDeltas() - Calculate various forms of derivatives in order
-// to reduce data entropy.
+// _ctmMakeNormalDeltas() - Convert the normals to a new coordinate system:
+// magnitude, phi, theta (relative to predicted smooth normals).
 //-----------------------------------------------------------------------------
 static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
   _CTMsortvertex * aSortVertices)
 {
   CTMuint i, j, oldIdx, intPhi;
-  CTMfloat scale, phi, theta, thetaScale;
+  CTMfloat magn, phi, theta, thetaScale;
   CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
@@ -553,26 +553,27 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
     // Get old normal index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
-    // Calculate normal scale (should always be 1.0 for unit length normals)
-    scale = sqrtf(self->mNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
-                  self->mNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
-                  self->mNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]);
-    if(scale < 1e-10f)
-      scale = 1.0f;
+    // Calculate normal magnitude (should always be 1.0 for unit length normals)
+    magn = sqrtf(self->mNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
+                 self->mNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
+                 self->mNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]);
+    if(magn < 1e-10f)
+      magn = 1.0f;
 
-    // Invert scale if the normal is negative compared to the predicted smooth normal
+    // Invert magnitude if the normal is negative compared to the predicted
+    // smooth normal
     if((smoothNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
         smoothNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
         smoothNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]) < 0.0f)
-      scale = -scale;
+      magn = -magn;
 
-    // Store the normal scale in the first element of the four normal elements
-    aIntNormals[i * 3] = (CTMint) floorf(NORMAL_SCALE_PRECISION * scale + 0.5f);
+    // Store the magnitude in the first element of the three normal elements
+    aIntNormals[i * 3] = (CTMint) floorf(NORMAL_MAGN_PRECISION * magn + 0.5f);
 
-    // Normalize the normal (1 / scale)
-    scale = 1.0f / scale;
+    // Normalize the normal (1 / magn) - and flip it if magn < 0
+    magn = 1.0f / magn;
     for(j = 0; j < 3; ++ j)
-      n[j] = self->mNormals[oldIdx * 3 + j] * scale;
+      n[j] = self->mNormals[oldIdx * 3 + j] * magn;
 
     // Convert the normal to angular representation (phi, theta) in a coordinate
     // system where the nominal (smooth) normal is the Z-axis
@@ -603,12 +604,12 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmRestoreNormals() - Calculate inverse derivatives of the normals.
+// _ctmRestoreNormals() - Convert the normals back to cartesian coordinates.
 //-----------------------------------------------------------------------------
 static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 {
   CTMuint i, j;
-  CTMfloat scale, phi, theta, thetaScale;
+  CTMfloat magn, phi, theta, thetaScale;
   CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
@@ -624,8 +625,8 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    // Get the normal scale from the first element of the four normal elements
-    scale = aIntNormals[i * 3] * (1.0f / NORMAL_SCALE_PRECISION);
+    // Get the normal magnitude from the first of the three normal elements
+    magn = aIntNormals[i * 3] * (1.0f / NORMAL_MAGN_PRECISION);
 
     // Get phi and theta (spherical coordinates, relative to the smooth normal).
     phi = aIntNormals[i * 3 + 1] * (PI / NORMAL_PRECISION);
@@ -643,9 +644,9 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
              basisAxes[3 + j] * n2[1] +
              basisAxes[6 + j] * n2[2];
 
-    // Apply normal scale, and output to the normals array
+    // Apply normal magnitude, and output to the normals array
     for(j = 0; j < 3; ++ j)
-      self->mNormals[i * 3 + j] = n[j] * scale;
+      self->mNormals[i * 3 + j] = n[j] * magn;
   }
 
   // Free temporary resources
