@@ -49,7 +49,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 
   // Write triangle indices
 #ifdef __DEBUG_
-  printf("Inidices: %d bytes\n", self->mTriangleCount * 3 * sizeof(CTMuint));
+  printf("Inidices: %d bytes\n", (CTMuint)(self->mTriangleCount * 3 * sizeof(CTMuint)));
 #endif
   _ctmStreamWrite(self, (void *) "INDX", 4);
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
@@ -57,7 +57,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 
   // Write vertices
 #ifdef __DEBUG_
-  printf("Vertices: %d bytes\n", self->mVertexCount * 3 * sizeof(CTMfloat));
+  printf("Vertices: %d bytes\n", (CTMuint)(self->mVertexCount * 3 * sizeof(CTMfloat)));
 #endif
   _ctmStreamWrite(self, (void *) "VERT", 4);
   for(i = 0; i < self->mVertexCount * 3; ++ i)
@@ -67,7 +67,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   if(self->mNormals)
   {
 #ifdef __DEBUG_
-    printf("Normals: %d bytes\n", self->mVertexCount * 3 * sizeof(CTMfloat));
+    printf("Normals: %d bytes\n", (CTMuint)(self->mVertexCount * 3 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
     for(i = 0; i < self->mVertexCount * 3; ++ i)
@@ -79,7 +79,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   while(map)
   {
 #ifdef __DEBUG_
-    printf("Texture coordinates (%s): %d bytes\n", map->mName ? map->mName : "no name", self->mVertexCount * 2 * sizeof(CTMfloat));
+    printf("Texture coordinates (%s): %d bytes\n", map->mName ? map->mName : "no name", (CTMuint)(self->mVertexCount * 2 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
@@ -94,7 +94,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   while(map)
   {
 #ifdef __DEBUG_
-    printf("Vertex attributes (%s): %d bytes\n", map->mName ? map->mName : "no name", self->mVertexCount * 4 * sizeof(CTMfloat));
+    printf("Vertex attributes (%s): %d bytes\n", map->mName ? map->mName : "no name", (CTMuint)(self->mVertexCount * 4 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
     _ctmStreamWriteSTRING(self, map->mName);
