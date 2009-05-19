@@ -1027,7 +1027,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
-  CTMuint * indices, * gridIndices, i;
+  CTMuint * gridIndices, i;
   CTMint * intVertices, * intNormals, * intTexCoords, * intAttribs;
   _CTMfloatmap * map;
   _CTMgrid grid;
@@ -1126,31 +1126,16 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   free((void *) intVertices);
 
   // Read triangle indices
-  indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
-  if(!indices)
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
-    return CTM_FALSE;
-  }
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
     self->mError = CTM_FORMAT_ERROR;
-    free(indices);
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
-  {
-    free((void *) indices);
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) self->mIndices, self->mTriangleCount, 3, CTM_FALSE))
     return CTM_FALSE;
-  }
 
   // Restore indices
-  _ctmRestoreIndices(self, indices);
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    self->mIndices[i] = indices[i];
-
-  // Free temporary indices
-  free(indices);
+  _ctmRestoreIndices(self, self->mIndices);
 
   // Read normals
   if(self->mNormals)
