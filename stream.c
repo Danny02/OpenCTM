@@ -31,7 +31,6 @@
 #include "openctm.h"
 #include "internal.h"
 
-#define __DEBUG_
 #ifdef __DEBUG_
 #include <stdio.h>
 #endif

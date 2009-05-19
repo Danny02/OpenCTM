@@ -30,14 +30,13 @@
 #include "openctm.h"
 #include "internal.h"
 
-#define __DEBUG_
 #ifdef __DEBUG_
 #include <stdio.h>
 #endif
 
 // We need PI
 #ifndef PI
-#define PI 3.141592653589793238462643
+#define PI 3.141592653589793238462643f
 #endif
 
 // We use a hard coded fixed point precision for normal deltas

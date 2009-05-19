@@ -30,6 +30,11 @@
 #include "openctm.h"
 #include "internal.h"
 
+#ifdef __DEBUG_
+#include <stdio.h>
+#endif
+
+
 //-----------------------------------------------------------------------------
 // _compareTriangle() - Comparator for the triangle sorting.
 //-----------------------------------------------------------------------------
@@ -141,6 +146,10 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   _CTMfloatmap * map;
   CTMuint i;
 
+#ifdef __DEBUG_
+  printf("COMPRESSION METHOD: MG1\n");
+#endif
+
   // Perpare (sort) indices
   indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
   if(!indices)
@@ -156,6 +165,9 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   _ctmMakeIndexDeltas(self, indices);
 
   // Write triangle indices
+#ifdef __DEBUG_
+  printf("Inidices: ");
+#endif
   _ctmStreamWrite(self, (void *) "INDX", 4);
   if(!_ctmStreamWritePackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
   {
@@ -167,6 +179,9 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   free((void *) indices);
 
   // Write vertices
+#ifdef __DEBUG_
+  printf("Vertices: ");
+#endif
   _ctmStreamWrite(self, (void *) "VERT", 4);
   if(!_ctmStreamWritePackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
   {
@@ -177,6 +192,9 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   // Write normals
   if(self->mNormals)
   {
+#ifdef __DEBUG_
+    printf("Normals: ");
+#endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
     if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
       return CTM_FALSE;
@@ -186,6 +204,9 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   map = self->mTexMaps;
   while(map)
   {
+#ifdef __DEBUG_
+    printf("Texture coordinates (%s): ", map->mName ? map->mName : "no name");
+#endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
     _ctmStreamWriteSTRING(self, map->mFileName);
@@ -198,6 +219,9 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   map = self->mAttribMaps;
   while(map)
   {
+#ifdef __DEBUG_
+    printf("Vertex attributes (%s): ", map->mName ? map->mName : "no name");
+#endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
     _ctmStreamWriteSTRING(self, map->mName);
     if(!_ctmStreamWritePackedFloats(self, map->mValues, self->mVertexCount, 4))

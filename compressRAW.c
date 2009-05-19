@@ -28,6 +28,11 @@
 #include "openctm.h"
 #include "internal.h"
 
+#ifdef __DEBUG_
+#include <stdio.h>
+#endif
+
+
 //-----------------------------------------------------------------------------
 // _ctmCompressMesh_RAW() - Compress the mesh that is stored in the CTM
 // context using the RAW method, and write it the the output stream in the CTM
@@ -38,12 +43,22 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   CTMuint i;
   _CTMfloatmap * map;
 
+#ifdef __DEBUG_
+  printf("COMPRESSION METHOD: RAW\n");
+#endif
+
   // Write triangle indices
+#ifdef __DEBUG_
+  printf("Inidices: %d bytes\n", self->mTriangleCount * 3 * sizeof(CTMuint));
+#endif
   _ctmStreamWrite(self, (void *) "INDX", 4);
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
     _ctmStreamWriteUINT(self, self->mIndices[i]);
 
   // Write vertices
+#ifdef __DEBUG_
+  printf("Vertices: %d bytes\n", self->mVertexCount * 3 * sizeof(CTMfloat));
+#endif
   _ctmStreamWrite(self, (void *) "VERT", 4);
   for(i = 0; i < self->mVertexCount * 3; ++ i)
     _ctmStreamWriteFLOAT(self, self->mVertices[i]);
@@ -51,6 +66,9 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   // Write normals
   if(self->mNormals)
   {
+#ifdef __DEBUG_
+    printf("Normals: %d bytes\n", self->mVertexCount * 3 * sizeof(CTMfloat));
+#endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
     for(i = 0; i < self->mVertexCount * 3; ++ i)
       _ctmStreamWriteFLOAT(self, self->mNormals[i]);
@@ -60,6 +78,9 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   map = self->mTexMaps;
   while(map)
   {
+#ifdef __DEBUG_
+    printf("Texture coordinates (%s): %d bytes\n", map->mName ? map->mName : "no name", self->mVertexCount * 2 * sizeof(CTMfloat));
+#endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
     _ctmStreamWriteSTRING(self, map->mFileName);
@@ -72,6 +93,9 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   map = self->mAttribMaps;
   while(map)
   {
+#ifdef __DEBUG_
+    printf("Vertex attributes (%s): %d bytes\n", map->mName ? map->mName : "no name", self->mVertexCount * 4 * sizeof(CTMfloat));
+#endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
     _ctmStreamWriteSTRING(self, map->mName);
     for(i = 0; i < self->mVertexCount * 4; ++ i)
