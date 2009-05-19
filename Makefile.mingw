@@ -27,8 +27,8 @@
 
 LZMADIR = liblzma
 CC = gcc
-CFLAGS = -O3 -W -Wall -c -D__DEBUG_ -I$(LZMADIR) -DLZMA_PREFIX_CTM
-CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_PREFIX_CTM
+CFLAGS = -O3 -W -Wall -c -D__DEBUG_ -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
+CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_PREFIX_CTM -std=c99 -pedantic
 AR = ar
 ARFLAGS = rcs
 RM = del /Q
