@@ -5,37 +5,39 @@
 using namespace std;
 
 Mesh mesh;
+int width = 1, height = 1;
 
 void WindowResize(int w, int h)
 {
-	// Prevent a divide by zero, when window is too short
-	// (you cant make a window of zero width).
-	if(h == 0)
-		h = 1;
+  // Store the new window size
+  width = w;
+  height = h;
 
-	float ratio = 1.0f * w / h;
-
-	// Reset the coordinate system before modifying
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	
-	// Set the viewport to be the entire window
-	glViewport(0, 0, w, h);
-
-	// Set the correct perspective.
-	gluPerspective(45.0f, ratio, 1.0f, 1000.0f);
+  // Set the viewport to be the entire window
+  glViewport(0, 0, w, h);
 }
 
 void WindowRedraw(void)
 {
+  // Clear the buffer(s)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Set up the camera
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(0.0f, -10.0f, 3.0f,
+  // Set up perspective projection
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  float ratio;
+  if(height == 0)
+    ratio = 1.0f;
+  else
+    ratio = width / height;
+  gluPerspective(45.0f, ratio, 1.0f, 1000.0f);
+
+  // Set up the camera modelview matrix
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(0.0f, -10.0f, 3.0f,
             0.0f, 0.0f, 0.0f,
-	          0.0f, 0.0f, 1.0f);
+            0.0f, 0.0f, 1.0f);
 
   // Draw the mesh
   glEnable(GL_DEPTH_TEST);
