@@ -1,6 +1,9 @@
-all: ctmconv
-
 OPENCTMDIR = ..
 
-ctmconv: ctmconv.cpp ply.cpp ply.h
+all: ctmconv ctmviewer
+
+ctmconv: ctmconv.cpp ply.cpp ply.h $(OPENCTMDIR)/libopenctm.a
 	g++ -O2 -W -I$(OPENCTMDIR) -o $@ -L$(OPENCTMDIR) ctmconv.cpp ply.cpp -lopenctm
+
+ctmviewer: ctmviewer.cpp mesh.cpp mesh.h $(OPENCTMDIR)/libopenctm.a
+	g++ -O2 -W -I$(OPENCTMDIR) -o $@ -L$(OPENCTMDIR) ctmviewer.cpp mesh.cpp -lopenctm -lglut

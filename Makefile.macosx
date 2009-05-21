@@ -71,7 +71,7 @@ clean:
 docs:
 	cd doc && $(DOXYGEN) && cd ..
 
-tools:
+tools: $(STATICLIB)
 	cd tools && $(MAKE) -f Makefile.macosx -j2 && cd ..
 
 $(STATICLIB): $(OBJS) $(LZMA_OBJS)

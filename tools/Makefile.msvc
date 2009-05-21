@@ -1,6 +1,9 @@
-all: ctmconv.exe
-
 OPENCTMDIR = ..
 
-ctmconv.exe: ctmconv.cpp ply.cpp ply.h
+all: ctmconv.exe ctmviewer.exe
+
+ctmconv.exe: ctmconv.cpp ply.cpp ply.h $(OPENCTMDIR)\openctm.lib
 	cl /Ox /W3 /I$(OPENCTMDIR) /Fe$@ ctmconv.cpp ply.cpp /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+
+ctmviewer.exe: ctmviewer.cpp mesh.cpp ply.h $(OPENCTMDIR)\openctm.lib
+	cl /Ox /W3 /I$(OPENCTMDIR) /Fe$@ ctmviewer.cpp mesh.cpp /link /LIBPATH:$(OPENCTMDIR) openctm.lib glut.lib opengl32.lib glu32.lib

@@ -72,7 +72,7 @@ clean:
 docs:
 	cd doc && $(DOXYGEN) && cd ..
 
-tools:
+tools: $(STATICLIB)
 	cd tools && $(MAKE) -f Makefile.linux -j2 && cd ..
 
 $(STATICLIB): $(OBJS) $(LZMA_OBJS)

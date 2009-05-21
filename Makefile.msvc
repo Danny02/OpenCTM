@@ -70,7 +70,7 @@ clean:
 docs:
 	cd doc && $(DOXYGEN) && cd ..
 
-tools:
+tools: $(STATICLIB)
 	cd tools && $(MAKE) /nologo /f Makefile.msvc && cd ..
 
 $(STATICLIB): $(OBJS) $(LZMA_OBJS)
