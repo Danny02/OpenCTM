@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <cmath>
 
 class Vector2 {
   public:
@@ -41,6 +42,33 @@ class Vector3 {
       x = a.x; y = a.y; z = a.z;
     }
 
+    inline Vector3 operator+(const Vector3 &v) const 
+    {
+      return Vector3(x + v.x,  y + v.y,  z + v.z);
+    }
+
+    inline Vector3 operator-(const Vector3 &v) const 
+    {
+      return Vector3(x - v.x,  y - v.y,  z - v.z);
+    }
+
+    inline Vector3 operator*(const float &aScale) const 
+    {
+      return Vector3(aScale * x, aScale * y, aScale * z);
+    }
+
+    inline void operator+=(const Vector3 &v) 
+    {
+      x += v.x;
+      y += v.y;
+      z += v.z;
+    }
+
+    float Abs()
+    {
+      return sqrtf(x * x + y * y + z * z);
+    }
+
     float x, y, z;
 };
 
@@ -66,10 +94,6 @@ class Vector4 {
 
 
 class Mesh {
-  private:
-    /// Calculate smooth per-vertex normals
-    void CalculateNormals();
-
   public:
     /// Clear the mesh
     void Clear();
@@ -79,6 +103,12 @@ class Mesh {
 
     /// Save the mesh to a file
     void SaveToFile(const char * aFileName);
+
+    /// Calculate smooth per-vertex normals
+    void CalculateNormals();
+
+    /// Calculate the bounding box for the mesh
+    void BoundingBox(Vector3 &aMin, Vector3 &aMax);
 
     /// Draw the mesh to OpenGL
     void Draw();

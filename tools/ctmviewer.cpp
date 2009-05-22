@@ -12,12 +12,18 @@ using namespace std;
 // Global variables (this is a simple program, after all)
 Mesh mesh;
 int width = 1, height = 1;
-Vector3 cameraPosition;
+Vector3 cameraPosition, cameraLookAt;
 
 /// Set up the scene.
 void SetupScene()
 {
-  cameraPosition = Vector3(0.0f, -10.0f, 2.0f);
+  Vector3 min, max;
+  mesh.BoundingBox(min, max);
+  cameraLookAt = (max + min) * 0.5f;
+  float delta = (max - min).Abs();
+  cameraPosition = Vector3(cameraLookAt.x,
+                           cameraLookAt.y - 1.5f * delta,
+                           cameraLookAt.z + 0.4f * delta);
 }
 
 /// Set up the scene lighting.
@@ -28,9 +34,9 @@ void SetupLighting()
   // Set scene lighting properties
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-  ambient[0] = 0.2;
-  ambient[1] = 0.2;
-  ambient[2] = 0.2;
+  ambient[0] = 0.05;
+  ambient[1] = 0.05;
+  ambient[2] = 0.05;
   ambient[3] = 1.0;
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
@@ -72,13 +78,13 @@ void WindowRedraw(void)
     ratio = 1.0f;
   else
     ratio = width / height;
-  gluPerspective(45.0f, ratio, 1.0f, 1000.0f);
+  gluPerspective(45.0f, ratio, 0.1f, 1000.0f);
 
   // Set up the camera modelview matrix
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-            0.0f, 0.0f, 0.0f,
+            cameraLookAt.x, cameraLookAt.y, cameraLookAt.z,
             0.0f, 0.0f, 1.0f);
 
   // Set up the lights
@@ -87,6 +93,8 @@ void WindowRedraw(void)
 
   // Draw the mesh
   glEnable(GL_DEPTH_TEST);
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+  glEnable(GL_COLOR_MATERIAL);
   glColor3f(1.0f, 1.0f, 1.0f);
   mesh.Draw();
 
@@ -127,15 +135,25 @@ int main(int argc, char **argv)
     t = glutGet(GLUT_ELAPSED_TIME) - t;
     cout << "done (" << t << " ms)" << endl;
 
+    // If the file did not contain any normals, calculate them now...
+    if(mesh.mNormals.size() != mesh.mVertices.size())
+    {
+      cout << "Calculating normals..." << flush;
+      int t = glutGet(GLUT_ELAPSED_TIME);
+      mesh.CalculateNormals();
+      t = glutGet(GLUT_ELAPSED_TIME) - t;
+      cout << "done (" << t << " ms)" << endl;
+    }
+
+    // Init scene
+    SetupScene();
+
     // Create the glut window
     glutInitWindowSize(640, 480);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutCreateWindow("OpenCTM viewer");
     glutReshapeFunc(WindowResize);
     glutDisplayFunc(WindowRedraw);
-
-    // Init scene
-    SetupScene();
 
     // Enter the main loop
     glutMainLoop();
