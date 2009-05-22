@@ -16,6 +16,19 @@ void Mesh::Clear()
   mTexCoords.clear();
 }
 
+/// Calculate smooth per-vertex normals
+void Mesh::CalculateNormals()
+{
+  // Calculate the flat normals
+  vector<Vector3> flatNormals;
+  flatNormals.resize(mIndices.size() / 3);
+
+  // Clear the smooth normals
+  mNormals.resize(mVertices.size());
+  for(unsigned int i = 0; i < mNormals.size(); ++ i)
+    mNormals[i] = Vector3(0.0f, 0.0f, 0.0f);
+}
+
 /// Load the mesh from a file
 void Mesh::LoadFromFile(const char * aFileName)
 {

@@ -66,6 +66,10 @@ class Vector4 {
 
 
 class Mesh {
+  private:
+    /// Calculate smooth per-vertex normals
+    void CalculateNormals();
+
   public:
     /// Clear the mesh
     void Clear();
