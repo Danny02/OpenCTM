@@ -54,24 +54,47 @@ void SetupLighting()
   pos[0] = cameraPosition.x;
   pos[1] = cameraPosition.y;
   pos[2] = cameraPosition.z;
-  pos[3] = 1.0;
+  pos[3] = 1.0f;
   glLightfv(GL_LIGHT0, GL_POSITION, pos);
-  ambient[0] = 0.0;
-  ambient[1] = 0.0;
-  ambient[2] = 0.0;
-  ambient[3] = 1.0;
+  ambient[0] = 0.0f;
+  ambient[1] = 0.0f;
+  ambient[2] = 0.0f;
+  ambient[3] = 1.0f;
   glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-  diffuse[0] = 1.0;
-  diffuse[1] = 1.0;
-  diffuse[2] = 1.0;
-  diffuse[3] = 1.0;
+  diffuse[0] = 1.0f;
+  diffuse[1] = 1.0f;
+  diffuse[2] = 1.0f;
+  diffuse[3] = 1.0f;
   glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-  specular[0] = 1.0;
-  specular[1] = 1.0;
-  specular[2] = 1.0;
-  specular[3] = 1.0;
+  specular[0] = 1.0f;
+  specular[1] = 1.0f;
+  specular[2] = 1.0f;
+  specular[3] = 1.0f;
   glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
   glEnable(GL_LIGHT0);
+}
+
+/// Set up the material.
+void SetupMaterial()
+{
+  GLfloat specular[4], emission[4];
+
+  // Set up the material
+  specular[0] = 0.3f;
+  specular[1] = 0.3f;
+  specular[2] = 0.3f;
+  specular[3] = 1.0f;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+  emission[0] = 0.0f;
+  emission[1] = 0.0f;
+  emission[2] = 0.0f;
+  emission[3] = 1.0f;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 40.0f);
+
+  // Use color material for the diffuse and ambient components
+  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+  glEnable(GL_COLOR_MATERIAL);
 }
 
 /// Redraw function.
@@ -121,10 +144,9 @@ void WindowRedraw(void)
   glEnable(GL_LIGHTING);
 
   // Draw the mesh
+  SetupMaterial();
   glEnable(GL_DEPTH_TEST);
-  glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-  glEnable(GL_COLOR_MATERIAL);
-  glColor3f(1.0f, 1.0f, 1.0f);
+  glColor3f(0.9f, 0.86f, 0.7f);
   mesh.Draw();
 
   // Swap buffers
