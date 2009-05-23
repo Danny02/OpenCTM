@@ -258,6 +258,9 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
   CTMint value;
   size_t bufSize, outPropsSize;
   unsigned char * packed, outProps[5], *tmp;
+#ifdef __DEBUG_
+  CTMuint negCount = 0;  
+#endif
 
   // Allocate memory for interleaved array
   tmp = (unsigned char *) malloc(aCount * aSize * 4);
@@ -276,6 +279,10 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
       // Convert two's complement to signed magnitude?
       if(aSignedInts)
         value = value < 0 ? -1 - (value << 1) : value << 1;
+#ifdef __DEBUG_
+      else if(value < 0)
+        ++ negCount;
+#endif
       tmp[i + k * aCount + 3 * aCount * aSize] = value & 0x000000ff;
       tmp[i + k * aCount + 2 * aCount * aSize] = (value >> 8) & 0x000000ff;
       tmp[i + k * aCount + aCount * aSize] = (value >> 16) & 0x000000ff;
@@ -317,7 +324,7 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
   }
 
 #ifdef __DEBUG_
-  printf("%d->%d bytes\n", aCount * aSize * 4, (int) bufSize);
+  printf("%d->%d bytes (%d negative words)\n", aCount * aSize * 4, (int) bufSize, negCount);
 #endif
 
   // Write packed data size to the stream

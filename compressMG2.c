@@ -40,8 +40,8 @@
 #endif
 
 // We use a hard coded fixed point precision for normal deltas
-#define NORMAL_PRECISION      1024.0f // .10 bits per angular normal component
-#define NORMAL_MAGN_PRECISION 256.0f  // .8 bits for the normal magnitude
+#define NORMAL_PRECISION      256.0f // .8 bits per angular normal component
+#define NORMAL_MAGN_PRECISION 256.0f // .8 bits for the normal magnitude
 
 
 //-----------------------------------------------------------------------------
@@ -589,12 +589,14 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
     theta = atan2f(n2[1], n2[0]);
 
     // Round phi and theta (spherical coordinates) to integers. Note: We let the
-    // theta resolution vary with the x/y circumference (i.e. sin(phi)).
-    intPhi = (CTMint) floorf(phi * (NORMAL_PRECISION / PI) + 0.5f);
-    phi = intPhi * (PI / NORMAL_PRECISION);
-    thetaScale = (1.0f + sinf(phi) * (NORMAL_PRECISION - 1.0f)) / (2.0f * PI);
+    // theta resolution vary with the x/y circumference (roughly phi).
+    intPhi = (CTMint) floorf(phi * (NORMAL_PRECISION / (0.5f * PI)) + 0.5f);
+    if(intPhi == 0)
+      thetaScale = 0.0f;
+    else
+      thetaScale = ((CTMfloat) intPhi + 3.0f) / (2.0f * PI);
     aIntNormals[i * 3 + 1] = intPhi;
-    aIntNormals[i * 3 + 2] = (CTMint) floorf(theta * thetaScale + 0.5f);
+    aIntNormals[i * 3 + 2] = (CTMint) floorf((theta + PI) * thetaScale + 0.5f);
   }
 
   // Free temporary resources
@@ -608,7 +610,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 //-----------------------------------------------------------------------------
 static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 {
-  CTMuint i, j;
+  CTMuint i, j, intPhi;
   CTMfloat magn, phi, theta, thetaScale;
   CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
@@ -629,9 +631,13 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
     magn = aIntNormals[i * 3] * (1.0f / NORMAL_MAGN_PRECISION);
 
     // Get phi and theta (spherical coordinates, relative to the smooth normal).
-    phi = aIntNormals[i * 3 + 1] * (PI / NORMAL_PRECISION);
-    thetaScale = (2.0f * PI) / (1.0f + (NORMAL_PRECISION - 1.0f) * sinf(phi));
-    theta = aIntNormals[i * 3 + 2] * thetaScale;
+    intPhi = aIntNormals[i * 3 + 1];
+    phi = intPhi * (0.5f * PI / NORMAL_PRECISION);
+    if(intPhi == 0)
+      thetaScale = 0.0f;
+    else
+      thetaScale = (2.0f * PI) / ((CTMfloat) intPhi + 3.0f);
+    theta = aIntNormals[i * 3 + 2] * thetaScale - PI;
 
     // Convert the normal from the angular representation (phi, theta) back to
     // cartesian coordinates
@@ -807,8 +813,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   _ctmSetupGrid(self, &grid);
 
   // Write MG2-specific header information to the stream
-  _ctmStreamWrite(self, (void *) "HEAD", 4);
-  _ctmStreamWriteUINT(self, 1); // MG2 header format version
+  _ctmStreamWrite(self, (void *) "MG2H", 4);
   _ctmStreamWriteFLOAT(self, self->mVertexPrecision);
   _ctmStreamWriteFLOAT(self, grid.mMin[0]);
   _ctmStreamWriteFLOAT(self, grid.mMin[1]);
@@ -973,7 +978,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     printf("Normals: ");
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
-    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
+    if(!_ctmStreamWritePackedInts(self, intNormals, self->mVertexCount, 3, CTM_FALSE))
     {
       free((void *) indices);
       free((void *) intNormals);
@@ -1077,12 +1082,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   _CTMgrid grid;
 
   // Read MG2-specific header information from the stream
-  if(_ctmStreamReadUINT(self) != FOURCC("HEAD"))
-  {
-    self->mError = CTM_FORMAT_ERROR;
-    return CTM_FALSE;
-  }
-  if(_ctmStreamReadUINT(self) != 1) // MG2 header format version
+  if(_ctmStreamReadUINT(self) != FOURCC("MG2H"))
   {
     self->mError = CTM_FORMAT_ERROR;
     return CTM_FALSE;
@@ -1196,7 +1196,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       free((void *) intNormals);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 3, CTM_TRUE))
+    if(!_ctmStreamReadPackedInts(self, intNormals, self->mVertexCount, 3, CTM_FALSE))
     {
       free((void *) intNormals);
       return CTM_FALSE;
