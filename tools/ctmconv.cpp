@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cctype>
 #include "ply.h"
+#include "mesh.h"
 #include <openctm.h>
 
 using namespace std;
@@ -15,8 +16,8 @@ using namespace std;
 //-----------------------------------------------------------------------------
 void CheckCTMError(CTMcontext aContext)
 {
-  CTMenum err;
-  if(err = ctmGetError(aContext))
+  CTMenum err = ctmGetError(aContext);
+  if(err != CTM_NONE)
   {
     stringstream ss;
     ss << "CTM failed with error code " << err;
@@ -50,122 +51,40 @@ string ExtractFileExt(const string &aString)
 //-----------------------------------------------------------------------------
 // LoadPLY()
 //-----------------------------------------------------------------------------
-void LoadPLY(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
+void LoadPLY(string &aFileName, Mesh &aMesh)
 {
   ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
   if(fin.fail())
     throw runtime_error("Could not open input file.");
-  PLY_Import(fin, aPoints, aIndices, aTexCoords, aNormals);
+  PLY_Import(fin, aMesh);
   fin.close();
 }
 
 //-----------------------------------------------------------------------------
 // SavePLY()
 //-----------------------------------------------------------------------------
-void SavePLY(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
+void SavePLY(string &aFileName, Mesh &aMesh)
 {
   ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
   if(fout.fail())
     throw runtime_error("Could not open output file.");
-  PLY_Export(fout, aPoints, aIndices, aTexCoords, aNormals);
+  PLY_Export(fout, aMesh);
   fout.close();
 }
 
 //-----------------------------------------------------------------------------
 // LoadCTM()
 //-----------------------------------------------------------------------------
-void LoadCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
+void LoadCTM(string &aFileName, Mesh &aMesh)
 {
   // Import OpenCTM file
-  CTMcontext ctm = 0;
-  try
-  {
-    // Create OpenCTM context
-    ctm = ctmNewContext(CTM_IMPORT);
-    CheckCTMError(ctm);
-
-    // Import file
-    CheckCTMError(ctm);
-    ctmLoad(ctm, aFileName.c_str());
-    CheckCTMError(ctm);
-
-    // Extract mesh info
-    CTMuint vertCount = ctmGetInteger(ctm, CTM_VERTEX_COUNT);
-    CTMuint triCount = ctmGetInteger(ctm, CTM_TRIANGLE_COUNT);
-    CTMuint texMapCount = ctmGetInteger(ctm, CTM_TEX_MAP_COUNT);
-    const CTMuint * indices = ctmGetIntegerArray(ctm, CTM_INDICES);
-    const CTMfloat * vertices, * normals = 0, * texCoords = 0;
-    vertices = ctmGetFloatArray(ctm, CTM_VERTICES);
-    if(ctmGetInteger(ctm, CTM_HAS_NORMALS) == CTM_TRUE)
-      normals = ctmGetFloatArray(ctm, CTM_NORMALS);
-    if(texMapCount > 0)
-      texCoords = ctmGetFloatArray(ctm, CTM_TEX_MAP_1);
-
-    CheckCTMError(ctm);
-
-    // Copy index data
-    aIndices.resize(triCount * 3);
-    for(CTMuint i = 0; i < triCount * 3; ++ i)
-      aIndices[i] = indices[i];
-
-    // Copy point data
-    aPoints.resize(vertCount);
-    for(CTMuint i = 0; i < vertCount; ++ i)
-    {
-      aPoints[i].x = vertices[i * 3];
-      aPoints[i].y = vertices[i * 3 + 1];
-      aPoints[i].z = vertices[i * 3 + 2];
-    }
-
-    // Copy normal data
-    if(normals)
-    {
-      aNormals.resize(vertCount);
-      for(CTMuint i = 0; i < vertCount; ++ i)
-      {
-        aNormals[i].x = normals[i * 3];
-        aNormals[i].y = normals[i * 3 + 1];
-        aNormals[i].z = normals[i * 3 + 2];
-      }
-    }
-    else
-      aNormals.clear();
-
-    // Copy texture map data
-    if(texCoords)
-    {
-      aTexCoords.resize(vertCount);
-      for(CTMuint i = 0; i < vertCount; ++ i)
-      {
-        aTexCoords[i].x = texCoords[i * 2];
-        aTexCoords[i].y = texCoords[i * 2 + 1];
-      }
-    }
-    else
-      aTexCoords.clear();
-
-    CheckCTMError(ctm);
-
-    // Free OpenCTM context
-    ctmFreeContext(ctm);
-    ctm = 0;
-  }
-  catch(exception &e)
-  {
-    if(ctm)
-      ctmFreeContext(ctm);
-    throw;
-  }
+  aMesh.LoadFromFile(aFileName.c_str());
 }
 
 //-----------------------------------------------------------------------------
 // SaveCTM()
 //-----------------------------------------------------------------------------
-void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
+void SaveCTM(string &aFileName, Mesh &aMesh)
 {
   // Export OpenCTM file
   CTMcontext ctm = 0;
@@ -177,16 +96,16 @@ void SaveCTM(string &aFileName, vector<Vector3f> &aPoints, vector<int> &aIndices
 
     // Define mesh
     CTMfloat * normals = 0;
-    if(aNormals.size() > 0)
-      normals = &aNormals[0].x;
-    ctmDefineMesh(ctm, (CTMfloat *) &aPoints[0].x, aPoints.size(),
-                  (const CTMuint*) &aIndices[0], aIndices.size() / 3,
+    if(aMesh.mNormals.size() > 0)
+      normals = &aMesh.mNormals[0].x;
+    ctmDefineMesh(ctm, (CTMfloat *) &aMesh.mVertices[0].x, aMesh.mVertices.size(),
+                  (const CTMuint*) &aMesh.mIndices[0], aMesh.mIndices.size() / 3,
                   normals);
     CheckCTMError(ctm);
 
     // Define texture coordinates
-    if(aTexCoords.size() > 0)
-      ctmAddTexMap(ctm, &aTexCoords[0].x, "Diffuse color", NULL);
+    if(aMesh.mTexCoords.size() > 0)
+      ctmAddTexMap(ctm, &aMesh.mTexCoords[0].u, "Diffuse color", NULL);
     CheckCTMError(ctm);
 
     // Export file
@@ -229,18 +148,15 @@ int main(int argc, char ** argv)
     string fileExt;
 
     // Define mesh
-    vector<Vector3f> points;
-    vector<int> indices;
-    vector<Vector2f> texCoords;
-    vector<Vector3f> normals;
+    Mesh mesh;
 
     // Load PLY file
     cout << "Loading " << inFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(inFile));
     if(fileExt == string(".PLY"))
-      LoadPLY(inFile, points, indices, texCoords, normals);
+      LoadPLY(inFile, mesh);
     else if(fileExt == string(".CTM"))
-      LoadCTM(inFile, points, indices, texCoords, normals);
+      LoadCTM(inFile, mesh);
     else
       throw runtime_error("Unknown input file extension.");
 
@@ -248,9 +164,9 @@ int main(int argc, char ** argv)
     cout << "Saving " << outFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(outFile));
     if(fileExt == string(".PLY"))
-      SavePLY(outFile, points, indices, texCoords, normals);
+      SavePLY(outFile, mesh);
     else if(fileExt == string(".CTM"))
-      SaveCTM(outFile, points, indices, texCoords, normals);
+      SaveCTM(outFile, mesh);
     else
       throw runtime_error("Unknown output file extension.");
   }

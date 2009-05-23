@@ -1,9 +1,27 @@
 OPENCTMDIR = ..
 
+CPP = cl
+CPPFLAGS = /c /Ox /W3 /I$(OPENCTMDIR)
+
 all: ctmconv.exe ctmviewer.exe
 
-ctmconv.exe: ctmconv.cpp ply.cpp ply.h $(OPENCTMDIR)\openctm.lib
-	cl /Ox /W3 /I$(OPENCTMDIR) /Fe$@ ctmconv.cpp ply.cpp /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+clean:
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj ply.obj mesh.obj
 
-ctmviewer.exe: ctmviewer.cpp mesh.cpp ply.h $(OPENCTMDIR)\openctm.lib
-	cl /Ox /W3 /I$(OPENCTMDIR) /Fe$@ ctmviewer.cpp mesh.cpp /link /LIBPATH:$(OPENCTMDIR) openctm.lib glut.lib opengl32.lib glu32.lib
+ctmconv.exe: ctmconv.obj ply.obj mesh.obj $(OPENCTMDIR)\openctm.lib
+	$(CPP) /Fe$@ ctmconv.obj ply.obj mesh.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+
+ctmviewer.exe: ctmviewer.obj mesh.obj $(OPENCTMDIR)\openctm.lib
+	$(CPP) /Fe$@ ctmviewer.obj mesh.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib glut.lib opengl32.lib glu32.lib
+
+ctmconv.obj: ctmconv.cpp ply.h mesh.h
+	$(CPP) $(CPPFLAGS) /Fo$@ $<
+
+ctmviewer.obj: ctmviewer.cpp mesh.h
+	$(CPP) $(CPPFLAGS) /Fo$@ $<
+
+mesh.obj: mesh.cpp mesh.h
+	$(CPP) $(CPPFLAGS) /Fo$@ $<
+
+ply.obj: ply.cpp ply.h mesh.h
+	$(CPP) $(CPPFLAGS) /Fo$@ $<

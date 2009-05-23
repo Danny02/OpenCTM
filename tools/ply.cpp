@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
+#include <vector>
 #include "ply.h"
 
 using namespace std;
@@ -23,13 +24,13 @@ static string ParseElement(string &aLine, unsigned int &aCount)
 }
 
 /// Parse a vertex string.
-Vector3f ParseVertex(string &aString, int aX, int aY, int aZ)
+Vector3 ParseVertex(string &aString, int aX, int aY, int aZ)
 {
   int maxPos = aX;
   if(aY > maxPos) maxPos = aY;
   if(aZ > maxPos) maxPos = aZ;
 
-  Vector3f result;
+  Vector3 result;
 
   istringstream sstr(aString);
   for(int i = 0; i <= maxPos; ++ i)
@@ -48,12 +49,12 @@ Vector3f ParseVertex(string &aString, int aX, int aY, int aZ)
 }
 
 /// Parse texture coordinates from a vertex string.
-Vector2f ParseTexCoord(string &aString, int aS, int aT)
+Vector2 ParseTexCoord(string &aString, int aS, int aT)
 {
   int maxPos = aS;
   if(aT > maxPos) maxPos = aT;
 
-  Vector2f result;
+  Vector2 result;
 
   istringstream sstr(aString);
   for(int i = 0; i <= maxPos; ++ i)
@@ -61,22 +62,22 @@ Vector2f ParseTexCoord(string &aString, int aS, int aT)
     float value;
     sstr >> value;
     if(i == aS)
-      result.x = value;
+      result.u = value;
     else if(i == aT)
-      result.y = value;
+      result.v = value;
   }
 
   return result;
 }
 
 /// Parse normals from a vertex string.
-Vector3f ParseNormal(string &aString, int aNX, int aNY, int aNZ)
+Vector3 ParseNormal(string &aString, int aNX, int aNY, int aNZ)
 {
   int maxPos = aNX;
   if(aNY > maxPos) maxPos = aNY;
   if(aNZ > maxPos) maxPos = aNZ;
 
-  Vector3f result;
+  Vector3 result;
 
   istringstream sstr(aString);
   for(int i = 0; i <= maxPos; ++ i)
@@ -108,14 +109,10 @@ void ParseFace(string &aString, int &aIdx1, int &aIdx2, int &aIdx3)
 }
 
 /// Import a PLY file from a stream.
-void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
+void PLY_Import(istream &aStream, Mesh &aMesh)
 {
   // Clear the mesh
-  aPoints.clear();
-  aTexCoords.clear();
-  aNormals.clear();
-  aIndices.clear();
+  aMesh.Clear();
 
   // Read header
   unsigned int count, vertexCount = 0, faceCount = 0;
@@ -196,79 +193,80 @@ void PLY_Import(istream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndic
     throw runtime_error("Incomplete PLY vertex description format (need x, y and z).");
 
   // Read vertices
-  aPoints.resize(vertexCount);
+  aMesh.mVertices.resize(vertexCount);
   if(sPos >= 0)
-    aTexCoords.resize(vertexCount);
+    aMesh.mTexCoords.resize(vertexCount);
   if(nxPos >= 0)
-    aNormals.resize(vertexCount);
+    aMesh.mNormals.resize(vertexCount);
   for(unsigned int i = 0; i < vertexCount; ++ i)
   {
     getline(aStream, str);
-    aPoints[i] = ParseVertex(str, xPos, yPos, zPos);
+    aMesh.mVertices[i] = ParseVertex(str, xPos, yPos, zPos);
     if(sPos >= 0)
-      aTexCoords[i] = ParseTexCoord(str, sPos, tPos);
+      aMesh.mTexCoords[i] = ParseTexCoord(str, sPos, tPos);
     if(nxPos >= 0)
-      aNormals[i] = ParseNormal(str, nxPos, nyPos, nzPos);
+      aMesh.mNormals[i] = ParseNormal(str, nxPos, nyPos, nzPos);
   }
 
   // Read faces
-  aIndices.resize(faceCount * 3);
+  aMesh.mIndices.resize(faceCount * 3);
   for(unsigned int i = 0; i < faceCount; ++ i)
   {
     getline(aStream, str);
     int idx1, idx2, idx3;
     ParseFace(str, idx1, idx2, idx3);
-    aIndices[i * 3] = idx1;
-    aIndices[i * 3 + 1] = idx2;
-    aIndices[i * 3 + 2] = idx3;
+    aMesh.mIndices[i * 3] = idx1;
+    aMesh.mIndices[i * 3 + 1] = idx2;
+    aMesh.mIndices[i * 3 + 2] = idx3;
   }
 }
 
 /// Export a PLY file to a stream.
-void PLY_Export(ostream &aStream, vector<Vector3f> &aPoints, vector<int> &aIndices,
-  vector<Vector2f> &aTexCoords, vector<Vector3f> &aNormals)
+void PLY_Export(ostream &aStream, Mesh &aMesh)
 {
   // Write header
   aStream << "ply" << endl;
   aStream << "format ascii 1.0" << endl;
-  aStream << "element vertex " << aPoints.size() << endl;
+  if(aMesh.mComment.size() > 0)
+    aStream << "comment " << aMesh.mComment << endl;
+  aStream << "element vertex " << aMesh.mVertices.size() << endl;
   aStream << "property float x" << endl;
   aStream << "property float y" << endl;
   aStream << "property float z" << endl;
-  if(aTexCoords.size() > 0)
+  if(aMesh.mTexCoords.size() > 0)
   {
     aStream << "property float s" << endl;
     aStream << "property float t" << endl;
   }
-  if(aNormals.size() > 0)
+  if(aMesh.mNormals.size() > 0)
   {
     aStream << "property float nx" << endl;
     aStream << "property float ny" << endl;
     aStream << "property float nz" << endl;
   }
-  aStream << "element face " << aIndices.size() / 3 << endl;
+  aStream << "element face " << aMesh.mIndices.size() / 3 << endl;
   aStream << "property list uchar int vertex_indices" << endl;
   aStream << "end_header" << endl;
 
   // Write vertices
-  for(unsigned int i = 0; i < aPoints.size(); ++ i)
+  for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
   {
-    aStream << aPoints[i].x << " " <<
-               aPoints[i].y << " " <<
-               aPoints[i].z;
-    if(aTexCoords.size() > 0)
-      aStream << " " << aTexCoords[i].x << " " <<
-                        aTexCoords[i].y;
-    if(aNormals.size() > 0)
-      aStream << " " << aNormals[i].x << " " <<
-                        aNormals[i].y << " " <<
-                        aNormals[i].z;
+    aStream << aMesh.mVertices[i].x << " " <<
+               aMesh.mVertices[i].y << " " <<
+               aMesh.mVertices[i].z;
+    if(aMesh.mTexCoords.size() > 0)
+      aStream << " " << aMesh.mTexCoords[i].u << " " <<
+                        aMesh.mTexCoords[i].v;
+    if(aMesh.mNormals.size() > 0)
+      aStream << " " << aMesh.mNormals[i].x << " " <<
+                        aMesh.mNormals[i].y << " " <<
+                        aMesh.mNormals[i].z;
     aStream << endl;
   }
 
   // Write faces
-  for(unsigned int i = 0; i < aIndices.size() / 3; ++ i)
-    aStream << "3 " << aIndices[i * 3] << " " <<
-                       aIndices[i * 3 + 1] << " " <<
-                       aIndices[i * 3 + 2] << endl;
+  for(unsigned int i = 0; i < aMesh.mIndices.size() / 3; ++ i)
+    aStream << "3 " << aMesh.mIndices[i * 3] << " " <<
+                       aMesh.mIndices[i * 3 + 1] << " " <<
+                       aMesh.mIndices[i * 3 + 2] << endl;
 }
