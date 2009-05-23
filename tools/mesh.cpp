@@ -154,6 +154,10 @@ void Mesh::SaveToFile(const char * aFileName)
     if(mTexCoords.size() > 0)
       ctmAddTexMap(ctm, &mTexCoords[0].u, "Diffuse color", NULL);
 
+    // Define vertex colors
+    if(mColors.size() > 0)
+      ctmAddAttribMap(ctm, &mColors[0].x, "Colors");
+
     // Set file comment
     if(mComment.size() > 0)
       ctmFileComment(ctm, mComment.c_str());
