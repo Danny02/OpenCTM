@@ -23,14 +23,14 @@ Vector3 cameraPosition, cameraLookAt;
 int oldMouseX = 0, oldMouseY = 0;
 bool mouseRotate = false;
 bool mouseZoom = false;
+Vector3 aabbMin, aabbMax;
 
 /// Set up the scene.
 void SetupScene()
 {
-  Vector3 min, max;
-  mesh.BoundingBox(min, max);
-  cameraLookAt = (max + min) * 0.5f;
-  float delta = (max - min).Abs();
+  mesh.BoundingBox(aabbMin, aabbMax);
+  cameraLookAt = (aabbMax + aabbMin) * 0.5f;
+  float delta = (aabbMax - aabbMin).Abs();
   cameraPosition = Vector3(cameraLookAt.x,
                            cameraLookAt.y - 1.5f * delta,
                            cameraLookAt.z + 0.4f * delta);
@@ -130,7 +130,11 @@ void WindowRedraw(void)
     ratio = 1.0f;
   else
     ratio = (float) width / (float) height;
-  gluPerspective(45.0f, ratio, 0.1f, 1000.0f);
+  float range = (aabbMax - aabbMin).Abs() +
+                (cameraPosition - cameraLookAt).Abs();
+  if(range < 1e-20f)
+    range = 1e-20f;
+  gluPerspective(45.0f, ratio, 0.0001f * range, range);
 
   // Set up the camera modelview matrix
   glMatrixMode(GL_MODELVIEW);
