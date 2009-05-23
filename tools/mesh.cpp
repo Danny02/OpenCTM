@@ -60,6 +60,11 @@ void Mesh::LoadFromFile(const char * aFileName)
     if(ctmGetError(ctm) != CTM_NONE)
       throw runtime_error("Unable to load the file.");
 
+    // Extract file comment
+    const char * comment = ctmGetString(ctm, CTM_FILE_COMMENT);
+    if(comment)
+      mComment = string(comment);
+
     // Extract indices
     CTMuint numTriangles = ctmGetInteger(ctm, CTM_TRIANGLE_COUNT);
     mIndices.resize(numTriangles * 3);
@@ -131,6 +136,43 @@ void Mesh::LoadFromFile(const char * aFileName)
 /// Save the mesh to a file
 void Mesh::SaveToFile(const char * aFileName)
 {
+  // Save the file using the OpenCTM API
+  CTMcontext ctm = ctmNewContext(CTM_EXPORT);
+  try
+  {
+    // Define mesh
+    CTMfloat * normals = 0;
+    if(mNormals.size() > 0)
+      normals = &mNormals[0].x;
+    ctmDefineMesh(ctm, (CTMfloat *) &mVertices[0].x, mVertices.size(),
+                  (const CTMuint*) &mIndices[0], mIndices.size() / 3,
+                  normals);
+    if(ctmGetError(ctm) != CTM_NONE)
+      throw runtime_error("Unable to save the file.");
+
+    // Define texture coordinates
+    if(mTexCoords.size() > 0)
+      ctmAddTexMap(ctm, &mTexCoords[0].u, "Diffuse color", NULL);
+
+    // Set file comment
+    if(mComment.size() > 0)
+      ctmFileComment(ctm, mComment.c_str());
+
+    // Set compression method
+    ctmCompressionMethod(ctm, CTM_METHOD_MG2);
+    ctmVertexPrecisionRel(ctm, 0.01f);
+
+    // Export file
+    ctmSave(ctm, aFileName);
+
+    // Free OpenCTM context
+    ctmFreeContext(ctm);
+  }
+  catch(exception &e)
+  {
+    ctmFreeContext(ctm);
+    throw;
+  }
 }
 
 /// Calculate smooth per-vertex normals

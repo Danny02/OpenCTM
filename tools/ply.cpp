@@ -118,6 +118,7 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
   unsigned int count, vertexCount = 0, faceCount = 0;
   int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, nxPos = -1, nyPos = -1, nzPos = -1, propCnt = 0;
   string elementType("");
+  string comment("");
   string str;
   getline(aStream, str);
   if(str != string("ply"))
@@ -139,6 +140,15 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
       else if(elementType == string("face"))
         faceCount = count;
       propCnt = 0;
+    }
+    else if(str.substr(0, 7) == string("comment"))
+    {
+      // This is a comment line
+      string newComment = str.substr(8);
+      if(comment.size() > 0)
+        comment = comment + string(" ") + newComment;
+      else
+        comment = newComment;
     }
     else if(str.substr(0, 8) == string("property"))
     {
@@ -191,6 +201,10 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
   // Did we get a proper vertex description?
   if((xPos < 0) || (yPos < 0) || (zPos < 0))
     throw runtime_error("Incomplete PLY vertex description format (need x, y and z).");
+
+  // Did we get a comment?
+  if(comment.size() > 0)
+    aMesh.mComment = comment;
 
   // Read vertices
   aMesh.mVertices.resize(vertexCount);

@@ -87,45 +87,7 @@ void LoadCTM(string &aFileName, Mesh &aMesh)
 void SaveCTM(string &aFileName, Mesh &aMesh)
 {
   // Export OpenCTM file
-  CTMcontext ctm = 0;
-  try
-  {
-    // Create OpenCTM context
-    ctm = ctmNewContext(CTM_EXPORT);
-    CheckCTMError(ctm);
-
-    // Define mesh
-    CTMfloat * normals = 0;
-    if(aMesh.mNormals.size() > 0)
-      normals = &aMesh.mNormals[0].x;
-    ctmDefineMesh(ctm, (CTMfloat *) &aMesh.mVertices[0].x, aMesh.mVertices.size(),
-                  (const CTMuint*) &aMesh.mIndices[0], aMesh.mIndices.size() / 3,
-                  normals);
-    CheckCTMError(ctm);
-
-    // Define texture coordinates
-    if(aMesh.mTexCoords.size() > 0)
-      ctmAddTexMap(ctm, &aMesh.mTexCoords[0].u, "Diffuse color", NULL);
-    CheckCTMError(ctm);
-
-    // Export file
-    ctmCompressionMethod(ctm, CTM_METHOD_MG2);
-    CheckCTMError(ctm);
-    ctmVertexPrecisionRel(ctm, 0.01f);
-    CheckCTMError(ctm);
-    ctmSave(ctm, aFileName.c_str());
-    CheckCTMError(ctm);
-
-    // Free OpenCTM context
-    ctmFreeContext(ctm);
-    ctm = 0;
-  }
-  catch(exception &e)
-  {
-    if(ctm)
-      ctmFreeContext(ctm);
-    throw;
-  }
+  aMesh.SaveToFile(aFileName.c_str());
 }
 
 
