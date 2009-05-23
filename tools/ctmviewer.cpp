@@ -67,6 +67,9 @@ void SetupLighting()
 /// Redraw function.
 void WindowRedraw(void)
 {
+  // Set the viewport to be the entire window
+  glViewport(0, 0, width, height);
+
   // Clear the buffer(s)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -77,7 +80,7 @@ void WindowRedraw(void)
   if(height == 0)
     ratio = 1.0f;
   else
-    ratio = width / height;
+    ratio = (float) width / (float) height;
   gluPerspective(45.0f, ratio, 0.1f, 1000.0f);
 
   // Set up the camera modelview matrix
@@ -108,9 +111,6 @@ void WindowResize(int w, int h)
   // Store the new window size
   width = w;
   height = h;
-
-  // Set the viewport to be the entire window
-  glViewport(0, 0, w, h);
 }
 
 /// Program entry.
