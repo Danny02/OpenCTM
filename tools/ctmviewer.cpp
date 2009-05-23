@@ -9,10 +9,20 @@
 
 using namespace std;
 
+
+// We need PI
+#ifndef PI
+#define PI 3.141592653589793238462643f
+#endif
+
+
 // Global variables (this is a simple program, after all)
 Mesh mesh;
 int width = 1, height = 1;
 Vector3 cameraPosition, cameraLookAt;
+int oldMouseX = 0, oldMouseY = 0;
+bool mouseRotate = false;
+bool mouseZoom = false;
 
 /// Set up the scene.
 void SetupScene()
@@ -129,6 +139,92 @@ void WindowResize(int w, int h)
   height = h;
 }
 
+/// Mouse click function
+static void MouseClick(int button, int state, int x, int y)
+{
+  if(button == GLUT_LEFT_BUTTON)
+  {
+    if(state == GLUT_DOWN)
+      mouseRotate = true;
+    else if(state == GLUT_UP)
+      mouseRotate = false;
+  }
+  else if(button == GLUT_RIGHT_BUTTON)
+  {
+    if(state == GLUT_DOWN)
+      mouseZoom = true;
+    else if(state == GLUT_UP)
+      mouseZoom = false;
+  }
+  oldMouseX = x;
+  oldMouseY = y;
+}
+
+/// Mouse move function
+static void MouseMove(int x, int y)
+{
+  float deltaX = (float) x - (float) oldMouseX;
+  float deltaY = (float) y - (float) oldMouseY;
+  oldMouseX = x;
+  oldMouseY = y;
+
+  if(mouseRotate)
+  {
+    // Calculate delta angles
+    float scale = 3.0f;
+    if(height > 0)
+      scale /= (float) height;
+    float deltaTheta = -scale * deltaX;
+    float deltaPhi = -scale * deltaY;
+
+    // Adjust camera angles
+    Vector3 viewVector = cameraPosition - cameraLookAt;
+    float r = sqrtf(viewVector.x * viewVector.x + viewVector.y * viewVector.y + viewVector.z * viewVector.z);
+    float phi, theta;
+    if(r > 1e-20f)
+    {
+      phi = acosf(viewVector.z / r);
+      theta = atan2f(viewVector.y, viewVector.x);
+    }
+    else
+    {
+      phi = viewVector.z > 0.0f ? 0.05f * PI : 0.95f * PI;
+      theta = 0.0f;
+    }
+    phi += deltaPhi;
+    theta += deltaTheta;
+    if(phi > (0.95f * PI))
+      phi = 0.95f * PI;
+    else if(phi < (0.05f * PI))
+      phi = 0.05f * PI;
+
+    // Update the camera position
+    viewVector.x = r * cos(theta) * sin(phi);
+    viewVector.y = r * sin(theta) * sin(phi);
+    viewVector.z = r * cos(phi);
+    cameraPosition = cameraLookAt + viewVector;
+
+    glutPostRedisplay();
+  }
+  else if(mouseZoom)
+  {
+    // Calculate delta angles
+    float scale = 2.0f;
+    if(height > 0)
+      scale /= (float) height;
+    float zoom = scale * deltaY;
+
+    // Adjust camera zoom
+    Vector3 viewVector = cameraPosition - cameraLookAt;
+    viewVector = viewVector * powf(2.0f, zoom);
+
+    // Update the camera position
+    cameraPosition = cameraLookAt + viewVector;
+
+    glutPostRedisplay();
+  }
+}
+
 /// Program entry.
 int main(int argc, char **argv)
 {
@@ -170,6 +266,8 @@ int main(int argc, char **argv)
     glutCreateWindow("OpenCTM viewer");
     glutReshapeFunc(WindowResize);
     glutDisplayFunc(WindowRedraw);
+    glutMouseFunc(MouseClick);
+    glutMotionFunc(MouseMove);
 
     // Enter the main loop
     glutMainLoop();
