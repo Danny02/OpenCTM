@@ -71,7 +71,23 @@ void WindowRedraw(void)
   glViewport(0, 0, width, height);
 
   // Clear the buffer(s)
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_DEPTH_BUFFER_BIT);
+
+  // Draw a gradient background
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DEPTH_TEST);
+  glBegin(GL_QUADS);
+  glColor3f(0.2f, 0.2f, 0.4f);
+  glVertex3f(-1.0f, -1.0f, 0.5f);
+  glVertex3f(1.0f, -1.0f, 0.5f);
+  glColor3f(0.1f, 0.1f, 0.2f);
+  glVertex3f(1.0f, 1.0f, 0.5f);
+  glVertex3f(-1.0f, 1.0f, 0.5f);
+  glEnd();
 
   // Set up perspective projection
   glMatrixMode(GL_PROJECTION);
