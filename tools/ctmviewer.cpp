@@ -33,8 +33,8 @@ void SetupScene()
   cameraLookAt = (aabbMax + aabbMin) * 0.5f;
   float delta = (aabbMax - aabbMin).Abs();
   cameraPosition = Vector3(cameraLookAt.x,
-                           cameraLookAt.y - 1.5f * delta,
-                           cameraLookAt.z + 0.4f * delta);
+                           cameraLookAt.y - 1.2f * delta,
+                           cameraLookAt.z + 0.3f * delta);
 }
 
 /// Set up the scene lighting.
@@ -155,11 +155,13 @@ void WindowRedraw(void)
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
   glBegin(GL_QUADS);
-  glColor3f(0.2f, 0.2f, 0.4f);
+  glColor3f(0.4f, 0.5f, 0.7f);
   glVertex3f(-1.0f, -1.0f, 0.5f);
+  glColor3f(0.3f, 0.4f, 0.7f);
   glVertex3f(1.0f, -1.0f, 0.5f);
   glColor3f(0.1f, 0.1f, 0.2f);
   glVertex3f(1.0f, 1.0f, 0.5f);
+  glColor3f(0.1f, 0.15f, 0.24f);
   glVertex3f(-1.0f, 1.0f, 0.5f);
   glEnd();
 
@@ -175,7 +177,7 @@ void WindowRedraw(void)
                 (cameraPosition - cameraLookAt).Abs();
   if(range < 1e-20f)
     range = 1e-20f;
-  gluPerspective(45.0f, ratio, 0.0001f * range, range);
+  gluPerspective(60.0f, ratio, 0.01f * range, range);
 
   // Set up the camera modelview matrix
   glMatrixMode(GL_MODELVIEW);
@@ -276,7 +278,7 @@ static void MouseMove(int x, int y)
   else if(mouseZoom)
   {
     // Calculate delta angles
-    float scale = 2.0f;
+    float scale = 3.0f;
     if(height > 0)
       scale /= (float) height;
     float zoom = scale * deltaY;
