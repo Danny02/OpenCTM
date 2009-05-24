@@ -110,9 +110,6 @@ class Mesh {
     /// Calculate the bounding box for the mesh
     void BoundingBox(Vector3 &aMin, Vector3 &aMax);
 
-    /// Draw the mesh to OpenGL
-    void Draw();
-
     std::string mComment;
     std::vector<int> mIndices;
     std::vector<Vector3> mVertices;

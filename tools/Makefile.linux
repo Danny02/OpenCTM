@@ -9,7 +9,7 @@ clean:
 	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o ply.o mesh.o
 
 ctmconv: ctmconv.o ply.o mesh.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o ply.o mesh.o -lopenctm -lGL
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o ply.o mesh.o -lopenctm
 
 ctmviewer: ctmviewer.o mesh.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o mesh.o -lopenctm -lglut

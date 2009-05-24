@@ -9,7 +9,7 @@ clean:
 	del /Q ctmconv.exe ctmviewer.exe ctmconv.o ctmviewer.o ply.o mesh.o
 
 ctmconv.exe: ctmconv.o ply.o mesh.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o ply.o mesh.o -lopenctm -lopengl32
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o ply.o mesh.o -lopenctm
 
 ctmviewer.exe: ctmviewer.o mesh.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o mesh.o -lopenctm -lfreeglut -lopengl32 -lglu32

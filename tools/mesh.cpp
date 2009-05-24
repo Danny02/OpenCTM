@@ -3,12 +3,6 @@
 #include <cmath>
 #include "mesh.h"
 
-#ifdef __APPLE_CC__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-
 
 using namespace std;
 
@@ -228,44 +222,4 @@ void Mesh::BoundingBox(Vector3 &aMin, Vector3 &aMax)
     else if(mVertices[i].z > aMax.z)
       aMax.z = mVertices[i].z;
   }
-}
-
-/// Draw the mesh to OpenGL
-void Mesh::Draw()
-{
-  // We always have vertices
-  glVertexPointer(3, GL_FLOAT, 0, &mVertices[0]);
-  glEnableClientState(GL_VERTEX_ARRAY);
-
-  // Do we have normals?
-  if(mNormals.size() == mVertices.size())
-  {
-    glNormalPointer(GL_FLOAT, 0, &mNormals[0]);
-    glEnableClientState(GL_NORMAL_ARRAY);
-  }
-
-  // Do we have texture coordinates?
-  if(mTexCoords.size() == mVertices.size())
-  {
-    glTexCoordPointer(2, GL_FLOAT, 0, &mTexCoords[0]);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  }
-
-  // Do we have colors?
-  if(mColors.size() == mVertices.size())
-  {
-    glColorPointer(4, GL_FLOAT, 0, &mColors[0]);
-    glEnableClientState(GL_COLOR_ARRAY);
-  }
-
-  // Use glDrawElements to draw the triangles...
-  glShadeModel(GL_SMOOTH);
-  glDrawElements(GL_TRIANGLES, mIndices.size(), GL_UNSIGNED_INT,
-                 &mIndices[0]);
-
-  // We do not use the client state anymore...
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
 }
