@@ -43,7 +43,7 @@ void SetupLighting()
   GLfloat pos[4], ambient[4], diffuse[4], specular[4];
 
   // Set scene lighting properties
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
   ambient[0] = 0.05;
   ambient[1] = 0.05;
