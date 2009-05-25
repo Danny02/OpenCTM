@@ -294,6 +294,14 @@ static void MouseMove(int x, int y)
   }
 }
 
+/// Keyboard function
+void KeyDown(unsigned char key, int x, int y)
+{
+  if(key == 27)
+    // Note: In freeglut you can do glutLeaveMainLoop(), which is more graceful
+    exit(0);
+}
+
 /// Program entry.
 int main(int argc, char **argv)
 {
@@ -338,6 +346,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(WindowRedraw);
     glutMouseFunc(MouseClick);
     glutMotionFunc(MouseMove);
+    glutKeyboardFunc(KeyDown); 
 
     // Load the mesh into a displaylist
     displayList = glGenLists(1);
