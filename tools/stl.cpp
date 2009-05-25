@@ -74,16 +74,7 @@ class SortVertex {
 
     bool operator<(const SortVertex &v) const
     {
-      if(x < v.x)
-        return true;
-      else if(x == v.x)
-      {
-        if(y < v.y)
-          return true;
-        else if((y == v.y) && (z < v.z))
-          return true;
-      }
-      return false;
+      return (x < v.x) || ((x == v.x) && ((y < v.y) || ((y == v.y) && (z < v.z))));
     }
 };
 
@@ -111,7 +102,7 @@ void STL_Import(istream &aStream, Mesh &aMesh)
 
   if(triangleCount > 0)
   {
-    // Read all the triangles
+    // Read all the triangle data
     vector<SortVertex> vertices;
     vertices.resize(triangleCount * 3);
     for(uint32 i = 0; i < triangleCount; ++ i)
@@ -130,14 +121,16 @@ void STL_Import(istream &aStream, Mesh &aMesh)
         vertices[index].mOldIndex = index;
       }
 
-      // Skip the two fill bytes
+      // Ignore the two fill bytes
       aStream.seekg(2, ios_base::cur);
     }
 
-    // Remove doubles, and store data in the mesh (create indices)
+    // Make sure that no redundant copies of vertices exist (STL files are full
+    // of vertex duplicates, so remove the redundancy), and store the data in
+    // the mesh object
+    sort(vertices.begin(), vertices.end());
     aMesh.mVertices.resize(vertices.size());
     aMesh.mIndices.resize(vertices.size());
-    sort(vertices.begin(), vertices.end());
     uint32 vertIdx = 0;
     SortVertex * firstEqual = &vertices[0];
     aMesh.mVertices[vertIdx] = Vector3(vertices[0].x, vertices[0].y, vertices[0].z);
@@ -174,7 +167,7 @@ void STL_Export(ostream &aStream, Mesh &aMesh)
   uint32 triangleCount = aMesh.mIndices.size() / 3;
   WriteInt32(aStream, triangleCount);
 
-  // Write triangle coordinates
+  // Write the triangle data
   for(uint32 i = 0; i < triangleCount; ++ i)
   {
     // Get the triangle vertices
@@ -195,7 +188,7 @@ void STL_Export(ostream &aStream, Mesh &aMesh)
     WriteVector3(aStream, v2);
     WriteVector3(aStream, v3);
 
-    // Zero out the two fill bytes (a.k.a. "attribute byte count")
+    // Set the two fill bytes to zero
     aStream.put(0);
     aStream.put(0);
   }
