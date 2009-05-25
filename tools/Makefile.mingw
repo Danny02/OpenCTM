@@ -14,14 +14,10 @@ ctmconv.exe: ctmconv.o ply.o mesh.o $(OPENCTMDIR)/libopenctm.a
 ctmviewer.exe: ctmviewer.o mesh.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o mesh.o -lopenctm -lfreeglut -lopengl32 -lglu32
 
+.cpp.o:
+	$(CPP) $(CPPFLAGS) -o $@ $<
+
 ctmconv.o: ctmconv.cpp ply.h mesh.h
-	$(CPP) $(CPPFLAGS) -o $@ $<
-
 ctmviewer.o: ctmviewer.cpp mesh.h
-	$(CPP) $(CPPFLAGS) -o $@ $<
-
 mesh.o: mesh.cpp mesh.h
-	$(CPP) $(CPPFLAGS) -o $@ $<
-
 ply.o: ply.cpp ply.h mesh.h
-	$(CPP) $(CPPFLAGS) -o $@ $<

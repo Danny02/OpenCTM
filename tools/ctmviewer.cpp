@@ -332,7 +332,8 @@ int main(int argc, char **argv)
     // Create the glut window
     glutInitWindowSize(640, 480);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    glutCreateWindow("OpenCTM viewer");
+    string windowCaption = string("OpenCTM viewer - ") + string(argv[1]);
+    glutCreateWindow(windowCaption.c_str());
     glutReshapeFunc(WindowResize);
     glutDisplayFunc(WindowRedraw);
     glutMouseFunc(MouseClick);
