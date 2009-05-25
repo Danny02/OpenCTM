@@ -131,15 +131,14 @@ void STL_Import(istream &aStream, Mesh &aMesh)
     sort(vertices.begin(), vertices.end());
     aMesh.mVertices.resize(vertices.size());
     aMesh.mIndices.resize(vertices.size());
-    uint32 vertIdx = 0;
     SortVertex * firstEqual = &vertices[0];
-    aMesh.mVertices[vertIdx] = Vector3(firstEqual->x, firstEqual->y, firstEqual->z);
-    aMesh.mIndices[vertices[0].mOldIndex] = vertIdx;
-    for(uint32 i = 1; i < vertices.size(); ++ i)
+    int vertIdx = -1;
+    for(uint32 i = 0; i < vertices.size(); ++ i)
     {
-      if((vertices[i].x != firstEqual->x) ||
+      if((i == 0) ||
+         (vertices[i].z != firstEqual->z) ||
          (vertices[i].y != firstEqual->y) ||
-         (vertices[i].z != firstEqual->z))
+         (vertices[i].x != firstEqual->x))
       {
         firstEqual = &vertices[i];
         ++ vertIdx;
