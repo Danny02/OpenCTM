@@ -30,6 +30,7 @@ bool mouseRotate = false;
 bool mouseZoom = false;
 Vector3 aabbMin, aabbMax;
 GLuint displayList = 0;
+GLenum polyMode = GL_FILL;
 
 /// Set up the scene.
 void SetupScene()
@@ -143,7 +144,8 @@ void DrawMesh(Mesh &aMesh)
   glDisableClientState(GL_COLOR_ARRAY);
 }
 
-// Draw a string using GLUT
+// Draw a string using GLUT. The string is shown on top of an alpha-blended
+// quad.
 void DrawString(string &aString, int x, int y)
 {
   // Calculate the size of the string box
@@ -221,13 +223,13 @@ void DrawInfoText()
   glDisable(GL_DEPTH_TEST);
 
   // Create a message string
-  stringstream ss;
-  ss << fileName << " (" << (fileSize + 512) / 1024 << "KB)" << endl;
-  ss << mesh.mVertices.size() << " vertices" << endl;
-  ss << mesh.mIndices.size() / 3 << " triangles";
+  stringstream s;
+  s << fileName << " (" << (fileSize + 512) / 1024 << "KB)" << endl;
+  s << mesh.mVertices.size() << " vertices" << endl;
+  s << mesh.mIndices.size() / 3 << " triangles";
 
   // Render the string
-  string msg = ss.str();
+  string msg = s.str();
   DrawString(msg, 7, 6);
 }
 
@@ -285,9 +287,12 @@ void WindowRedraw(void)
 
   // Draw the mesh
   SetupMaterial();
-  glEnable(GL_DEPTH_TEST);
   glColor3f(0.9f, 0.86f, 0.7f);
+  glEnable(GL_DEPTH_TEST);
+  glPolygonMode(GL_FRONT_AND_BACK, polyMode);
   glCallList(displayList);
+  glDisable(GL_BLEND);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   // Draw information text
   DrawInfoText();
@@ -396,6 +401,15 @@ void KeyDown(unsigned char key, int x, int y)
   if(key == 27)
     // Note: In freeglut you can do glutLeaveMainLoop(), which is more graceful
     exit(0);
+
+  if(key == 'w')
+  {
+    if(polyMode == GL_LINE)
+      polyMode = GL_FILL;
+    else
+      polyMode = GL_LINE;
+    glutPostRedisplay();
+  }
 }
 
 /// Program entry.
