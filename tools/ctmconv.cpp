@@ -5,8 +5,9 @@
 #include <string>
 #include <sstream>
 #include <cctype>
-#include "ply.h"
 #include "mesh.h"
+#include "ply.h"
+#include "stl.h"
 #include <openctm.h>
 
 using namespace std;
@@ -73,6 +74,30 @@ void SavePLY(string &aFileName, Mesh &aMesh)
 }
 
 //-----------------------------------------------------------------------------
+// LoadSTL()
+//-----------------------------------------------------------------------------
+void LoadSTL(string &aFileName, Mesh &aMesh)
+{
+  ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
+  if(fin.fail())
+    throw runtime_error("Could not open input file.");
+  STL_Import(fin, aMesh);
+  fin.close();
+}
+
+//-----------------------------------------------------------------------------
+// SaveSTL()
+//-----------------------------------------------------------------------------
+void SaveSTL(string &aFileName, Mesh &aMesh)
+{
+  ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
+  if(fout.fail())
+    throw runtime_error("Could not open output file.");
+  STL_Export(fout, aMesh);
+  fout.close();
+}
+
+//-----------------------------------------------------------------------------
 // LoadCTM()
 //-----------------------------------------------------------------------------
 void LoadCTM(string &aFileName, Mesh &aMesh)
@@ -112,21 +137,25 @@ int main(int argc, char ** argv)
     // Define mesh
     Mesh mesh;
 
-    // Load PLY file
+    // Load input file
     cout << "Loading " << inFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(inFile));
     if(fileExt == string(".PLY"))
       LoadPLY(inFile, mesh);
+    else if(fileExt == string(".STL"))
+      LoadSTL(inFile, mesh);
     else if(fileExt == string(".CTM"))
       LoadCTM(inFile, mesh);
     else
       throw runtime_error("Unknown input file extension.");
 
-    // Save file
+    // Save output file
     cout << "Saving " << outFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(outFile));
     if(fileExt == string(".PLY"))
       SavePLY(outFile, mesh);
+    else if(fileExt == string(".STL"))
+      SaveSTL(outFile, mesh);
     else if(fileExt == string(".CTM"))
       SaveCTM(outFile, mesh);
     else

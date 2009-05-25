@@ -119,4 +119,10 @@ class Mesh {
 };
 
 
+/// Compute the cross product of two vectors
+Vector3 Cross(Vector3 &v1, Vector3 &v2);
+
+/// Normalize a vector
+Vector3 Normalize(Vector3 v);
+
 #endif // __MESH_H_
