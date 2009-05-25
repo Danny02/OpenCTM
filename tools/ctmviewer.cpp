@@ -38,8 +38,8 @@ void SetupScene()
   cameraLookAt = (aabbMax + aabbMin) * 0.5f;
   float delta = (aabbMax - aabbMin).Abs();
   cameraPosition = Vector3(cameraLookAt.x,
-                           cameraLookAt.y - 1.2f * delta,
-                           cameraLookAt.z + 0.3f * delta);
+                           cameraLookAt.y - 0.8f * delta,
+                           cameraLookAt.z + 0.2f * delta);
 }
 
 /// Set up the scene lighting.
