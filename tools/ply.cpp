@@ -23,8 +23,8 @@ static string ParseElement(string &aLine, unsigned int &aCount)
   return propName.substr(0, pos);
 }
 
-/// Parse a vertex string.
-Vector3 ParseVertex(string &aString, int aX, int aY, int aZ)
+/// Parse a 3D vector from a vertex string.
+Vector3 ParseVector3(string &aString, int aX, int aY, int aZ)
 {
   int maxPos = aX;
   if(aY > maxPos) maxPos = aY;
@@ -48,8 +48,8 @@ Vector3 ParseVertex(string &aString, int aX, int aY, int aZ)
   return result;
 }
 
-/// Parse texture coordinates from a vertex string.
-Vector2 ParseTexCoord(string &aString, int aS, int aT)
+/// Parse a 2D vector from a vertex string.
+Vector2 ParseVector2(string &aString, int aS, int aT)
 {
   int maxPos = aS;
   if(aT > maxPos) maxPos = aT;
@@ -65,31 +65,6 @@ Vector2 ParseTexCoord(string &aString, int aS, int aT)
       result.u = value;
     else if(i == aT)
       result.v = value;
-  }
-
-  return result;
-}
-
-/// Parse normals from a vertex string.
-Vector3 ParseNormal(string &aString, int aNX, int aNY, int aNZ)
-{
-  int maxPos = aNX;
-  if(aNY > maxPos) maxPos = aNY;
-  if(aNZ > maxPos) maxPos = aNZ;
-
-  Vector3 result;
-
-  istringstream sstr(aString);
-  for(int i = 0; i <= maxPos; ++ i)
-  {
-    float value;
-    sstr >> value;
-    if(i == aNX)
-      result.x = value;
-    else if(i == aNY)
-      result.y = value;
-    else if(i == aNZ)
-      result.z = value;
   }
 
   return result;
@@ -215,11 +190,11 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
   for(unsigned int i = 0; i < vertexCount; ++ i)
   {
     getline(aStream, str);
-    aMesh.mVertices[i] = ParseVertex(str, xPos, yPos, zPos);
+    aMesh.mVertices[i] = ParseVector3(str, xPos, yPos, zPos);
     if(sPos >= 0)
-      aMesh.mTexCoords[i] = ParseTexCoord(str, sPos, tPos);
+      aMesh.mTexCoords[i] = ParseVector2(str, sPos, tPos);
     if(nxPos >= 0)
-      aMesh.mNormals[i] = ParseNormal(str, nxPos, nyPos, nzPos);
+      aMesh.mNormals[i] = ParseVector3(str, nxPos, nyPos, nzPos);
   }
 
   // Read faces
