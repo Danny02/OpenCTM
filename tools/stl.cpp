@@ -133,8 +133,8 @@ void STL_Import(istream &aStream, Mesh &aMesh)
     aMesh.mIndices.resize(vertices.size());
     uint32 vertIdx = 0;
     SortVertex * firstEqual = &vertices[0];
-    aMesh.mVertices[vertIdx] = Vector3(vertices[0].x, vertices[0].y, vertices[0].z);
-    aMesh.mIndices[vertices[vertIdx].mOldIndex] = vertIdx;
+    aMesh.mVertices[vertIdx] = Vector3(firstEqual->x, firstEqual->y, firstEqual->z);
+    aMesh.mIndices[vertices[0].mOldIndex] = vertIdx;
     for(uint32 i = 1; i < vertices.size(); ++ i)
     {
       if((vertices[i].x != firstEqual->x) ||
