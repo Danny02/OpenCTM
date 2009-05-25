@@ -1,4 +1,7 @@
+#include <stdexcept>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "mesh.h"
 
 #ifdef __APPLE_CC__
@@ -18,6 +21,8 @@ using namespace std;
 
 // Global variables (this is a simple program, after all)
 Mesh mesh;
+string fileName("");
+long fileSize = 0;
 int width = 1, height = 1;
 Vector3 cameraPosition, cameraLookAt;
 int oldMouseX = 0, oldMouseY = 0;
@@ -138,6 +143,94 @@ void DrawMesh(Mesh &aMesh)
   glDisableClientState(GL_COLOR_ARRAY);
 }
 
+// Draw a string using GLUT
+void DrawString(string &aString, int x, int y)
+{
+  // Calculate the size of the string box
+  int x0 = x, y0 = y;
+  int x1 = x0, y1 = y0;
+  int x2 = x0, y2 = y0;
+  for(unsigned int i = 0; i < aString.size(); ++ i)
+  {
+    int c = (int) aString[i];
+    if(c == (int) 10)
+    {
+      x2 = x;
+      y2 += 13;
+    }
+    else if(c != (int) 13)
+    {
+      x2 += glutBitmapWidth(GLUT_BITMAP_8_BY_13, c);
+      if(x2 > x1) x1 = x2;
+    }
+  }
+  y1 = y2 + 13;
+
+  // Draw a alpha blended box
+  glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBegin(GL_QUADS);
+  glVertex2i(x0 - 4, y0 - 3);
+  glVertex2i(x1 + 4, y0 - 3);
+  glVertex2i(x1 + 4, y1 + 4);
+  glVertex2i(x0 - 4, y1 + 4);
+  glEnd();
+  glDisable(GL_BLEND);
+  glColor3f(0.5f, 0.5f, 0.5f);
+  glBegin(GL_LINE_LOOP);
+  glVertex2i(x0 - 4, y0 - 3);
+  glVertex2i(x1 + 4, y0 - 3);
+  glVertex2i(x1 + 4, y1 + 4);
+  glVertex2i(x0 - 4, y1 + 4);
+  glEnd();
+
+  // Print the text
+  glColor3f(1.0f, 1.0f, 1.0f);
+  x2 = x;
+  y2 = y + 13;
+  for(unsigned int i = 0; i < aString.size(); ++ i)
+  {
+    int c = (int) aString[i];
+    if(c == (int) 10)
+    {
+      x2 = x;
+      y2 += 13;
+    }
+    else if(c != (int) 13)
+    {
+      glRasterPos2i(x2, y2);
+      glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
+      x2 += glutBitmapWidth(GLUT_BITMAP_8_BY_13, c);
+    }
+  }
+}
+
+// Draw some textual information to the screen
+void DrawInfoText()
+{
+  // Setup the matrices for a width x height 2D screen
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(0.0, (double) width, (double) height, 0.0, -1.0, 1.0);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  // Setup the rendering pipeline for text rendering
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DEPTH_TEST);
+
+  // Create a message string
+  stringstream ss;
+  ss << fileName << " (" << (fileSize + 512) / 1024 << "KB)" << endl;
+  ss << mesh.mVertices.size() << " vertices" << endl;
+  ss << mesh.mIndices.size() / 3 << " triangles";
+
+  // Render the string
+  string msg = ss.str();
+  DrawString(msg, 7, 6);
+}
+
 /// Redraw function.
 void WindowRedraw(void)
 {
@@ -195,6 +288,9 @@ void WindowRedraw(void)
   glEnable(GL_DEPTH_TEST);
   glColor3f(0.9f, 0.86f, 0.7f);
   glCallList(displayList);
+
+  // Draw information text
+  DrawInfoText();
 
   // Swap buffers
   glutSwapBuffers();
@@ -314,6 +410,15 @@ int main(int argc, char **argv)
 
   try
   {
+    // Get the file name and size
+    fileName = string(argv[1]);
+    ifstream f(fileName.c_str(), ios::in | ios::binary);
+    if(f.fail())
+      throw runtime_error("Unable to open the file.");
+    f.seekg(0, ios_base::end);
+    fileSize = (long) f.tellg();
+    f.close();
+
     // Init GLUT
     glutInit(&argc, argv);
 
