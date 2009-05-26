@@ -20,9 +20,9 @@ import os
 __author__ = "Marcus Geelnard"
 __version__ = "0.1"
 __bpydoc__ = """\
-This script exports OpenCTM files from Blender. It supports normals, 
-colours, and texture coordinates per vertex.
-Only one mesh can be exported at a time.
+This script exports OpenCTM files from Blender. It supports normals,
+colours, and texture coordinates per vertex. Only one mesh can be exported
+at a time.
 """
 
 # Copyright (C) 2009: Marcus Geelnard
