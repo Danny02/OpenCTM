@@ -38,16 +38,13 @@ Only one mesh can be exported at a time.
 #
 
 
-def rvec3d(v):	return round(v[0], 6), round(v[1], 6), round(v[2], 6)
-def rvec2d(v):	return round(v[0], 6), round(v[1], 6)
-
 def file_callback(filename):
 	
 	if not filename.lower().endswith('.ctm'):
 		filename += '.ctm'
 	
-	scn= bpy.data.scenes.active
-	ob= scn.objects.active
+	scn = bpy.data.scenes.active
+	ob = scn.objects.active
 	if not ob:
 		Blender.Draw.PupMenu('Error%t|Select 1 active object')
 		return
@@ -70,59 +67,68 @@ def file_callback(filename):
 	is_editmode = Blender.Window.EditMode()
 	if is_editmode:
 		Blender.Window.EditMode(0, '', 0)
-	
 	Window.WaitCursor(1)
-	
-	EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
-	EXPORT_NORMALS = EXPORT_NORMALS.val
-	EXPORT_UV = EXPORT_UV.val
-	EXPORT_COLORS = EXPORT_COLORS.val
-	
-	mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn)
-	
-	if not mesh:
-		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
-		return
-	
-	mesh.transform(ob.matrixWorld)
+	try:
+		EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
+		EXPORT_NORMALS = EXPORT_NORMALS.val
+		EXPORT_UV = EXPORT_UV.val
+		EXPORT_COLORS = EXPORT_COLORS.val
+		
+		mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn)
+		
+		if not mesh:
+			Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
+			return
+		
+		mesh.transform(ob.matrixWorld)
 
-	vertexUV = mesh.vertexUV
-	vertexColors = mesh.vertexColors
-	
-	if not vertexUV:						EXPORT_UV = False
-	if not vertexColors:					EXPORT_COLORS = False
+		vertexUV = mesh.vertexUV
+		vertexColors = mesh.vertexColors
+		
+		if not vertexUV:
+			EXPORT_UV = False
+		if not vertexColors:
+			EXPORT_COLORS = False
+		if not EXPORT_UV:
+			vertexUV = False
+		if not EXPORT_COLORS:
+			vertexColors = False
+		
+		# Load the OpenCTM shared library
+		libName = find_library('openctm');
+		if not libName:
+			Blender.Draw.PupMenu('Could not find the OpenCTM shared library')
+			return
+		if os.name == 'nt':
+			libHDL = WinDLL(libName);
+		else:
+			libHDL = CDLL(libName);
+		if not libHDL:
+			Blender.Draw.PupMenu('Could not open the OpenCTM shared library')
+			return
 
-	if not EXPORT_UV:						faceUV = vertexUV = False
-	if not EXPORT_COLORS:					vertexColors = False
-	
-	# incase
-	color = uvcoord = uvcoord_key = normal = normal_key = None
+		# Get all the functions from the shared library that we need
+		ctmNewContext = libHDL.ctmNewContext
+		ctmNewContext.argtypes = [c_int]
+		ctmNewContext.restype = c_void_p
+		ctmFreeContext = libHDL.ctmFreeContext
+		ctmFreeContext.argtypes = [c_void_p]
 
-	# Load the OpenCTM shared library
-	libName = find_library('openctm');
-	if not libName:
-		Blender.Draw.PupMenu('Could not find the OpenCTM shared library')
-		return
-	if os.name == 'nt':
-		openctm = WinDLL(libName);
-	else:
-		openctm = CDLL(libName);
-	if not openctm:
-		Blender.Draw.PupMenu('Could not open the OpenCTM shared library')
-		return
+		# Create an OpenCTM context
+		ctm = ctmNewContext(0x0102);
+		try:
+			# Do stuff....
+			# ....
+			# ....
+			Blender.Draw.PupMenu('Not yet implemented...')
+		finally:
+			# Free the OpenCTM context
+			ctmFreeContext(ctm);
 
-	# Create an OpenCTM context
-	ctm = openctm.ctmNewContext(0x0102);
-
-	# Do stuff....
-	# ....
-	# ....
-
-	# Free the OpenCTM context
-	openctm.ctmFreeContext(ctm);
-
-	if is_editmode:
-		Blender.Window.EditMode(1, '', 0)
+	finally:
+		Window.WaitCursor(0)
+		if is_editmode:
+			Blender.Window.EditMode(1, '', 0)
 
 def main():
 	Blender.Window.FileSelector(file_callback, 'OpenCTM Export', Blender.sys.makename(ext='.ctm'))
