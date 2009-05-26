@@ -9,7 +9,6 @@ varying vec4 vColor;
 
 void main()
 {
-	float shininess = 30.0;
 	vec3 n = normalize(vNormal);
 
 	// Ambient term
@@ -26,7 +25,7 @@ void main()
 	float RdotV = dot(rVector, viewVector);
 	vec4 specular = vec4(0.0);
 	if(RdotV > 0.0)
-		specular = vec4(0.4, 0.4, 0.4, 1.0) * gl_LightSource[0].specular * pow(RdotV, 30.0);
+		specular = vec4(0.4, 0.4, 0.4, 1.0) * gl_LightSource[0].specular * pow(RdotV, 20.0);
 
 	gl_FragColor = ambient + diffuse + specular;
 }
