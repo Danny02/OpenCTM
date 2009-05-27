@@ -7,12 +7,12 @@ CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(GLEWDIR)
 all: ctmconv ctmviewer
 
 clean:
-	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o ply.o stl.o mesh.o glew.o
+	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o convoptions.o ply.o stl.o mesh.o glew.o
 
 ctmconv: ctmconv.o convoptions.o ply.o stl.o mesh.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ply.o stl.o mesh.o -lopenctm
 
-ctmviewer: ctmviewer.o mesh.o glew.o $(OPENCTMDIR)/libopenctm.a
+ctmviewer: ctmviewer.o convoptions.o mesh.o glew.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -o $@ -L$(OPENCTMDIR) ctmviewer.o convoptions.o mesh.o glew.o -lopenctm -framework GLUT -framework OpenGL
 
 .cpp.o:
@@ -26,4 +26,4 @@ ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
 
 glew.o: glew/glew.c
-	gcc -c -Os -I$(GLEWDIR) -o $@ $<
+	gcc -c -Os -W -I$(GLEWDIR) -o $@ $<
