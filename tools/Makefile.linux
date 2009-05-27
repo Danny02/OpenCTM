@@ -1,18 +1,19 @@
 OPENCTMDIR = ..
+GLEWDIR = glew
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR)
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(GLEWDIR)
 
 all: ctmconv ctmviewer
 
 clean:
-	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o ply.o mesh.o
+	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o ply.o stl.o mesh.o glew.o
 
 ctmconv: ctmconv.o ply.o stl.o mesh.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o ply.o stl.o mesh.o -lopenctm
 
 ctmviewer: ctmviewer.o mesh.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o mesh.o -lopenctm -lglut
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o mesh.o glew.o -lopenctm -lglut
 
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
@@ -22,3 +23,6 @@ ctmviewer.o: ctmviewer.cpp mesh.h
 mesh.o: mesh.cpp mesh.h
 ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
+
+glew.o: glew/glew.c
+	gcc -c -Os -I$(GLEWDIR) -o $@ $<

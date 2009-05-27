@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include "mesh.h"
 
+#include <GL/glew.h>
 #ifdef __APPLE_CC__
 #include <GLUT/glut.h>
 #else
@@ -21,17 +22,24 @@ using namespace std;
 
 
 // Global variables (this is a simple program, after all)
-Mesh mesh;
 string fileName("");
 long fileSize = 0;
+
 int width = 1, height = 1;
-Vector3 cameraPosition, cameraLookAt;
 int oldMouseX = 0, oldMouseY = 0;
 bool mouseRotate = false;
 bool mouseZoom = false;
+
+Mesh mesh;
 Vector3 aabbMin, aabbMax;
+Vector3 cameraPosition, cameraLookAt;
 GLuint displayList = 0;
 GLenum polyMode = GL_FILL;
+
+bool useShader = false;
+GLuint shaderProgram = 0;
+GLuint vertShader = 0;
+GLuint fragShader = 0;
 
 /// Set up the scene.
 void SetupScene()
@@ -42,6 +50,72 @@ void SetupScene()
   cameraPosition = Vector3(cameraLookAt.x,
                            cameraLookAt.y - 0.8f * delta,
                            cameraLookAt.z + 0.2f * delta);
+}
+
+/// Load a text file as a string. Use C++ delete to free the memory.
+char * LoadTextFile(const char * aFileName)
+{
+  ifstream f(aFileName, ios::binary | ios::in);
+  if(f.fail())
+    return NULL;
+
+  f.seekg(0, ios_base::end);
+  unsigned int length = f.tellg();
+  f.seekg(0, ios_base::beg);
+
+  char * result = (char *) new char[length + 1];
+  if(result)
+  {
+    f.read(result, length);
+    result[length] = 0;
+  }
+
+  return result;
+}
+
+/// Initialize the GLSL shader (requires OpenGL 2.0 or better).
+void InitShader()
+{
+  // Load vertex shader
+  char *vs = LoadTextFile("phong.vert");
+  if(!vs)
+    throw runtime_error("Unable to load vertex shader.");
+  vertShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertShader, 1, (const GLchar **) &vs, NULL);
+  delete vs;
+
+  // Load fragment shader
+  char *fs = LoadTextFile("phong.frag");
+  if(!fs)
+    throw runtime_error("Unable to load fragment shader.");
+  fragShader = glCreateShader(GL_FRAGMENT_SHADER);	
+  glShaderSource(fragShader, 1, (const GLchar **) &fs, NULL);
+  delete fs;
+
+  int status;
+
+  // Compile the vertex shader
+  glCompileShader(vertShader);
+  glGetShaderiv(vertShader, GL_COMPILE_STATUS, &status);
+  if(!status)
+    throw runtime_error("Could not compile vertex shader.");
+
+  // Compile the fragment shader
+  glCompileShader(fragShader);
+  glGetShaderiv(fragShader, GL_COMPILE_STATUS, &status);
+  if(!status)
+    throw runtime_error("Could not compile fragment shader.");
+
+  // Link the shader program
+  shaderProgram = glCreateProgram();
+  glAttachShader(shaderProgram, vertShader);
+  glAttachShader(shaderProgram, fragShader);
+  glLinkProgram(shaderProgram);
+  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
+  if(!status)
+    throw runtime_error("Could not link shader program.");
+
+  useShader = true;
 }
 
 /// Set up the scene lighting.
@@ -284,7 +358,12 @@ void WindowRedraw(void)
 
   // Set up the lights
   SetupLighting();
-  glEnable(GL_LIGHTING);
+
+  // Enable material shader
+  if(useShader)
+    glUseProgram(shaderProgram);
+  else
+    glEnable(GL_LIGHTING);
 
   // Draw the mesh
   SetupMaterial();
@@ -292,8 +371,13 @@ void WindowRedraw(void)
   glEnable(GL_DEPTH_TEST);
   glPolygonMode(GL_FRONT_AND_BACK, polyMode);
   glCallList(displayList);
-  glDisable(GL_BLEND);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  // Disable material shader
+  if(useShader)
+    glUseProgram(0);
+  else
+    glDisable(GL_LIGHTING);
 
   // Draw information text
   DrawInfoText();
@@ -467,6 +551,14 @@ int main(int argc, char **argv)
     glutMouseFunc(MouseClick);
     glutMotionFunc(MouseMove);
     glutKeyboardFunc(KeyDown); 
+
+    // Init GLEW (for OpenGL 2.x support)
+    if(glewInit() != GLEW_OK)
+      throw runtime_error("Unable to initialize GLEW.");
+
+    // Load the phong shader, if we can
+    if(GLEW_VERSION_2_0)
+      InitShader();
 
     // Load the mesh into a displaylist
     displayList = glGenLists(1);

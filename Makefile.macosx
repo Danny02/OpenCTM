@@ -72,7 +72,7 @@ docs:
 	cd doc && $(DOXYGEN) && cd ..
 
 tools: $(STATICLIB)
-	cd tools && $(MAKE) -f Makefile.macosx -j2 && cd ..
+	cd tools && $(MAKE) -f Makefile.macosx && cd ..
 
 $(STATICLIB): $(OBJS) $(LZMA_OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS) $(LZMA_OBJS)

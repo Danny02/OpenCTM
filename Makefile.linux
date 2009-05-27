@@ -74,7 +74,7 @@ docs:
 	cd doc && $(DOXYGEN) && cd ..
 
 tools: $(STATICLIB)
-	cd tools && $(MAKE) -f Makefile.linux -j2 && cd ..
+	cd tools && $(MAKE) -f Makefile.linux && cd ..
 
 $(STATICLIB): $(OBJS) $(LZMA_OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS) $(LZMA_OBJS)
