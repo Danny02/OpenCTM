@@ -92,6 +92,7 @@ class Vector4 {
     float x, y, z, w;
 };
 
+class Options;
 
 class Mesh {
   public:
@@ -103,6 +104,9 @@ class Mesh {
 
     /// Save the mesh to a file
     void SaveToFile(const char * aFileName);
+
+    /// Save the mesh to a file, with options
+    void SaveToFile(const char * aFileName, Options &aOptions);
 
     /// Calculate smooth per-vertex normals
     void CalculateNormals();

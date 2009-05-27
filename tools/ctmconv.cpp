@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <cctype>
+#include "convoptions.h"
 #include "mesh.h"
 #include "ply.h"
 #include "stl.h"
@@ -12,19 +13,6 @@
 
 using namespace std;
 
-//-----------------------------------------------------------------------------
-// CheckCTMError()
-//-----------------------------------------------------------------------------
-void CheckCTMError(CTMcontext aContext)
-{
-  CTMenum err = ctmGetError(aContext);
-  if(err != CTM_NONE)
-  {
-    stringstream ss;
-    ss << "CTM failed with error code " << err;
-    throw runtime_error(ss.str());
-  }
-}
 
 //-----------------------------------------------------------------------------
 // UpperCase()
@@ -109,10 +97,10 @@ void LoadCTM(string &aFileName, Mesh &aMesh)
 //-----------------------------------------------------------------------------
 // SaveCTM()
 //-----------------------------------------------------------------------------
-void SaveCTM(string &aFileName, Mesh &aMesh)
+void SaveCTM(string &aFileName, Mesh &aMesh, Options &aOptions)
 {
   // Export OpenCTM file
-  aMesh.SaveToFile(aFileName.c_str());
+  aMesh.SaveToFile(aFileName.c_str(), aOptions);
 }
 
 
@@ -121,14 +109,32 @@ void SaveCTM(string &aFileName, Mesh &aMesh)
 //-----------------------------------------------------------------------------
 int main(int argc, char ** argv)
 {
-  // Get file names
-  if(argc < 3)
+  // Get file names and options
+  Options opt;
+  string inFile;
+  string outFile;
+  try
   {
-    cout << "Usage: " << argv[0] << " infile outfile" << endl;
+    if(argc < 3)
+      throw runtime_error("Too few arguments.");
+    inFile = string(argv[1]);
+    outFile = string(argv[2]);
+    opt.GetFromArgs(argc, argv, 3);
+  }
+  catch(exception &e)
+  {
+    cout << "Error: " << e.what() << endl << endl;
+    cout << "Usage: " << argv[0] << " infile outfile [options]" << endl << endl;
+    cout << "Options:" << endl;
+    cout << "  --method arg    Select compression method (RAW, MG1, MG2)" << endl;
+    cout << "  --vprec arg     Set vertex precision" << endl;
+    cout << "  --vprecrel arg  Set vertex precision, relative method" << endl;
+    cout << "  --tprec arg     Set texture map precision" << endl;
+    cout << "  --cprec arg     Set color precision" << endl;
+    cout << "  --upaxis arg    Set up axis (X, Y, Z, -X, -Y, -Z). If != Z, the mesh will" << endl;
+    cout << "                  be flipped." << endl;
     return 0;
   }
-  string inFile(argv[1]);
-  string outFile(argv[2]);
 
   try
   {
@@ -157,7 +163,7 @@ int main(int argc, char ** argv)
     else if(fileExt == string(".STL"))
       SaveSTL(outFile, mesh);
     else if(fileExt == string(".CTM"))
-      SaveCTM(outFile, mesh);
+      SaveCTM(outFile, mesh, opt);
     else
       throw runtime_error("Unknown output file extension.");
   }

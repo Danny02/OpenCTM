@@ -2,6 +2,7 @@
 #include <openctm.h>
 #include <cmath>
 #include "mesh.h"
+#include "convoptions.h"
 
 
 using namespace std;
@@ -130,6 +131,13 @@ void Mesh::LoadFromFile(const char * aFileName)
 /// Save the mesh to a file
 void Mesh::SaveToFile(const char * aFileName)
 {
+  Options opt;
+  SaveToFile(aFileName, opt);
+}
+
+/// Save the mesh to a file, with options
+void Mesh::SaveToFile(const char * aFileName, Options &aOptions)
+{
   // Save the file using the OpenCTM API
   CTMcontext ctm = ctmNewContext(CTM_EXPORT);
   try
@@ -146,19 +154,28 @@ void Mesh::SaveToFile(const char * aFileName)
 
     // Define texture coordinates
     if(mTexCoords.size() > 0)
-      ctmAddTexMap(ctm, &mTexCoords[0].u, "Diffuse color", NULL);
+    {
+      CTMenum map = ctmAddTexMap(ctm, &mTexCoords[0].u, "Diffuse color", NULL);
+      ctmTexCoordPrecision(ctm, map, aOptions.mTexMapPrecision);
+    }
 
     // Define vertex colors
     if(mColors.size() > 0)
-      ctmAddAttribMap(ctm, &mColors[0].x, "Colors");
+    {
+      CTMenum map = ctmAddAttribMap(ctm, &mColors[0].x, "Colors");
+      ctmAttribPrecision(ctm, map, aOptions.mColorPrecision);
+    }
 
     // Set file comment
     if(mComment.size() > 0)
       ctmFileComment(ctm, mComment.c_str());
 
     // Set compression method
-    ctmCompressionMethod(ctm, CTM_METHOD_MG2);
-    ctmVertexPrecisionRel(ctm, 0.01f);
+    ctmCompressionMethod(ctm, aOptions.mMethod);
+    if(aOptions.mVertexPrecision > 0.0f)
+      ctmVertexPrecision(ctm, aOptions.mVertexPrecision);
+    else
+      ctmVertexPrecisionRel(ctm, aOptions.mVertexPrecisionRel);
 
     // Export file
     ctmSave(ctm, aFileName);
