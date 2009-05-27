@@ -2,7 +2,7 @@ OPENCTMDIR = ..
 GLEWDIR = glew
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(GLEWDIR)
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(GLEWDIR) -DGLEW_STATIC
 
 all: ctmconv.exe ctmviewer.exe
 
@@ -12,7 +12,7 @@ clean:
 ctmconv.exe: ctmconv.o convoptions.o ply.o stl.o mesh.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ply.o stl.o mesh.o -lopenctm
 
-ctmviewer.exe: ctmviewer.o mesh.o $(OPENCTMDIR)/libopenctm.a
+ctmviewer.exe: ctmviewer.o convoptions.o mesh.o glew.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o convoptions.o mesh.o glew.o -lopenctm -lfreeglut -lopengl32 -lglu32
 
 .cpp.o:
@@ -26,4 +26,4 @@ ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
 
 glew.o: glew/glew.c
-	gcc -c -Os -W -I$(GLEWDIR) -o $@ $<
+	gcc -c -Os -W -I$(GLEWDIR) -DGLEW_STATIC -o $@ $<
