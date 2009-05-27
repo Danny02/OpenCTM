@@ -13,10 +13,10 @@ void main()
 
 	// Ambient term
 	vec4 ambient = vColor * gl_LightSource[0].ambient;
-	
+
 	// Diffuse term
 	vec3 lightDir = normalize(gl_LightSource[0].position.xyz - vPos);
-	float NdotL = dot(n, lightDir);
+	float NdotL = abs(dot(n, lightDir));
 	vec4 diffuse = vColor * gl_LightSource[0].diffuse * NdotL;
 
 	// Specular term
