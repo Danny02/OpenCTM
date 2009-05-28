@@ -93,16 +93,59 @@ def file_callback(filename):
 			vertexUV = False
 		if not EXPORT_COLORS:
 			vertexColors = False
-		
+
+		# Extract indices from the Blender mesh
+		triangleCount = len(mesh.faces)
+		pindices = cast((c_int * 3 * triangleCount)(), POINTER(c_int))
+		i = 0
+		for face in mesh.faces:
+			pindices[i * 3] = c_int(face.verts[0].index)
+			pindices[i * 3 + 1] = c_int(face.verts[1].index)
+			pindices[i * 3 + 2] = c_int(face.verts[2].index)
+			i = i + 1
+
+		# Extract vertex array from the Blender mesh
+		vertexCount = len(mesh.verts)
+		pvertices = cast((c_float * 3 * vertexCount)(), POINTER(c_float))
+		i = 0
+		for vert in mesh.verts:
+			pvertices[i * 3] = c_float(vert.co.x)
+			pvertices[i * 3 + 1] = c_float(vert.co.y)
+			pvertices[i * 3 + 2] = c_float(vert.co.z)
+			i = i + 1
+
+		# Extract normals
+		if EXPORT_NORMALS:
+			pnormals = cast((c_float * 3 * vertexCount)(), POINTER(c_float))
+			i = 0
+			for i, vert in mesh.verts:
+				pnormals[i * 3] = c_float(vert.no.x)
+				pnormals[i * 3 + 1] = c_float(vert.no.y)
+				pnormals[i * 3 + 2] = c_float(vert.no.z)
+				i = i + 1
+		else:
+			pnormals = POINTER(c_float)()
+
+		# Extract UVs
+		if EXPORT_UV:
+			ptexCoords = cast((c_float * 2 * vertexCount)(), POINTER(c_float))
+			i = 0
+			for i, vert in mesh.verts:
+				ptexCoords[i * 2] = c_float(vert.uvco[0])
+				ptexCoords[i * 2 + 1] = c_float(vert.uvco[1])
+				i = i + 1
+		else:
+			ptexCoords = POINTER(c_float)()
+
 		# Load the OpenCTM shared library
-		libName = find_library('openctm');
+		libName = find_library('openctm')
 		if not libName:
 			Blender.Draw.PupMenu('Could not find the OpenCTM shared library')
 			return
 		if os.name == 'nt':
-			libHDL = WinDLL(libName);
+			libHDL = WinDLL(libName)
 		else:
-			libHDL = CDLL(libName);
+			libHDL = CDLL(libName)
 		if not libHDL:
 			Blender.Draw.PupMenu('Could not open the OpenCTM shared library')
 			return
@@ -113,17 +156,22 @@ def file_callback(filename):
 		ctmNewContext.restype = c_void_p
 		ctmFreeContext = libHDL.ctmFreeContext
 		ctmFreeContext.argtypes = [c_void_p]
+		ctmDefineMesh = libHDL.ctmDefineMesh
+		ctmDefineMesh.argtypes = [c_void_p, POINTER(c_float), c_int, POINTER(c_int), c_int, POINTER(c_float)]
+		ctmSave = libHDL.ctmSave
+		ctmSave.argtypes = [c_void_p, c_char_p]
 
 		# Create an OpenCTM context
-		ctm = ctmNewContext(0x0102);
+		ctm = ctmNewContext(0x0102)
 		try:
-			# Do stuff....
-			# ....
-			# ....
-			Blender.Draw.PupMenu('Not yet implemented...')
+			# Define the mesh
+			ctmDefineMesh(ctm, pvertices, c_int(vertexCount), pindices, c_int(triangleCount), pnormals)
+
+			# Save the file
+			ctmSave(ctm, c_char_p(filename))
 		finally:
 			# Free the OpenCTM context
-			ctmFreeContext(ctm);
+			ctmFreeContext(ctm)
 
 	finally:
 		Window.WaitCursor(0)
