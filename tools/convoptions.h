@@ -20,6 +20,7 @@ class Options {
     CTMenum mMethod;
     CTMfloat mVertexPrecision;
     CTMfloat mVertexPrecisionRel;
+    CTMfloat mNormalPrecision;
     CTMfloat mTexMapPrecision;
     CTMfloat mColorPrecision;
 };

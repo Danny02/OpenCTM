@@ -39,10 +39,6 @@
 #define PI 3.141592653589793238462643f
 #endif
 
-// We use a hard coded fixed point precision for normal deltas
-#define NORMAL_PRECISION      256.0f // .8 bits per angular normal component
-#define NORMAL_MAGN_PRECISION 256.0f // .8 bits for the normal magnitude
-
 
 //-----------------------------------------------------------------------------
 // _CTMgrid - 3D space subdivision grid.
@@ -533,7 +529,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
   CTMfloat * aVertices, CTMuint * aIndices, _CTMsortvertex * aSortVertices)
 {
   CTMuint i, j, oldIdx, intPhi;
-  CTMfloat magn, phi, theta, thetaScale;
+  CTMfloat magn, phi, theta, scale, thetaScale;
   CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
@@ -547,6 +543,9 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
   // Calculate smooth normals (Note: aVertices and aIndices use the sorted
   // index space, so smoothNormals will too)
   _ctmCalcSmoothNormals(self, aVertices, aIndices, smoothNormals);
+
+  // Normal scaling factor
+  scale = 1.0f / self->mNormalPrecision;
 
   for(i = 0; i < self->mVertexCount; ++ i)
   {
@@ -568,7 +567,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
       magn = -magn;
 
     // Store the magnitude in the first element of the three normal elements
-    aIntNormals[i * 3] = (CTMint) floorf(NORMAL_MAGN_PRECISION * magn + 0.5f);
+    aIntNormals[i * 3] = (CTMint) floorf(scale * magn + 0.5f);
 
     // Normalize the normal (1 / magn) - and flip it if magn < 0
     magn = 1.0f / magn;
@@ -590,11 +589,13 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 
     // Round phi and theta (spherical coordinates) to integers. Note: We let the
     // theta resolution vary with the x/y circumference (roughly phi).
-    intPhi = (CTMint) floorf(phi * (NORMAL_PRECISION / (0.5f * PI)) + 0.5f);
+    intPhi = (CTMint) floorf(phi * (scale / (0.5f * PI)) + 0.5f);
     if(intPhi == 0)
       thetaScale = 0.0f;
-    else
-      thetaScale = ((CTMfloat) intPhi + 3.0f) / (2.0f * PI);
+    else if(intPhi <= 4)
+      thetaScale = 2.0f / PI;
+	else
+      thetaScale = ((CTMfloat) intPhi) / (2.0f * PI);
     aIntNormals[i * 3 + 1] = intPhi;
     aIntNormals[i * 3 + 2] = (CTMint) floorf((theta + PI) * thetaScale + 0.5f);
   }
@@ -611,7 +612,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 {
   CTMuint i, j, intPhi;
-  CTMfloat magn, phi, theta, thetaScale;
+  CTMfloat magn, phi, theta, scale, thetaScale;
   CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
@@ -625,18 +626,23 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
   // Calculate smooth normals (nominal normals)
   _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
 
+  // Normal scaling factor
+  scale = self->mNormalPrecision;
+
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Get the normal magnitude from the first of the three normal elements
-    magn = aIntNormals[i * 3] * (1.0f / NORMAL_MAGN_PRECISION);
+    magn = aIntNormals[i * 3] * scale;
 
     // Get phi and theta (spherical coordinates, relative to the smooth normal).
     intPhi = aIntNormals[i * 3 + 1];
-    phi = intPhi * (0.5f * PI / NORMAL_PRECISION);
+    phi = intPhi * (0.5f * PI) * scale;
     if(intPhi == 0)
       thetaScale = 0.0f;
+    else if(intPhi <= 4)
+      thetaScale = PI / 2.0f;
     else
-      thetaScale = (2.0f * PI) / ((CTMfloat) intPhi + 3.0f);
+      thetaScale = (2.0f * PI) / ((CTMfloat) intPhi);
     theta = aIntNormals[i * 3 + 2] * thetaScale - PI;
 
     // Convert the normal from the angular representation (phi, theta) back to
@@ -815,6 +821,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   // Write MG2-specific header information to the stream
   _ctmStreamWrite(self, (void *) "MG2H", 4);
   _ctmStreamWriteFLOAT(self, self->mVertexPrecision);
+  _ctmStreamWriteFLOAT(self, self->mNormalPrecision);
   _ctmStreamWriteFLOAT(self, grid.mMin[0]);
   _ctmStreamWriteFLOAT(self, grid.mMin[1]);
   _ctmStreamWriteFLOAT(self, grid.mMin[2]);
@@ -1089,6 +1096,12 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   }
   self->mVertexPrecision = _ctmStreamReadFLOAT(self);
   if(self->mVertexPrecision <= 0.0f)
+  {
+    self->mError = CTM_FORMAT_ERROR;
+    return CTM_FALSE;
+  }
+  self->mNormalPrecision = _ctmStreamReadFLOAT(self);
+  if(self->mNormalPrecision <= 0.0f)
   {
     self->mError = CTM_FORMAT_ERROR;
     return CTM_FALSE;

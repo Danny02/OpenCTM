@@ -31,8 +31,8 @@
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
-// OpenCTM file format version (0.4).
-#define _CTM_FORMAT_VERSION  0x00000004
+// OpenCTM file format version (0.5).
+#define _CTM_FORMAT_VERSION  0x00000005
 
 // Flags for the Mesh flags field of the file header
 #define _CTM_HAS_NORMALS_BIT 0x00000001
@@ -84,6 +84,9 @@ typedef struct {
 
   // Vertex coordinate precision
   CTMfloat mVertexPrecision;
+
+  // Normal precision (angular + magnitude)
+  CTMfloat mNormalPrecision;
 
   // File comment
   char * mFileComment;

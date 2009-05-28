@@ -172,10 +172,15 @@ void Mesh::SaveToFile(const char * aFileName, Options &aOptions)
 
     // Set compression method
     ctmCompressionMethod(ctm, aOptions.mMethod);
+
+	// Set vertex precision
     if(aOptions.mVertexPrecision > 0.0f)
       ctmVertexPrecision(ctm, aOptions.mVertexPrecision);
     else
       ctmVertexPrecisionRel(ctm, aOptions.mVertexPrecisionRel);
+
+	// Set normal precision
+    ctmNormalPrecision(ctm, aOptions.mNormalPrecision);
 
     // Export file
     ctmSave(ctm, aFileName);

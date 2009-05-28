@@ -375,6 +375,19 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
 /// @see ctmVertexPrecision().
 void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision);
 
+/// Set the normal precision (only used by the MG2 compression method). The
+/// normal is represented in spherical coordinates in the MG2 compression
+/// method, and the normal precision controls the angular and radial resolution.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aPrecision Fixed point precision. For the angular information,
+///            this value represents the angular precision. For the radial
+///            information, this value is the linear resolution. For instance,
+///            0.01 means that the circle is divided into 100 steps, and the
+///            normal magnitude is rounded to 2 decimals. The default normal
+///            precision is 2^-8 ~= 0.0039.
+void ctmNormalPrecision(CTMcontext aContext, CTMfloat aPrecision);
+
 /// Set the texture coordinate precision for the specified texture map (only
 /// used by the MG2 compression method).
 /// @param[in] aContext An OpenCTM context that has been created by

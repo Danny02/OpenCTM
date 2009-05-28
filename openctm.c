@@ -110,6 +110,7 @@ CTMcontext ctmNewContext(CTMenum aMode)
   self->mError = CTM_NONE;
   self->mMethod = CTM_METHOD_MG1;
   self->mVertexPrecision = 1.0f / 1024.0f;
+  self->mNormalPrecision = 1.0f / 256.0f;
 
   return (CTMcontext) self;
 }
@@ -476,6 +477,32 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
 
   // Set precision
   self->mVertexPrecision = aRelPrecision * avgEdgeLength;
+}
+
+//-----------------------------------------------------------------------------
+// ctmNormalPrecision()
+//-----------------------------------------------------------------------------
+void ctmNormalPrecision(CTMcontext aContext, CTMfloat aPrecision)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // Check arguments
+  if(aPrecision <= 0.0f)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Set precision
+  self->mNormalPrecision = aPrecision;
 }
 
 //-----------------------------------------------------------------------------

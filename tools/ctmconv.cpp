@@ -129,6 +129,7 @@ int main(int argc, char ** argv)
     cout << "  --method arg    Select compression method (RAW, MG1, MG2)" << endl;
     cout << "  --vprec arg     Set vertex precision" << endl;
     cout << "  --vprecrel arg  Set vertex precision, relative method" << endl;
+    cout << "  --nprec arg     Set normal precision" << endl;
     cout << "  --tprec arg     Set texture map precision" << endl;
     cout << "  --cprec arg     Set color precision" << endl;
     cout << "  --upaxis arg    Set up axis (X, Y, Z, -X, -Y, -Z). If != Z, the mesh will" << endl;

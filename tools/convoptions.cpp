@@ -14,6 +14,7 @@ Options::Options()
   mMethod = CTM_METHOD_MG2;
   mVertexPrecision = 0.0f;
   mVertexPrecisionRel = 0.01f;
+  mNormalPrecision = 1.0f / 256.0f;
   mTexMapPrecision = 1.0f / 4096.0f;
   mColorPrecision = 1.0f / 256.0f;
 }
@@ -75,6 +76,11 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
     else if((cmd == string("--vprecrel")) && (i < (argc - 1)))
     {
       mVertexPrecisionRel = GetFloatArg(argv[i + 1]);
+      ++ i;
+    }
+    else if((cmd == string("--nprec")) && (i < (argc - 1)))
+    {
+      mNormalPrecision = GetFloatArg(argv[i + 1]);
       ++ i;
     }
     else if((cmd == string("--tprec")) && (i < (argc - 1)))
