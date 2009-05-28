@@ -27,14 +27,13 @@
 
 LZMADIR = liblzma
 CC = cl
-CFLAGS = /nologo /Ox /W3 /c /D__DEBUG_ /I$(LZMADIR) /DLZMA_PREFIX_CTM /D_CRT_SECURE_NO_WARNINGS
+CFLAGS = /nologo /Ox /W3 /c /DOPENCTM_BUILD /I$(LZMADIR) /DLZMA_PREFIX_CTM /D_CRT_SECURE_NO_WARNINGS
 CFLAGS_LZMA = /nologo /Ox /W3 /c /DLZMA_PREFIX_CTM
-AR = lib
-ARFLAGS = /nologo
 RM = del /Q
 DOXYGEN = doxygen
 
-STATICLIB = openctm.lib
+DYNAMICLIB = openctm.dll
+LINKLIB = openctm.lib
 
 OBJS = openctm.obj \
        stream.obj \
@@ -60,21 +59,22 @@ LZMA_SRCS = $(LZMADIR)\Alloc.c \
             $(LZMADIR)\LzmaEnc.c \
             $(LZMADIR)\LzmaLib.c
 
-all: $(STATICLIB) tools
+all: $(DYNAMICLIB) tools
 
 .PHONY: clean docs tools
 
 clean:
-	$(RM) $(STATICLIB) $(OBJS) $(LZMA_OBJS)
+	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS)
 
 docs:
 	cd doc && $(DOXYGEN) && cd ..
 
-tools: $(STATICLIB)
+tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) /nologo /f Makefile.msvc && cd ..
 
-$(STATICLIB): $(OBJS) $(LZMA_OBJS)
-	$(AR) $(ARFLAGS) /OUT:$@ $(OBJS) $(LZMA_OBJS)
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
+	link /nologo /OUT:$@ /dll /implib:$(LINKLIB) $(OBJS) $(LZMA_OBJS)
+	copy /Y $@ tools
 
 openctm.obj: openctm.c openctm.h internal.h
 	$(CC) $(CFLAGS) openctm.c

@@ -113,6 +113,38 @@
 extern "C" {
 #endif
 
+
+// Declare calling conventions etc.
+#if defined(WIN32) || defined(_WIN32)
+  // Windows
+  #if defined(OPENCTM_STATIC)
+    #define CTMEXPORT
+    #define CTMCALL
+  #else
+    #if defined(OPENCTM_BUILD)
+      #define CTMEXPORT __declspec(dllexport)
+    #else
+      #define CTMEXPORT __declspec(dllimport)
+    #endif
+    #if defined(__MINGW32__)
+      #define CTMCALL __attribute__ ((__stdcall__))
+    #elif (defined(_M_MRX000) || defined(_M_IX86) || defined(_M_ALPHA) || defined(_M_PPC)) && !defined(MIDL_PASS)
+      #define CTMCALL __stdcall
+    #else
+      #define CTMCALL
+    #endif
+  #endif
+#else
+  // Unix
+  #if !defined(OPENCTM_STATIC) && !defined(OPENCTM_BUILD)
+    #define CTMEXPORT extern
+  #else
+    #define CTMEXPORT
+  #endif
+  #define CTMCALL
+#endif
+
+
 // Get system specific type definitions for sized integers. We use the C99
 // standard stdint.h for this.
 #ifdef _MSC_VER
@@ -124,8 +156,8 @@ typedef unsigned int uint32_t;
 #endif
 
 
-/// OpenCTM API version (0.3).
-#define CTM_API_VERSION 0x00000003
+/// OpenCTM API version (0.4).
+#define CTM_API_VERSION 0x00000004
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
@@ -233,13 +265,13 @@ typedef CTMuint (* CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserDa
 ///            context will be used for importing data, or set it to CTM_EXPORT
 ///            if it will be used for exporting data.
 /// @return An OpenCTM context handle (or NULL if no context could be created).
-CTMcontext ctmNewContext(CTMenum aMode);
+CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode);
 
 /// Free an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @see ctmNewContext()
-void ctmFreeContext(CTMcontext aContext);
+CTMEXPORT void CTMCALL ctmFreeContext(CTMcontext aContext);
 
 /// Returns the latest error. Calling this function will return the last
 /// produced error code, or CTM_NO_ERROR (zero) if no error has occured since
@@ -249,7 +281,7 @@ void ctmFreeContext(CTMcontext aContext);
 ///            ctmNewContext().
 /// @return An OpenCTM error code.
 /// @see CTMenum
-CTMenum ctmGetError(CTMcontext aContext);
+CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext);
 
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -258,7 +290,7 @@ CTMenum ctmGetError(CTMcontext aContext);
 /// @return An integer value, representing the OpenCTM context property given
 ///         by \c aProperty.
 /// @see CTMenum
-CTMuint ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
+CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
 
 /// Get an integer array from an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -274,7 +306,8 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
 ///       a new variable if it is to be used other than directly after the call
 ///       to ctmGetIntegerArray().
 /// @see CTMenum
-const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMenum aProperty);
+CTMEXPORT const CTMuint * CTMCALL ctmGetIntegerArray(CTMcontext aContext,
+  CTMenum aProperty);
 
 /// Get a floating point array from an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -290,7 +323,8 @@ const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMenum aProperty);
 ///       a new variable if it is to be used other than directly after the call
 ///       to ctmGetFloatArray().
 /// @see CTMenum
-const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty);
+CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
+  CTMenum aProperty);
 
 /// Get a reference to the named texture map.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -299,7 +333,8 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty);
 /// @return A reference to a texture map. If the texture map was found,
 ///          a value of CTM_TEX_MAP_1 or higher is returned, otherwise CTM_NONE
 ///          is returned.
-CTMenum ctmGetNamedTexMap(CTMcontext aContext, const char * aName);
+CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
+  const char * aName);
 
 /// Get information about a texture map.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -314,8 +349,8 @@ CTMenum ctmGetNamedTexMap(CTMcontext aContext, const char * aName);
 ///       copied to a new variable if it is to be used other than directly after
 ///       the call to ctmGetTexMapString().
 /// @see CTMenum
-const char * ctmGetTexMapString(CTMcontext aContext, CTMenum aTexMap,
-                                CTMenum aProperty);
+CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
+  CTMenum aTexMap, CTMenum aProperty);
 
 /// Get a reference to the named vertex attribute map.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -324,7 +359,8 @@ const char * ctmGetTexMapString(CTMcontext aContext, CTMenum aTexMap,
 /// @return A reference to an attribute map. If the attribute map was found,
 ///         a value of CTM_ATTRIB_MAP_1 or higher is returned, otherwise
 ///         CTM_NONE is returned.
-CTMenum ctmGetNamedAttribMap(CTMcontext aContext, const char * aName);
+CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
+  const char * aName);
 
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -340,7 +376,8 @@ CTMenum ctmGetNamedAttribMap(CTMcontext aContext, const char * aName);
 ///       a new variable if it is to be used other than directly after the call
 ///       to ctmGetString().
 /// @see CTMenum
-const char * ctmGetString(CTMcontext aContext, CTMenum aProperty);
+CTMEXPORT const char * CTMCALL ctmGetString(CTMcontext aContext,
+  CTMenum aProperty);
 
 /// Set which compression method to use for the given OpenCTM context.
 /// The selected compression method will be used when calling the ctmSave()
@@ -350,7 +387,8 @@ const char * ctmGetString(CTMcontext aContext, CTMenum aProperty);
 /// @param[in] aMethod Which compression method to use (the default method is
 ///            CTM_METHOD_MG1).
 /// @see CTMmethod
-void ctmCompressionMethod(CTMcontext aContext, CTMenum aMethod);
+CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
+  CTMenum aMethod);
 
 /// Set the vertex coordinate precision (only used by the MG2 compression
 /// method).
@@ -359,7 +397,8 @@ void ctmCompressionMethod(CTMcontext aContext, CTMenum aMethod);
 /// @param[in] aPrecision Fixed point precision. For instance, if this value is
 ///            0.001, all vertex coordinates will be rounded to three decimals.
 ///            The default vertex coordinate precision is 2^-10 ~= 0.00098.
-void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
+CTMEXPORT void CTMCALL ctmVertexPrecision(CTMcontext aContext,
+  CTMfloat aPrecision);
 
 /// Set the vertex coordinate precision, relative to the mesh dimensions (only
 /// used by the MG2 compression method).
@@ -373,7 +412,8 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision);
 /// @note The mesh must have been defined using the ctmDefineMesh() function
 ///       before calling this function.
 /// @see ctmVertexPrecision().
-void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision);
+CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
+  CTMfloat aRelPrecision);
 
 /// Set the normal precision (only used by the MG2 compression method). The
 /// normal is represented in spherical coordinates in the MG2 compression
@@ -386,7 +426,8 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision);
 ///            0.01 means that the circle is divided into 100 steps, and the
 ///            normal magnitude is rounded to 2 decimals. The default normal
 ///            precision is 2^-8 ~= 0.0039.
-void ctmNormalPrecision(CTMcontext aContext, CTMfloat aPrecision);
+CTMEXPORT void CTMCALL ctmNormalPrecision(CTMcontext aContext,
+  CTMfloat aPrecision);
 
 /// Set the texture coordinate precision for the specified texture map (only
 /// used by the MG2 compression method).
@@ -398,7 +439,8 @@ void ctmNormalPrecision(CTMcontext aContext, CTMfloat aPrecision);
 ///            0.001, all texture coordinates will be rounded to three decimals.
 ///            The default texture coordinate precision is 2^-12 ~= 0.00024.
 /// @see ctmAddTexMap().
-void ctmTexCoordPrecision(CTMcontext aContext, CTMenum aTexMap, CTMfloat aPrecision);
+CTMEXPORT void CTMCALL ctmTexCoordPrecision(CTMcontext aContext,
+  CTMenum aTexMap, CTMfloat aPrecision);
 
 /// Set the attribute value precision for the specified attribute map (only
 /// used by the MG2 compression method).
@@ -411,13 +453,15 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMenum aTexMap, CTMfloat aPrecis
 ///            If the attributes represent integer values, set the precision
 ///            to 1.0. The default attribute precision is 2^-8 ~= 0.0039.
 /// @see ctmAddAttribMap().
-void ctmAttribPrecision(CTMcontext aContext, CTMenum aAttribMap, CTMfloat aPrecision);
+CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
+  CTMenum aAttribMap, CTMfloat aPrecision);
 
 /// Set the file comment for the given OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileComment The file comment (zero terminated UTF-8 string).
-void ctmFileComment(CTMcontext aContext, const char * aFileComment);
+CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
+  const char * aFileComment);
 
 /// Define a triangle mesh.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -435,9 +479,9 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment);
 ///            and there must be \c aVertexCount normals. All normals must have
 ///            unit length.
 /// @see ctmAddTexMap(), ctmAddAttribMap(), ctmSave(), ctmSaveCustom().
-void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
-                   CTMuint aVertexCount, const CTMuint * aIndices,
-                   CTMuint aTriangleCount, const CTMfloat * aNormals);
+CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
+  const CTMfloat * aVertices, CTMuint aVertexCount, const CTMuint * aIndices,
+  CTMuint aTriangleCount, const CTMfloat * aNormals);
 
 /// Define a texture map. There can be several texture maps in a mesh. The first
 /// defined texture map is considered the "primary" texture map. Many
@@ -460,8 +504,8 @@ void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
 /// @note A triangle mesh must have been defined before calling this function,
 ///       since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
-CTMenum ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
-                     const char * aName, const char * aFileName);
+CTMEXPORT CTMenum CTMCALL ctmAddTexMap(CTMcontext aContext,
+  const CTMfloat * aTexCoords, const char * aName, const char * aFileName);
 
 /// Define a custom vertex attribute map. Custom vertex attributes can be used
 /// for defining special per-vertex attributes, such as color, weight, ambient
@@ -480,14 +524,14 @@ CTMenum ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
 /// @note A triangle mesh must have been defined before calling this function,
 ///       since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
-CTMenum ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
-                        const char * aName);
+CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
+  const CTMfloat * aAttribValues, const char * aName);
 
 /// Load an OpenCTM format file. The mesh can be retrieved using ctmGetMesh().
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be loaded.
-void ctmLoad(CTMcontext aContext, const char * aFileName);
+CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName);
 
 /// Load an OpenCTM format file using a custom stream read function. The mesh
 /// can be retrieved using ctmGetMesh().
@@ -499,14 +543,15 @@ void ctmLoad(CTMcontext aContext, const char * aFileName);
 ///            of any type. The user data pointer will be passed to the
 ///            custom stream read function.
 /// @see CTMreadfn.
-void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData);
+CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
+  void * aUserData);
 
 /// Save an OpenCTM format file. The mesh must have been defined by
 /// ctmDefineMesh().
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be saved.
-void ctmSave(CTMcontext aContext, const char * aFileName);
+CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName);
 
 /// Save an OpenCTM format file using a custom stream write function. The mesh
 /// must have been defined by ctmDefineMesh().
@@ -518,7 +563,8 @@ void ctmSave(CTMcontext aContext, const char * aFileName);
 ///            of any type. The user data pointer will be passed to the
 ///            custom stream write function.
 /// @see CTMwritefn.
-void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData);
+CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
+  void * aUserData);
 
 #ifdef __cplusplus
 }

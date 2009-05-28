@@ -97,7 +97,7 @@ static void _ctmClearMesh(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 // ctmNewContext()
 //-----------------------------------------------------------------------------
-CTMcontext ctmNewContext(CTMenum aMode)
+CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode)
 {
   _CTMcontext * self;
 
@@ -118,7 +118,7 @@ CTMcontext ctmNewContext(CTMenum aMode)
 //-----------------------------------------------------------------------------
 // ctmFreeContext()
 //-----------------------------------------------------------------------------
-void ctmFreeContext(CTMcontext aContext)
+CTMEXPORT void CTMCALL ctmFreeContext(CTMcontext aContext)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -137,7 +137,7 @@ void ctmFreeContext(CTMcontext aContext)
 //-----------------------------------------------------------------------------
 // ctmGetError()
 //-----------------------------------------------------------------------------
-CTMenum ctmGetError(CTMcontext aContext)
+CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMenum err;
@@ -153,7 +153,7 @@ CTMenum ctmGetError(CTMcontext aContext)
 //-----------------------------------------------------------------------------
 // ctmGetInteger()
 //-----------------------------------------------------------------------------
-CTMuint ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
+CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return 0;
@@ -185,7 +185,8 @@ CTMuint ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
 //-----------------------------------------------------------------------------
 // ctmGetIntegerArray()
 //-----------------------------------------------------------------------------
-const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMenum aProperty)
+CTMEXPORT const CTMuint * CTMCALL ctmGetIntegerArray(CTMcontext aContext,
+  CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return (CTMuint *) 0;
@@ -205,7 +206,8 @@ const CTMuint * ctmGetIntegerArray(CTMcontext aContext, CTMenum aProperty)
 //-----------------------------------------------------------------------------
 // ctmGetFloatArray()
 //-----------------------------------------------------------------------------
-const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
+CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
+  CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -268,7 +270,8 @@ const CTMfloat * ctmGetFloatArray(CTMcontext aContext, CTMenum aProperty)
 //-----------------------------------------------------------------------------
 // ctmGetNamedTexMap()
 //-----------------------------------------------------------------------------
-CTMenum ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
+CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
+  const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -293,8 +296,8 @@ CTMenum ctmGetNamedTexMap(CTMcontext aContext, const char * aName)
 //-----------------------------------------------------------------------------
 // ctmGetTexMapString()
 //-----------------------------------------------------------------------------
-const char * ctmGetTexMapString(CTMcontext aContext, CTMenum aTexMap,
-  CTMenum aProperty)
+CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
+  CTMenum aTexMap, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -332,7 +335,8 @@ const char * ctmGetTexMapString(CTMcontext aContext, CTMenum aTexMap,
 //-----------------------------------------------------------------------------
 // ctmGetNamedAttribMap()
 //-----------------------------------------------------------------------------
-CTMenum ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)
+CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
+  const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -357,7 +361,8 @@ CTMenum ctmGetNamedAttribMap(CTMcontext aContext, const char * aName)
 //-----------------------------------------------------------------------------
 // ctmGetString()
 //-----------------------------------------------------------------------------
-const char * ctmGetString(CTMcontext aContext, CTMenum aProperty)
+CTMEXPORT const char * CTMCALL ctmGetString(CTMcontext aContext,
+  CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return 0;
@@ -377,7 +382,8 @@ const char * ctmGetString(CTMcontext aContext, CTMenum aProperty)
 //-----------------------------------------------------------------------------
 // ctmCompressionMethod()
 //-----------------------------------------------------------------------------
-void ctmCompressionMethod(CTMcontext aContext, CTMenum aMethod)
+CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
+  CTMenum aMethod)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -404,7 +410,8 @@ void ctmCompressionMethod(CTMcontext aContext, CTMenum aMethod)
 //-----------------------------------------------------------------------------
 // ctmVertexPrecision()
 //-----------------------------------------------------------------------------
-void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
+CTMEXPORT void CTMCALL ctmVertexPrecision(CTMcontext aContext,
+  CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -430,7 +437,8 @@ void ctmVertexPrecision(CTMcontext aContext, CTMfloat aPrecision)
 //-----------------------------------------------------------------------------
 // ctmVertexPrecisionRel()
 //-----------------------------------------------------------------------------
-void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
+CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
+  CTMfloat aRelPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMfloat avgEdgeLength, * p1, * p2;
@@ -482,7 +490,8 @@ void ctmVertexPrecisionRel(CTMcontext aContext, CTMfloat aRelPrecision)
 //-----------------------------------------------------------------------------
 // ctmNormalPrecision()
 //-----------------------------------------------------------------------------
-void ctmNormalPrecision(CTMcontext aContext, CTMfloat aPrecision)
+CTMEXPORT void CTMCALL ctmNormalPrecision(CTMcontext aContext,
+  CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -508,8 +517,8 @@ void ctmNormalPrecision(CTMcontext aContext, CTMfloat aPrecision)
 //-----------------------------------------------------------------------------
 // ctmTexCoordPrecision()
 //-----------------------------------------------------------------------------
-void ctmTexCoordPrecision(CTMcontext aContext, CTMenum aTexMap,
-  CTMfloat aPrecision)
+CTMEXPORT void CTMCALL ctmTexCoordPrecision(CTMcontext aContext,
+  CTMenum aTexMap, CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -551,8 +560,8 @@ void ctmTexCoordPrecision(CTMcontext aContext, CTMenum aTexMap,
 //-----------------------------------------------------------------------------
 // ctmAttribPrecision()
 //-----------------------------------------------------------------------------
-void ctmAttribPrecision(CTMcontext aContext, CTMenum aAttribMap,
-  CTMfloat aPrecision)
+CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
+  CTMenum aAttribMap, CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -594,7 +603,8 @@ void ctmAttribPrecision(CTMcontext aContext, CTMenum aAttribMap,
 //-----------------------------------------------------------------------------
 // ctmFileComment()
 //-----------------------------------------------------------------------------
-void ctmFileComment(CTMcontext aContext, const char * aFileComment)
+CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
+  const char * aFileComment)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   int len;
@@ -634,9 +644,9 @@ void ctmFileComment(CTMcontext aContext, const char * aFileComment)
 //-----------------------------------------------------------------------------
 // ctmDefineMesh()
 //-----------------------------------------------------------------------------
-void ctmDefineMesh(CTMcontext aContext, const CTMfloat * aVertices,
-                   CTMuint aVertexCount, const CTMuint * aIndices,
-                   CTMuint aTriangleCount, const CTMfloat * aNormals)
+CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
+  const CTMfloat * aVertices, CTMuint aVertexCount, const CTMuint * aIndices,
+  CTMuint aTriangleCount, const CTMfloat * aNormals)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -751,8 +761,8 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
 //-----------------------------------------------------------------------------
 // ctmAddTexMap()
 //-----------------------------------------------------------------------------
-CTMenum ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
-  const char * aName, const char * aFileName)
+CTMEXPORT CTMenum CTMCALL ctmAddTexMap(CTMcontext aContext,
+  const CTMfloat * aTexCoords, const char * aName, const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -774,8 +784,8 @@ CTMenum ctmAddTexMap(CTMcontext aContext, const CTMfloat * aTexCoords,
 //-----------------------------------------------------------------------------
 // ctmAddAttribMap()
 //-----------------------------------------------------------------------------
-CTMenum ctmAddAttribMap(CTMcontext aContext, const CTMfloat * aAttribValues,
-  const char * aName)
+CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
+  const CTMfloat * aAttribValues, const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -806,7 +816,7 @@ static CTMuint _ctmDefaultRead(void * aBuf, CTMuint aCount, void * aUserData)
 //-----------------------------------------------------------------------------
 // ctmLoad()
 //-----------------------------------------------------------------------------
-void ctmLoad(CTMcontext aContext, const char * aFileName)
+CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   FILE * f;
@@ -875,7 +885,8 @@ static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
 //-----------------------------------------------------------------------------
 // ctmLoadCustom()
 //-----------------------------------------------------------------------------
-void ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn, void * aUserData)
+CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
+  void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMuint formatVersion, flags, method;
@@ -1007,7 +1018,7 @@ static CTMuint _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
 //-----------------------------------------------------------------------------
 // ctmSave()
 //-----------------------------------------------------------------------------
-void ctmSave(CTMcontext aContext, const char * aFileName)
+CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   FILE * f;
@@ -1038,7 +1049,8 @@ void ctmSave(CTMcontext aContext, const char * aFileName)
 //-----------------------------------------------------------------------------
 // ctmSaveCustom()
 //-----------------------------------------------------------------------------
-void ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn, void * aUserData)
+void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
+  void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMuint flags;

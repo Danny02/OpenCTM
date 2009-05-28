@@ -27,7 +27,7 @@
 
 LZMADIR = liblzma
 CC = gcc
-CFLAGS = -O3 -W -Wall -c -D__DEBUG_ -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
+CFLAGS = -O3 -W -Wall -c -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
 CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_PREFIX_CTM -std=c99 -pedantic
 AR = ar
 ARFLAGS = rcs
@@ -35,7 +35,8 @@ RM = del /Q
 DOXYGEN = doxygen
 DEPEND = $(CPP) -MM
 
-STATICLIB = libopenctm.a
+DYNAMICLIB = openctm.dll
+LINKLIB = libopenctm.a
 
 OBJS = openctm.o \
        stream.o \
@@ -63,19 +64,20 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
 
 .phony: all docs tools clean depend
 
-all: $(STATICLIB) tools
+all: $(DYNAMICLIB) tools
 
 clean:
-	$(RM) $(STATICLIB) $(OBJS) $(LZMA_OBJS)
+	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS)
 
 docs:
 	cd doc && $(DOXYGEN) && cd ..
 
-tools: $(STATICLIB)
+tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) -f Makefile.mingw && cd ..
 
-$(STATICLIB): $(OBJS) $(LZMA_OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS) $(LZMA_OBJS)
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
+	$(CC) -shared -s -o $@ $(OBJS) $(LZMA_OBJS) -Wl,--out-implib,$(LINKLIB)
+	copy /Y $@ tools
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
