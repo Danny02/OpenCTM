@@ -9,11 +9,11 @@ all: ctmconv ctmviewer
 clean:
 	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o convoptions.o ply.o stl.o mesh.o glew.o
 
-ctmconv: ctmconv.o convoptions.o ply.o stl.o mesh.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ply.o stl.o mesh.o -lopenctm
+ctmconv: ctmconv.o convoptions.o ply.o stl.o mesh.o $(OPENCTMDIR)/libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ply.o stl.o mesh.o -Wl,-rpath,. -lopenctm
 
-ctmviewer: ctmviewer.o convoptions.o mesh.o glew.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o convoptions.o mesh.o glew.o -lopenctm -lglut
+ctmviewer: ctmviewer.o convoptions.o mesh.o glew.o $(OPENCTMDIR)/libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmviewer.o convoptions.o mesh.o glew.o -Wl,-rpath,. -lopenctm -lglut
 
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<

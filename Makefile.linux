@@ -74,7 +74,8 @@ tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) -f Makefile.linux && cd ..
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
-	gcc -shared -Wl,-soname,$(DYNAMICLIB) -o $(DYNAMICLIB) $(OBJS) $(LZMA_OBJS)
+	gcc -shared -s -Wl,-soname,$@ -o $@ $(OBJS) $(LZMA_OBJS)
+	cp -f $@ tools/
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
