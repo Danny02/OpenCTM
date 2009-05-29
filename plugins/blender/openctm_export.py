@@ -152,6 +152,21 @@ def file_callback(filename):
 		else:
 			ptexCoords = POINTER(c_float)()
 
+		# Extract colors
+		if EXPORT_COLORS:
+			pcolors = cast((c_float * 4 * vertexCount)(), POINTER(c_float))
+			for f in mesh.faces:
+				for j in range(3):
+					k = f.v[j].index
+					if k < vertexCount:
+						col = f.col[j]
+						pcolors[k * 4] = col.r / 256.0
+						pcolors[k * 4 + 1] = col.g / 256.0
+						pcolors[k * 4 + 2] = col.b / 256.0
+						pcolors[k * 4 + 3] = 1.0
+		else:
+			pcolors = POINTER(c_float)()
+
 		# Load the OpenCTM shared library
 		if os.name == 'nt':
 			libHDL = WinDLL('openctm.dll')
@@ -175,12 +190,26 @@ def file_callback(filename):
 		ctmDefineMesh.argtypes = [c_void_p, POINTER(c_float), c_int, POINTER(c_int), c_int, POINTER(c_float)]
 		ctmSave = libHDL.ctmSave
 		ctmSave.argtypes = [c_void_p, c_char_p]
-
+		ctmAddTexMap = libHDL.ctmAddTexMap
+		ctmAddTexMap.argtypes = [c_void_p, POINTER(c_float), c_char_p]
+		ctmAddTexMap.restype = c_int
+		ctmAddAttribMap = libHDL.ctmAddAttribMap
+		ctmAddAttribMap.argtypes = [c_void_p, POINTER(c_float), c_char_p]
+		ctmAddAttribMap.restype = c_int
+ 
 		# Create an OpenCTM context
 		ctm = ctmNewContext(0x0102)
 		try:
 			# Define the mesh
 			ctmDefineMesh(ctm, pvertices, c_int(vertexCount), pindices, c_int(triangleCount), pnormals)
+
+			# Add texture coordinates?
+			if EXPORT_UV:
+				ctmAddTexMap(ctm, pcolors, c_char_p("Pigment"))
+
+			# Add colors?
+			if EXPORT_COLORS:
+				ctmAddAttribMap(ctm, pcolors, c_char_p("Colors"))
 
 			# Save the file
 			ctmSave(ctm, c_char_p(filename))
