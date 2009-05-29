@@ -55,7 +55,7 @@ def file_callback(filename):
 		return
 
 	# Check which mesh properties are present...
-	hasVertexUV = mesh.vertexUV
+	hasVertexUV = mesh.vertexUV or mesh.faceUV
 	hasVertexColors = mesh.vertexColors
 
 	# Show a GUI for the export settings
@@ -144,11 +144,20 @@ def file_callback(filename):
 		# Extract UVs
 		if EXPORT_UV:
 			ptexCoords = cast((c_float * 2 * vertexCount)(), POINTER(c_float))
-			i = 0
-			for v in mesh.verts:
-				ptexCoords[i * 2] = c_float(v.uvco[0])
-				ptexCoords[i * 2 + 1] = c_float(v.uvco[1])
-				i += 1
+			if mesh.faceUV:
+				for f in mesh.faces:
+					for j in range(3):
+						k = f.v[j].index
+						if k < vertexCount:
+							uv = f.uv[j]
+							ptexCoords[k * 2] = uv[0]
+							ptexCoords[k * 2 + 1] = uv[1]
+			else:
+				i = 0
+				for v in mesh.verts:
+					ptexCoords[i * 2] = c_float(v.uvco[0])
+					ptexCoords[i * 2 + 1] = c_float(v.uvco[1])
+					i += 1
 		else:
 			ptexCoords = POINTER(c_float)()
 
@@ -205,7 +214,7 @@ def file_callback(filename):
 
 			# Add texture coordinates?
 			if EXPORT_UV:
-				ctmAddTexMap(ctm, pcolors, c_char_p("Pigment"))
+				ctmAddTexMap(ctm, ptexCoords, c_char_p("Pigment"))
 
 			# Add colors?
 			if EXPORT_COLORS:
