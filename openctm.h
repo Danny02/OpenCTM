@@ -64,7 +64,7 @@
  *   // Access the mesh data
  *   vertices = ctmGetFloatArray(context, CTM_VERTICES);
  *   vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
- *   indices = ctmGetFloatArray(context, CTM_INDICES);
+ *   indices = ctmGetIntegerArray(context, CTM_INDICES);
  *   triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
  *
  *   // Deal with the mesh (e.g. transcode it to our internal representation)
