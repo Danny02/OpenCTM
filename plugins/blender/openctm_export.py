@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'OpenCTM export (*.ctm)...'
+Name: 'OpenCTM (*.ctm)...'
 Blender: 248
 Group: 'Export'
 Tooltip: 'Export active object to OpenCTM (compressed) format'
@@ -138,13 +138,13 @@ def file_callback(filename):
 			ptexCoords = POINTER(c_float)()
 
 		# Load the OpenCTM shared library
-		libName = find_library('openctm')
-		if not libName:
-			Blender.Draw.PupMenu('Could not find the OpenCTM shared library')
-			return
 		if os.name == 'nt':
-			libHDL = WinDLL(libName)
+			libHDL = WinDLL('openctm.dll')
 		else:
+			libName = find_library('openctm')
+			if not libName:
+				Blender.Draw.PupMenu('Could not find the OpenCTM shared library')
+				return
 			libHDL = CDLL(libName)
 		if not libHDL:
 			Blender.Draw.PupMenu('Could not open the OpenCTM shared library')
@@ -179,7 +179,7 @@ def file_callback(filename):
 			Blender.Window.EditMode(1, '', 0)
 
 def main():
-	Blender.Window.FileSelector(file_callback, 'OpenCTM Export', Blender.sys.makename(ext='.ctm'))
+	Blender.Window.FileSelector(file_callback, 'Export OpenCTM', Blender.sys.makename(ext='.ctm'))
 
 if __name__=='__main__':
 	main()
