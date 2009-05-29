@@ -94,35 +94,47 @@ def file_callback(filename):
 		if not EXPORT_COLORS:
 			vertexColors = False
 
-		# Extract indices from the Blender mesh
-		triangleCount = len(mesh.faces)
+		# Count triangles (quads count as two triangles)
+		triangleCount = 0
+		for f in mesh.faces:
+			if len(f.v) == 4:
+				triangleCount += 2
+			else:
+				triangleCount += 1
+
+		# Extract indices from the Blender mesh (quads are split into two triangles)
 		pindices = cast((c_int * 3 * triangleCount)(), POINTER(c_int))
 		i = 0
-		for face in mesh.faces:
-			pindices[i * 3] = c_int(face.verts[0].index)
-			pindices[i * 3 + 1] = c_int(face.verts[1].index)
-			pindices[i * 3 + 2] = c_int(face.verts[2].index)
-			i = i + 1
+		for f in mesh.faces:
+			pindices[i * 3] = c_int(f.v[0].index)
+			pindices[i * 3 + 1] = c_int(f.v[1].index)
+			pindices[i * 3 + 2] = c_int(f.v[2].index)
+			i += 1
+			if len(f.v) == 4:
+				pindices[i * 3] = c_int(f.v[0].index)
+				pindices[i * 3 + 1] = c_int(f.v[2].index)
+				pindices[i * 3 + 2] = c_int(f.v[3].index)
+				i += 1
 
 		# Extract vertex array from the Blender mesh
 		vertexCount = len(mesh.verts)
 		pvertices = cast((c_float * 3 * vertexCount)(), POINTER(c_float))
 		i = 0
-		for vert in mesh.verts:
-			pvertices[i * 3] = c_float(vert.co.x)
-			pvertices[i * 3 + 1] = c_float(vert.co.y)
-			pvertices[i * 3 + 2] = c_float(vert.co.z)
-			i = i + 1
+		for v in mesh.verts:
+			pvertices[i * 3] = c_float(v.co.x)
+			pvertices[i * 3 + 1] = c_float(v.co.y)
+			pvertices[i * 3 + 2] = c_float(v.co.z)
+			i += 1
 
 		# Extract normals
 		if EXPORT_NORMALS:
 			pnormals = cast((c_float * 3 * vertexCount)(), POINTER(c_float))
 			i = 0
-			for i, vert in mesh.verts:
-				pnormals[i * 3] = c_float(vert.no.x)
-				pnormals[i * 3 + 1] = c_float(vert.no.y)
-				pnormals[i * 3 + 2] = c_float(vert.no.z)
-				i = i + 1
+			for v in mesh.verts:
+				pnormals[i * 3] = c_float(v.no.x)
+				pnormals[i * 3 + 1] = c_float(v.no.y)
+				pnormals[i * 3 + 2] = c_float(v.no.z)
+				i += 1
 		else:
 			pnormals = POINTER(c_float)()
 
@@ -130,10 +142,10 @@ def file_callback(filename):
 		if EXPORT_UV:
 			ptexCoords = cast((c_float * 2 * vertexCount)(), POINTER(c_float))
 			i = 0
-			for i, vert in mesh.verts:
-				ptexCoords[i * 2] = c_float(vert.uvco[0])
-				ptexCoords[i * 2 + 1] = c_float(vert.uvco[1])
-				i = i + 1
+			for v in mesh.verts:
+				ptexCoords[i * 2] = c_float(v.uvco[0])
+				ptexCoords[i * 2 + 1] = c_float(v.uvco[1])
+				i += 1
 		else:
 			ptexCoords = POINTER(c_float)()
 
