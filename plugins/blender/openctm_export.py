@@ -42,57 +42,60 @@ def file_callback(filename):
 	
 	if not filename.lower().endswith('.ctm'):
 		filename += '.ctm'
-	
+
+	# Get object mesh from the selected object
 	scn = bpy.data.scenes.active
 	ob = scn.objects.active
 	if not ob:
 		Blender.Draw.PupMenu('Error%t|Select 1 active object')
 		return
-
-	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
-	EXPORT_NORMALS = Draw.Create(1)
-	EXPORT_UV = Draw.Create(1)
-	EXPORT_COLORS = Draw.Create(1)
-	
-	pup_block = [\
-	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data.'),\
-	('Normals', EXPORT_NORMALS, 'Export vertex normal data.'),\
-	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
-	('Colors', EXPORT_COLORS, 'Export vertex Colors.'),\
-	]
-	
-	if not Draw.PupBlock('Export...', pup_block):
+	mesh = BPyMesh.getMeshFromObject(ob, None, False, False, scn)
+	if not mesh:
+		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
 		return
-	
+
+	# Check which mesh properties are present...
+	hasVertexUV = mesh.vertexUV
+	hasVertexColors = mesh.vertexColors
+
+	# Show a GUI for the export settings
+	pupBlock = []
+	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
+	pupBlock.append(('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data.'))
+	EXPORT_NORMALS = Draw.Create(1)
+	pupBlock.append(('Normals', EXPORT_NORMALS, 'Export vertex normal data.'))
+	if hasVertexUV:
+		EXPORT_UV = Draw.Create(1)
+		pupBlock.append(('UVs', EXPORT_UV, 'Export texface UV coords.'))
+	if hasVertexColors:
+		EXPORT_COLORS = Draw.Create(1)
+		pupBlock.append(('Colors', EXPORT_COLORS, 'Export vertex Colors.'))
+	if not Draw.PupBlock('Export...', pupBlock):
+		return
+
+	# Adjust export settings according to GUI selections
+	EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
+	EXPORT_NORMALS = EXPORT_NORMALS.val
+	if hasVertexUV:
+		EXPORT_UV = EXPORT_UV.val
+	else:
+		EXPORT_UV = False
+	if hasVertexColors:
+		EXPORT_COLORS = EXPORT_COLORS.val
+	else:
+		EXPORT_COLORS = False
+
 	is_editmode = Blender.Window.EditMode()
 	if is_editmode:
 		Blender.Window.EditMode(0, '', 0)
 	Window.WaitCursor(1)
 	try:
-		EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
-		EXPORT_NORMALS = EXPORT_NORMALS.val
-		EXPORT_UV = EXPORT_UV.val
-		EXPORT_COLORS = EXPORT_COLORS.val
-		
+		# Get the mesh, again, this time with/without modifiers (from GUI selection)
 		mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn)
-		
 		if not mesh:
 			Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
 			return
-		
 		mesh.transform(ob.matrixWorld)
-
-		vertexUV = mesh.vertexUV
-		vertexColors = mesh.vertexColors
-		
-		if not vertexUV:
-			EXPORT_UV = False
-		if not vertexColors:
-			EXPORT_COLORS = False
-		if not EXPORT_UV:
-			vertexUV = False
-		if not EXPORT_COLORS:
-			vertexColors = False
 
 		# Count triangles (quads count as two triangles)
 		triangleCount = 0
