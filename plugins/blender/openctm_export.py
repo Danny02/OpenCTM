@@ -70,6 +70,8 @@ def file_callback(filename):
 	if hasVertexColors:
 		EXPORT_COLORS = Draw.Create(1)
 		pupBlock.append(('Colors', EXPORT_COLORS, 'Export vertex Colors.'))
+	EXPORT_MG2 = Draw.Create(0)
+	pupBlock.append(('Fixed Point', EXPORT_MG2, 'Use limited precision algorithm (MG2 method = better compression).'))
 	if not Draw.PupBlock('Export...', pupBlock):
 		return
 
@@ -84,18 +86,20 @@ def file_callback(filename):
 		EXPORT_COLORS = EXPORT_COLORS.val
 	else:
 		EXPORT_COLORS = False
+	EXPORT_MG2 = EXPORT_MG2.val
 
 	is_editmode = Blender.Window.EditMode()
 	if is_editmode:
 		Blender.Window.EditMode(0, '', 0)
 	Window.WaitCursor(1)
 	try:
-		# Get the mesh, again, this time with/without modifiers (from GUI selection)
-		mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn)
-		if not mesh:
-			Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
-			return
-		mesh.transform(ob.matrixWorld)
+		# Get the mesh, again, if we wanted modifiers (from GUI selection)
+		if EXPORT_APPLY_MODIFIERS:
+			mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn)
+			if not mesh:
+				Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
+				return
+			mesh.transform(ob.matrixWorld, True)
 
 		# Count triangles (quads count as two triangles)
 		triangleCount = 0
@@ -109,35 +113,35 @@ def file_callback(filename):
 		pindices = cast((c_int * 3 * triangleCount)(), POINTER(c_int))
 		i = 0
 		for f in mesh.faces:
-			pindices[i * 3] = c_int(f.v[0].index)
-			pindices[i * 3 + 1] = c_int(f.v[1].index)
-			pindices[i * 3 + 2] = c_int(f.v[2].index)
-			i += 1
+			pindices[i] = c_int(f.v[0].index)
+			pindices[i + 1] = c_int(f.v[1].index)
+			pindices[i + 2] = c_int(f.v[2].index)
+			i += 3
 			if len(f.v) == 4:
-				pindices[i * 3] = c_int(f.v[0].index)
-				pindices[i * 3 + 1] = c_int(f.v[2].index)
-				pindices[i * 3 + 2] = c_int(f.v[3].index)
-				i += 1
+				pindices[i] = c_int(f.v[0].index)
+				pindices[i + 1] = c_int(f.v[2].index)
+				pindices[i + 2] = c_int(f.v[3].index)
+				i += 3
 
 		# Extract vertex array from the Blender mesh
 		vertexCount = len(mesh.verts)
 		pvertices = cast((c_float * 3 * vertexCount)(), POINTER(c_float))
 		i = 0
 		for v in mesh.verts:
-			pvertices[i * 3] = c_float(v.co.x)
-			pvertices[i * 3 + 1] = c_float(v.co.y)
-			pvertices[i * 3 + 2] = c_float(v.co.z)
-			i += 1
+			pvertices[i] = c_float(v.co.x)
+			pvertices[i + 1] = c_float(v.co.y)
+			pvertices[i + 2] = c_float(v.co.z)
+			i += 3
 
 		# Extract normals
 		if EXPORT_NORMALS:
 			pnormals = cast((c_float * 3 * vertexCount)(), POINTER(c_float))
 			i = 0
 			for v in mesh.verts:
-				pnormals[i * 3] = c_float(v.no.x)
-				pnormals[i * 3 + 1] = c_float(v.no.y)
-				pnormals[i * 3 + 2] = c_float(v.no.z)
-				i += 1
+				pnormals[i] = c_float(v.no.x)
+				pnormals[i + 1] = c_float(v.no.y)
+				pnormals[i + 2] = c_float(v.no.z)
+				i += 3
 		else:
 			pnormals = POINTER(c_float)()
 
@@ -155,9 +159,9 @@ def file_callback(filename):
 			else:
 				i = 0
 				for v in mesh.verts:
-					ptexCoords[i * 2] = c_float(v.uvco[0])
-					ptexCoords[i * 2 + 1] = c_float(v.uvco[1])
-					i += 1
+					ptexCoords[i] = c_float(v.uvco[0])
+					ptexCoords[i + 1] = c_float(v.uvco[1])
+					i += 2
 		else:
 			ptexCoords = POINTER(c_float)()
 
@@ -205,6 +209,10 @@ def file_callback(filename):
 		ctmAddAttribMap = libHDL.ctmAddAttribMap
 		ctmAddAttribMap.argtypes = [c_void_p, POINTER(c_float), c_char_p]
 		ctmAddAttribMap.restype = c_int
+		ctmCompressionMethod = libHDL.ctmCompressionMethod
+		ctmCompressionMethod.argtypes = [c_void_p, c_int]
+		ctmVertexPrecisionRel = libHDL.ctmVertexPrecisionRel
+		ctmVertexPrecisionRel.argtypes = [c_void_p, c_float]
  
 		# Create an OpenCTM context
 		ctm = ctmNewContext(0x0102)
@@ -219,6 +227,13 @@ def file_callback(filename):
 			# Add colors?
 			if EXPORT_COLORS:
 				ctmAddAttribMap(ctm, pcolors, c_char_p("Colors"))
+
+			# Set compression method
+			if EXPORT_MG2:
+				ctmCompressionMethod(ctm, 0x0203)
+				ctmVertexPrecisionRel(ctm, 0.01)
+			else:
+				ctmCompressionMethod(ctm, 0x0202)
 
 			# Save the file
 			ctmSave(ctm, c_char_p(filename))
