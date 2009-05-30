@@ -33,7 +33,7 @@ at a time.
 # such library can be found, the script will exit with an error
 # message.
 #
-# v0.1, 2009-05-25
+# v0.1, 2009-05-30
 #    - First test version with an alpha version of the OpenCTM API
 #
 
@@ -150,8 +150,8 @@ def file_callback(filename):
 			ptexCoords = cast((c_float * 2 * vertexCount)(), POINTER(c_float))
 			if mesh.faceUV:
 				for f in mesh.faces:
-					for j in range(3):
-						k = f.v[j].index
+					for j, v in enumerate(f.v):
+						k = v.index
 						if k < vertexCount:
 							uv = f.uv[j]
 							ptexCoords[k * 2] = uv[0]
@@ -169,8 +169,8 @@ def file_callback(filename):
 		if EXPORT_COLORS:
 			pcolors = cast((c_float * 4 * vertexCount)(), POINTER(c_float))
 			for f in mesh.faces:
-				for j in range(3):
-					k = f.v[j].index
+				for j, v in enumerate(f.v):
+					k = v.index
 					if k < vertexCount:
 						col = f.col[j]
 						pcolors[k * 4] = col.r / 256.0
