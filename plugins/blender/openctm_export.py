@@ -199,6 +199,8 @@ def file_callback(filename):
 		ctmNewContext.restype = c_void_p
 		ctmFreeContext = libHDL.ctmFreeContext
 		ctmFreeContext.argtypes = [c_void_p]
+		ctmFileComment = libHDL.ctmFileComment
+		ctmFileComment.argtypes = [c_void_p, c_char_p]
 		ctmDefineMesh = libHDL.ctmDefineMesh
 		ctmDefineMesh.argtypes = [c_void_p, POINTER(c_float), c_int, POINTER(c_int), c_int, POINTER(c_float)]
 		ctmSave = libHDL.ctmSave
@@ -217,16 +219,19 @@ def file_callback(filename):
 		# Create an OpenCTM context
 		ctm = ctmNewContext(0x0102)
 		try:
+			# Set the file comment
+			ctmFileComment(ctm, c_char_p('%s - created by Blender %s (www.blender.org)' % (ob.getName(), Blender.Get('version'))))
+
 			# Define the mesh
 			ctmDefineMesh(ctm, pvertices, c_int(vertexCount), pindices, c_int(triangleCount), pnormals)
 
 			# Add texture coordinates?
 			if EXPORT_UV:
-				ctmAddTexMap(ctm, ptexCoords, c_char_p("Pigment"))
+				ctmAddTexMap(ctm, ptexCoords, c_char_p())
 
 			# Add colors?
 			if EXPORT_COLORS:
-				ctmAddAttribMap(ctm, pcolors, c_char_p("Colors"))
+				ctmAddAttribMap(ctm, pcolors, c_char_p('Colors'))
 
 			# Set compression method
 			if EXPORT_MG2:
