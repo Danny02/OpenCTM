@@ -1053,7 +1053,7 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
   void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMuint flags;
+  CTMuint flags, i;
   if(!self) return;
 
   // You are only allowed to save data in export mode
@@ -1069,6 +1069,16 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
   {
     self->mError = CTM_INVALID_MESH;
     return;
+  }
+
+  // Check that all indices are within range
+  for(i = 0; i < (self->mTriangleCount * 3); ++ i)
+  {
+    if(self->mIndices[i] >= self->mVertexCount)
+    {
+      self->mError = CTM_INVALID_MESH;
+      return;
+    }
   }
 
   // Initialize stream

@@ -1194,6 +1194,16 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Restore indices
   _ctmRestoreIndices(self, self->mIndices);
 
+  // Check that all indices are within range
+  for(i = 0; i < (self->mTriangleCount * 3); ++ i)
+  {
+    if(self->mIndices[i] >= self->mVertexCount)
+    {
+      self->mError = CTM_INVALID_MESH;
+      return CTM_FALSE;
+    }
+  }
+
   // Read normals
   if(self->mNormals)
   {
