@@ -29,11 +29,14 @@ at a time.
 #
 # This program is released to the public domain.
 #
+# Portions of this code are taken from ply_export.py in Blender
+# 2.48.
+#
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
 #
-# v0.1, 2009-05-30
+# v0.1, 2009-05-31
 #    - First test version with an alpha version of the OpenCTM API
 #
 
@@ -215,9 +218,9 @@ def file_callback(filename):
 		ctmCompressionMethod.argtypes = [c_void_p, c_int]
 		ctmVertexPrecisionRel = libHDL.ctmVertexPrecisionRel
 		ctmVertexPrecisionRel.argtypes = [c_void_p, c_float]
- 
+
 		# Create an OpenCTM context
-		ctm = ctmNewContext(0x0102)
+		ctm = ctmNewContext(0x0102)  # CTM_EXPORT
 		try:
 			# Set the file comment
 			ctmFileComment(ctm, c_char_p('%s - created by Blender %s (www.blender.org)' % (ob.getName(), Blender.Get('version'))))
@@ -235,10 +238,10 @@ def file_callback(filename):
 
 			# Set compression method
 			if EXPORT_MG2:
-				ctmCompressionMethod(ctm, 0x0203)
+				ctmCompressionMethod(ctm, 0x0203)  # CTM_METHOD_MG2
 				ctmVertexPrecisionRel(ctm, 0.01)
 			else:
-				ctmCompressionMethod(ctm, 0x0202)
+				ctmCompressionMethod(ctm, 0x0202)  # CTM_METHOD_MG1
 
 			# Save the file
 			ctmSave(ctm, c_char_p(filename))
