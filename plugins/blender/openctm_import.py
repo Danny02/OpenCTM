@@ -11,7 +11,7 @@ import bpy
 import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
 import BPyMesh
-import BPyAddMesh
+import math
 import ctypes
 from ctypes import *
 from ctypes.util import find_library
@@ -110,20 +110,20 @@ def file_callback(filename):
 			if hasNormals == 1:
 				pnormals = ctmGetFloatArray(ctm, 0x0603) # CTM_NORMALS
 			else:
-				pnormals = POINTER(c_float)()
+				pnormals = None
 
 			# Get texture coordinates
 			if texMapCount > 0:
 				ptexCoords = ctmGetFloatArray(ctm, 0x0700) # CTM_TEX_MAP_1
 			else:
-				ptexCoords = POINTER(c_float)()
+				ptexCoords = None
 
 			# Get colors
 			colorMap = ctmGetNamedAttribMap(ctm, c_char_p('Colors'))
 			if colorMap != 0:
 				pcolors = ctmGetFloatArray(ctm, colorMap)
 			else:
-				pcolors = POINTER(c_float)()
+				pcolors = None
 
 			# Create Blender verts and faces
 			Vector = Blender.Mathutils.Vector
@@ -134,9 +134,52 @@ def file_callback(filename):
 			for i in range(triangleCount):
 				faces.append( (pindices[i * 3], pindices[i * 3 + 1], pindices[i * 3 + 2]) )
 
-			# Create a new Blender mesh as a new object
-			objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
-			BPyAddMesh.add_mesh_simple(objname, verts, [], faces)
+			# Create a new Blender mesh from the loaded mesh data
+			objName = Blender.sys.splitext(Blender.sys.basename(filename))[0]
+			mesh = bpy.data.meshes.new(objName)
+			mesh.verts.extend(verts)
+			mesh.faces.extend(faces)
+
+			# Add texture coordinates?
+			if ptexCoords:
+				mesh.faceUV = 1
+				for f in mesh.faces:
+					for j, v in enumerate(f.v):
+						k = v.index
+						if k < vertexCount:
+							uv = f.uv[j]
+							uv[0] = ptexCoords[k * 2]
+							uv[1] = ptexCoords[k * 2 + 1]
+
+			# Add colors?
+			if pcolors:
+				mesh.vertexColors = 1
+				for f in mesh.faces:
+					for j, v in enumerate(f.v):
+						k = v.index
+						if k < vertexCount:
+							col = f.col[j]
+							r = int(round(pcolors[k * 4] * 255.0))
+							if r < 0: r = 0
+							if r > 255: r = 255
+							g = int(round(pcolors[k * 4 + 1] * 255.0))
+							if g < 0: g = 0
+							if g > 255: g = 255
+							b = int(round(pcolors[k * 4 + 2] * 255.0))
+							if b < 0: b = 0
+							if b > 255: b = 255
+							col.r = r
+							col.g = g
+							col.b = b
+
+			# Select all vertices in the mesh
+			mesh.sel = True
+		
+			# Create a new object with the new mesh
+			scn = bpy.data.scenes.active
+			scn.objects.selected = []
+			obj = scn.objects.new(mesh, objName)
+			scn.objects.active = obj
 
 		finally:
 			# Free the OpenCTM context

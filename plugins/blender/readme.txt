@@ -21,7 +21,7 @@ Windows:
 1) Copy the file "openctm.dll" to the Blender program folder (e.g.
    C:\Program Files\Blender Foundation\Blender).
 2) Copy the files openctm_export.py and openctm_import.py to the Blender
-   scripts folder (e.g. ?????).
+   scripts folder (e.g. %APPDATA%\Blender Foundation\Blender\.blender\scripts).
 3) Restart Blender (you may need to run Scripts	> Update Menus in a Scripts
    window in order for the File > Import / Export menus to be updated).
 

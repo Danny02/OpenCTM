@@ -176,9 +176,9 @@ def file_callback(filename):
 					k = v.index
 					if k < vertexCount:
 						col = f.col[j]
-						pcolors[k * 4] = col.r / 256.0
-						pcolors[k * 4 + 1] = col.g / 256.0
-						pcolors[k * 4 + 2] = col.b / 256.0
+						pcolors[k * 4] = col.r / 255.0
+						pcolors[k * 4 + 1] = col.g / 255.0
+						pcolors[k * 4 + 2] = col.b / 255.0
 						pcolors[k * 4 + 3] = 1.0
 		else:
 			pcolors = POINTER(c_float)()
@@ -209,7 +209,7 @@ def file_callback(filename):
 		ctmSave = libHDL.ctmSave
 		ctmSave.argtypes = [c_void_p, c_char_p]
 		ctmAddTexMap = libHDL.ctmAddTexMap
-		ctmAddTexMap.argtypes = [c_void_p, POINTER(c_float), c_char_p]
+		ctmAddTexMap.argtypes = [c_void_p, POINTER(c_float), c_char_p, c_char_p]
 		ctmAddTexMap.restype = c_int
 		ctmAddAttribMap = libHDL.ctmAddAttribMap
 		ctmAddAttribMap.argtypes = [c_void_p, POINTER(c_float), c_char_p]
@@ -230,7 +230,7 @@ def file_callback(filename):
 
 			# Add texture coordinates?
 			if EXPORT_UV:
-				ctmAddTexMap(ctm, ptexCoords, c_char_p())
+				ctmAddTexMap(ctm, ptexCoords, c_char_p(), c_char_p())
 
 			# Add colors?
 			if EXPORT_COLORS:
