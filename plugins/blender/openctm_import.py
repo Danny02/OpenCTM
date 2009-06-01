@@ -125,20 +125,32 @@ def file_callback(filename):
 			else:
 				pcolors = None
 
-			# Create Blender verts and faces
+			# We will be creating vectors...
 			Vector = Blender.Mathutils.Vector
+
+			# Create Blender verts and faces
 			verts = []
 			for i in range(vertexCount):
 				verts.append(Vector(pvertices[i * 3], pvertices[i * 3 + 1], pvertices[i * 3 + 2]))
 			faces = []
 			for i in range(triangleCount):
-				faces.append( (pindices[i * 3], pindices[i * 3 + 1], pindices[i * 3 + 2]) )
+				faces.append((pindices[i * 3], pindices[i * 3 + 1], pindices[i * 3 + 2]))
 
 			# Create a new Blender mesh from the loaded mesh data
 			objName = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 			mesh = bpy.data.meshes.new(objName)
 			mesh.verts.extend(verts)
 			mesh.faces.extend(faces)
+
+			# Add normals?
+			if pnormals:
+				for f in mesh.faces:
+					f.smooth = 1
+				i = 0
+				for v in mesh.verts:
+					n = Vector(pnormals[i], pnormals[i + 1], pnormals[i + 2])
+					v.no = n
+					i += 3
 
 			# Add texture coordinates?
 			if ptexCoords:
