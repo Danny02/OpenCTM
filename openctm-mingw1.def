@@ -1,0 +1,26 @@
+LIBRARY openctm.dll
+EXPORTS
+    ctmAddAttribMap = ctmAddAttribMap@12 @1
+    ctmAddTexMap = ctmAddTexMap@16 @2
+    ctmAttribPrecision = ctmAttribPrecision@12 @3
+    ctmCompressionMethod = ctmCompressionMethod@8 @4
+    ctmDefineMesh = ctmDefineMesh@24 @5
+    ctmFileComment = ctmFileComment@8 @6
+    ctmFreeContext = ctmFreeContext@4 @7
+    ctmGetError = ctmGetError@4 @8
+    ctmGetFloatArray = ctmGetFloatArray@8 @9
+    ctmGetInteger = ctmGetInteger@8 @10
+    ctmGetIntegerArray = ctmGetIntegerArray@8 @11
+    ctmGetNamedAttribMap = ctmGetNamedAttribMap@8 @12
+    ctmGetNamedTexMap = ctmGetNamedTexMap@8 @13
+    ctmGetString = ctmGetString@8 @14
+    ctmGetTexMapString = ctmGetTexMapString@12 @15
+    ctmLoad = ctmLoad@8 @16
+    ctmLoadCustom = ctmLoadCustom@12 @17
+    ctmNewContext = ctmNewContext@4 @18
+    ctmNormalPrecision = ctmNormalPrecision@8 @19
+    ctmSave = ctmSave@8 @20
+    ctmSaveCustom = ctmSaveCustom@12 @21
+    ctmTexCoordPrecision = ctmTexCoordPrecision@12 @22
+    ctmVertexPrecision = ctmVertexPrecision@8 @23
+    ctmVertexPrecisionRel = ctmVertexPrecisionRel@8 @24
