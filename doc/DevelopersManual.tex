@@ -19,7 +19,37 @@ to losslessly compress the triangle geometry to a fraction of the corresponding
 raw data size.
 
 \chapter{Installation}
-Bla-bla-bla...
+
+\section{Windows - MS Visual Studio 2008}
+\subsection{Build from source}
+Start an MS Visual Studio command line (for instance using the Tools $>$
+Visual Studio 2008 Command Prompt menu from the IDE), and do the following:
+
+\begin{lstlisting}
+> cd [sourcedir]
+> nmake /fMakefile.msvc
+\end{lstlisting}
+
+...where [sourcedir] is the location of the OpenCTM source. This should produce the
+files openctm.dll, openctm.lib, tools$\backslash$ctmconv.exe and
+tools$\backslash$ctmviewer.exe (the latter requires GLUT).
+
+\subsection{C/C++ link library}
+The LIB file, openctm.lib, should be placed in the Visual Studio link library
+directory.
+
+\subsection{Dynamic link library (DLL)}
+The DLL file, openctm.dll, should be placed in the same directory as your application executable.
+
+
+\section{Windows - MinGW32}
+
+
+\section{Mac OS X}
+
+
+\section{Linux}
+
 
 \chapter{Usage}
 Bla-bla-bla...
