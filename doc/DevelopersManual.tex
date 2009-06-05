@@ -18,10 +18,9 @@ One of the main advantages over other similar file formats is its ability
 to losslessly compress the triangle geometry to a fraction of the corresponding
 raw data size.
 
-\chapter{Installation}
+\chapter{Building from source}
 
-\section{Windows - MS Visual Studio 2008}
-\subsection{Build from source}
+\section{Windows - MS Visual Studio}
 Start an MS Visual Studio command line (for instance using the Tools $>$
 Visual Studio 2008 Command Prompt menu from the IDE), and do the following:
 
@@ -34,32 +33,71 @@ Visual Studio 2008 Command Prompt menu from the IDE), and do the following:
 files openctm.dll, openctm.lib, tools$\backslash$ctmconv.exe and
 tools$\backslash$ctmviewer.exe (the latter requires GLUT).
 
-\subsection{C/C++ link library}
-The LIB file, openctm.lib, should be placed in the Visual Studio link library
-directory.
-
-\subsection{Dynamic link library (DLL)}
-The DLL file, openctm.dll, should be placed in the same directory as your application executable.
-
 
 \section{Windows - MinGW32}
+Start a command prompt, and do the following:
+
+\begin{lstlisting}
+> cd [sourcedir]
+> mingw32-make -f Makefile.mgw
+\end{lstlisting}
+
+...where [sourcedir] is the location of the OpenCTM source. This should produce the
+files openctm.dll, libopenctm.a, tools$\backslash$ctmconv.exe and
+tools$\backslash$ctmviewer.exe (the latter requires GLUT).
 
 
 \section{Mac OS X}
+Start a shell, and do the following:
+
+\begin{lstlisting}
+> cd [sourcedir]
+> make -f Makefile.macosx
+\end{lstlisting}
+
+...where [sourcedir] is the location of the OpenCTM source. This should produce the
+files openctm.dylib, tools/ctmconv and tools/ctmviewer.
 
 
 \section{Linux}
+Start a shell, and do the following:
+
+\begin{lstlisting}
+> cd [sourcedir]
+> make -f Makefile.linux
+\end{lstlisting}
+
+...where [sourcedir] is the location of the OpenCTM source. This should produce the
+files libopenctm.so, tools/ctmconv and tools/ctmviewer (the latter requires GLUT
+or freeglut).
+
+
+\chapter{Linking (C/C++)}
+
+\section{Windows}
+In order for your application to use the OpenCTM library, you need to link it with
+the OpenCTM import library, and the DLL file (openctm.dll) should be placed in the
+same directory as your application executable.
+
+\subsection{MS Visual Studio}
+Add "openctm.lib" to the project linker properties (Linker $>$ Input $>$ Additional Dependencies),
+and make sure that the library file can be found by the linker (one simple way is to
+specify the full path to the LIB file).
+
+\subsection{MinGW}
+Add -lopenctm when compiling your executable, for instance:
+
+\begin{lstlisting}
+> g++ -o foo.exe foo.cpp -lopenctm
+\end{lstlisting}
+
 
 
 \chapter{Usage}
-Bla-bla-bla...
 
-\chapter{API Reference}
-Bla-bla-bla...
-
-\section{ctmCreateContext}
+\section{Loading OpenCTM files}
 \begin{lstlisting}
-CTMcontext ctmCreateContext(CTMenum aMode)
+CTMcontext ctm = ctmCreateContext(CTMenum aMode);
 \end{lstlisting}
 
 \end{document}
