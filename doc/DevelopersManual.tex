@@ -8,9 +8,14 @@
 % Document contents
 \begin{document}
 
+%--[ Title pages ]--------------------------------------------------------------
+
 \maketitle
 
 \tableofcontents
+
+
+%-------------------------------------------------------------------------------
 
 \chapter{Introduction}
 The OpenCTM file format is an open format for storing 3D triangle meshes.
@@ -18,7 +23,36 @@ One of the main advantages over other similar file formats is its ability
 to losslessly compress the triangle geometry to a fraction of the corresponding
 raw data size.
 
+This document describes how to use the OpenCTM API to load and save OpenCTM
+format files. It is mostly written for C/C++ users, but should be useful for
+other programming languages too, since the concepts and function calls are
+virtually identical regardless of programming language.
+
+
+%-------------------------------------------------------------------------------
+
+\chapter{Concepts}
+
+\section{The OpenCTM API}
+Bla-bla-bla...
+
+\section{The OpenCTM context}
+Bla-bla-bla...
+
+\section{The triangle mesh}
+Bla-bla-bla...
+
+
+
+%-------------------------------------------------------------------------------
+
 \chapter{Building from source}
+To use the OpenCTM API, you need the shared library and language bindings
+for loading and calling it. It can either be downloaded as a precompiled binary
+package for your platform, or you can build it from the source package.
+
+This chapter describes how to build the OpenCTM shared library from the source
+package.
 
 \section{Windows - MS Visual Studio}
 Start an MS Visual Studio command line (for instance using the Tools $>$
@@ -72,32 +106,33 @@ files libopenctm.so, tools/ctmconv and tools/ctmviewer (the latter requires GLUT
 or freeglut).
 
 
-\chapter{Linking (C/C++)}
 
-\section{Windows}
-In order for your application to use the OpenCTM library, you need to link it with
-the OpenCTM import library, and the DLL file (openctm.dll) should be placed in the
-same directory as your application executable.
+%-------------------------------------------------------------------------------
 
-\subsection{MS Visual Studio}
-Add "openctm.lib" to the project linker properties (Linker $>$ Input $>$ Additional Dependencies),
-and make sure that the library file can be found by the linker (one simple way is to
-specify the full path to the LIB file).
+\chapter{Usage}
 
-\subsection{MinGW}
-Add -lopenctm when compiling your executable, for instance:
+\section{Prerequisites}
+To use the OpenCTM API, you need to include the OpenCTM include file, like this:
 
 \begin{lstlisting}
-> g++ -o foo.exe foo.cpp -lopenctm
+#include <openctm.h>
+\end{lstlisting}
+
+You also need to link with the OpenCTM import library. For instance, in MS Visual Studio
+you can add "openctm.lib" to your Additional Dependencies field in the Linker section.
+For gcc/g++ or similar compilers, you will typically add -lopenctm to the list of
+compiler options, for instance:
+
+\begin{lstlisting}
+> g++ -o foo foo.cpp -lopenctm
 \end{lstlisting}
 
 
-
-\chapter{Usage}
 
 \section{Loading OpenCTM files}
 \begin{lstlisting}
 CTMcontext ctm = ctmCreateContext(CTMenum aMode);
 \end{lstlisting}
+
 
 \end{document}
