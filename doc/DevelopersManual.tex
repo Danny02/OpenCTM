@@ -1,3 +1,18 @@
+%-------------------------------------------------------------------------------
+% Document: OpenCTM Developers Manual
+% Author:   Marcus Geelnard
+% Compile:  pdflatex DevelopersManual.tex
+%-------------------------------------------------------------------------------
+% Note: You need a LaTeX environment to build this document as PDF. The
+% recommended way is to install TeX Live (http://www.tug.org/texlive/) and
+% a decent LaTeX editor (e.g. texmaker, LEd, etc).
+%
+% Ubuntu: sudo apt-get install texlive-full
+%
+% To build the PDF document, run pdflatex twice on this .tex file (in order to
+% correctly build the TOC).
+%-------------------------------------------------------------------------------
+
 % Use the OpenCTM TeX style
 \input{openctm-tex.sty}
 
@@ -67,8 +82,9 @@ This chapter describes how to build the OpenCTM shared library from the source
 package.
 
 \section{Windows - MS Visual Studio}
-Start an MS Visual Studio command line (for instance using the Tools $>$
-Visual Studio 2008 Command Prompt menu from the IDE), and do the following:
+Start an MS Visual Studio command line (for instance using the Tools
+\textgreater Visual Studio 2008 Command Prompt menu from the IDE), and do the
+following:
 
 \begin{lstlisting}
 > cd [sourcedir]
@@ -177,7 +193,7 @@ ctmFreeContext(context);
 %-------------------------------------------------------------------------------
 
 \chapter{C++ extensions}
-To better take advantage of some of the C++ language features, such as
+To take better advantage of some of the C++ language features, such as
 exception handling, a few C++ wrapper classes is availbale through the standard
 API when compiling a C++ program. As usual, just include "openctm.h", and you
 will have access to two new classes: CTMimporer and CTMexporter.
