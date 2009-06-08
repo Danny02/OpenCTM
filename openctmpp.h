@@ -72,6 +72,21 @@ class CTMimporter {
       ctmFreeContext(mContext);
     }
 
+    /// Special treatement of the copy constructor. You can not copy from one
+    /// CTMimporter object to another, since the object contains hidden state.
+    CTMimporter(const CTMimporter& v)
+    {
+      mContext = ctmNewContext(CTM_IMPORT);
+    }
+
+    /// Special treatment of the assignment operator. You can not assign from
+    /// one CTMimporter object to another, since the object contains hidden
+    /// state.
+    CTMimporter& operator=(const CTMimporter& v)
+    {
+        return *this;
+    }
+
     /// Wrapper for ctmGetError()
     CTMenum GetError()
     {
@@ -168,6 +183,21 @@ class CTMexporter {
     ~CTMexporter()
     {
       ctmFreeContext(mContext);
+    }
+
+    /// Special treatement of the copy constructor. You can not copy from one
+    /// CTMexporter object to another, since the object contains hidden state.
+    CTMexporter(const CTMexporter& v)
+    {
+      mContext = ctmNewContext(CTM_EXPORT);
+    }
+
+    /// Special treatment of the assignment operator. You can not assign from
+    /// one CTMexporter object to another, since the object contains hidden
+    /// state.
+    CTMexporter& operator=(const CTMexporter& v)
+    {
+        return *this;
     }
 
     /// Wrapper for ctmGetError()
