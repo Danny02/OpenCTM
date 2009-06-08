@@ -18,6 +18,9 @@ void main()
 	// Vertex color (used for the ambient and diffuse terms)
 	vColor = gl_Color;
 
+	// Texture coordinate
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+
 	// Vertex position in screen coordinates
 	gl_Position = ftransform();
 }

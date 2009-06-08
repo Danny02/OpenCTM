@@ -36,6 +36,8 @@ Vector3 cameraPosition, cameraLookAt;
 GLuint displayList = 0;
 GLenum polyMode = GL_FILL;
 
+GLuint texHandle = 0;
+
 bool useShader = false;
 GLuint shaderProgram = 0;
 GLuint vertShader = 0;
@@ -115,7 +117,92 @@ void InitShader()
   if(!status)
     throw runtime_error("Could not link shader program.");
 
+  glUseProgram(shaderProgram);
+
+  // Set the uUseTexture uniform
+  GLint useTexLoc = glGetUniformLocation(shaderProgram, "uUseTexture");
+  if(useTexLoc >= 0)
+    glUniform1i(useTexLoc, glIsTexture(texHandle));
+
+  // Set the uTex uniform
+  GLint texLoc = glGetUniformLocation(shaderProgram, "uTex");
+  if(texLoc >= 0)
+    glUniform1i(texLoc, 0);
+
+  glUseProgram(0);
+
   useShader = true;
+}
+
+/// Initialize the texture.
+void InitTexture(const char * aFileName)
+{
+  unsigned char * data;
+  int width, height, components;
+
+  if(aFileName)
+  {
+    // Load the texture from a file
+    // FIXME
+    width = height = 256;
+    components = 1;
+    data = 0;
+  }
+  else
+  {
+    // Create a default, synthetic texture
+    width = height = 256;
+    components = 1;
+    data = new unsigned char[width * height * components];
+    for(int y = 0; y < height; ++ y)
+    {
+      for(int x = 0; x < width; ++ x)
+      {
+        if(((x & 0x000f) == 0) || ((y & 0x000f) == 0))
+          data[y * width + x] = 192;
+        else
+          data[y * width + x] = 255;
+      }
+    }
+  }
+
+  // Upload the texture to OpenGL
+  if(data)
+    glGenTextures(1, &texHandle);
+  else
+    texHandle = 0;
+  if(texHandle)
+  {
+    cout << "Loading texture..." << endl;
+
+    // Determine the color format
+    GLuint format;
+    if(components == 3)
+      format = GL_RGB;
+    else if(components == 4)
+      format = GL_RGBA;
+    else
+      format = GL_LUMINANCE;
+
+    glBindTexture(GL_TEXTURE_2D, texHandle);
+
+    if(GLEW_VERSION_1_4)
+    {
+      // Generate mipmaps automatically and use them
+      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    }
+    else
+    {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+    glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid *) data);
+  }
 }
 
 /// Set up the scene lighting.
@@ -370,7 +457,13 @@ void WindowRedraw(void)
   glColor3f(0.9f, 0.86f, 0.7f);
   glEnable(GL_DEPTH_TEST);
   glPolygonMode(GL_FRONT_AND_BACK, polyMode);
+  if(texHandle)
+  {
+    glBindTexture(GL_TEXTURE_2D, texHandle);
+    glEnable(GL_TEXTURE_2D);
+  }
   glCallList(displayList);
+  glDisable(GL_TEXTURE_2D);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   // Disable material shader
@@ -556,9 +649,15 @@ int main(int argc, char **argv)
     if(glewInit() != GLEW_OK)
       throw runtime_error("Unable to initialize GLEW.");
 
+    // Load the texture
+    if(mesh.mTexCoords.size() == mesh.mVertices.size())
+      InitTexture(0);
+
     // Load the phong shader, if we can
     if(GLEW_VERSION_2_0)
       InitShader();
+    else if(GLEW_VERSION_1_2)
+      glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
     // Load the mesh into a displaylist
     displayList = glGenLists(1);
