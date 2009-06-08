@@ -34,10 +34,22 @@ virtually identical regardless of programming language.
 \chapter{Concepts}
 
 \section{The OpenCTM API}
-Bla-bla-bla...
+The OpenCTM API makes it easy to read and write OpenCTM format files. The API is
+implemented in the form of a software library that an application can be linked
+to in order to access the OpenCTM API.
+
+The software library itself is written in standard, portable C language, but
+can be used from many other programming languages (writing language bindings
+for new languages should be fairly straight forward, since the API was written
+with cross-language portability in mind).
+
+The full documentation of the OpenCTM API can be found in the Doxygen-generated
+documentation, which describes all API functions, types, constants etc.
+
 
 \section{The OpenCTM context}
 Bla-bla-bla...
+
 
 \section{The triangle mesh}
 Bla-bla-bla...
@@ -128,11 +140,55 @@ add -lopenctm to the list of compiler options, for instance:
 \end{lstlisting}
 
 
-
 \section{Loading OpenCTM files}
+Below is a minimal example of how to load an OpenCTM file with the OpenCTM API,
+in just a few lines of code:
+
 \begin{lstlisting}
-CTMcontext ctm = ctmCreateContext(CTMenum aMode);
+CTMcontext context;
+CTMuint vertCount, triCount, * indices;
+CTMfloat * vertices;
+
+// Create a new context
+context = ctmNewContext(CTM_IMPORT);
+
+// Load the OpenCTM file
+ctmLoad(context, "mymesh.ctm");
+if(ctmGetError(context) == CTM_NONE)
+{
+  // Access the mesh data
+  vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
+  vertices = ctmGetFloatArray(context, CTM_VERTICES);
+  triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
+  indices = ctmGetIntegerArray(context, CTM_INDICES);
+
+  // Deal with the mesh (e.g. transcode it to our
+  // internal representation)
+  // ...
+}
+
+// Free the context (this frees all memory allocated by
+// the OpenCTM context)
+ctmFreeContext(context);
 \end{lstlisting}
+
+
+
+%-------------------------------------------------------------------------------
+
+\chapter{C++ extensions}
+To better take advantage of some of the C++ language features, such as
+exception handling, a few C++ wrapper classes is availbale through the standard
+API when compiling a C++ program. As usual, just include "openctm.h", and you
+will have access to two new classes: CTMimporer and CTMexporter.
+
+
+\section{The CTMimporter class}
+Bla-bla-bla...
+
+
+\section{The CTMexporter class}
+Bla-bla-bla...
 
 
 \end{document}
