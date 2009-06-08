@@ -44,6 +44,9 @@
  *
  * For information about how to use the OpenCTM API, see openctm.h.
  *
+ * For information about the C++ wrapper classes, see CTMimporter and
+ * CTMexporter.
+ *
  * @section example_sec Example usage
  *
  * @subsection example_load_sec Loading a CTM file
@@ -60,15 +63,17 @@
  *
  *   // Load the OpenCTM file
  *   ctmLoad(context, "mymesh.ctm");
+ *   if(ctmGetError(context) == CTM_NONE)
+ *   {
+ *     // Access the mesh data
+ *     vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
+ *     vertices = ctmGetFloatArray(context, CTM_VERTICES);
+ *     triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
+ *     indices = ctmGetIntegerArray(context, CTM_INDICES);
  *
- *   // Access the mesh data
- *   vertices = ctmGetFloatArray(context, CTM_VERTICES);
- *   vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
- *   indices = ctmGetIntegerArray(context, CTM_INDICES);
- *   triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
- *
- *   // Deal with the mesh (e.g. transcode it to our internal representation)
- *   // ...
+ *     // Deal with the mesh (e.g. transcode it to our internal representation)
+ *     // ...
+ *   }
  *
  *   // Free the context
  *   ctmFreeContext(context);
@@ -207,8 +212,8 @@ typedef enum {
 
   // Compression methods
   CTM_METHOD_RAW        = 0x0201, ///< Just store the raw data.
-  CTM_METHOD_MG1        = 0x0202, ///< Lossless compression.
-  CTM_METHOD_MG2        = 0x0203, ///< Fairly advanced, slightly "lossy" compression.
+  CTM_METHOD_MG1        = 0x0202, ///< Lossless compression (floating point).
+  CTM_METHOD_MG2        = 0x0203, ///< Lossless compression (fixed point).
 
   // Integer queries
   CTM_VERTEX_COUNT      = 0x0301, ///< Number of vertices in the mesh (integer).
@@ -388,9 +393,10 @@ CTMEXPORT const char * CTMCALL ctmGetString(CTMcontext aContext,
 /// function.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aMethod Which compression method to use (the default method is
+/// @param[in] aMethod Which compression method to use: CTM_METHOD_RAW,
+///            CTM_METHOD_MG1 or CTM_METHOD_MG2 (the default method is
 ///            CTM_METHOD_MG1).
-/// @see CTMmethod
+/// @see CTM_METHOD_RAW, CTM_METHOD_MG1, CTM_METHOD_MG2
 CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
   CTMenum aMethod);
 
