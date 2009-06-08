@@ -574,4 +574,10 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
 }
 #endif
 
+
+// C++ extensions to the API
+#ifdef __cplusplus
+#include "openctmpp.h"
+#endif
+
 #endif // __OPENCTM_H_

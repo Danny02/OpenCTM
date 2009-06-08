@@ -47,84 +47,74 @@ void Mesh::LoadFromFile(const char * aFileName)
   Clear();
 
   // Load the file using the OpenCTM API
-  CTMcontext ctm = ctmNewContext(CTM_IMPORT);
-  try
+  CTMimporter ctm;
+
+  // Load the file
+  ctm.Load(aFileName);
+  if(ctm.GetError() != CTM_NONE)
+    throw runtime_error("Unable to load the file.");
+
+  // Extract file comment
+  const char * comment = ctm.GetString(CTM_FILE_COMMENT);
+  if(comment)
+    mComment = string(comment);
+
+  // Extract indices
+  CTMuint numTriangles = ctm.GetInteger(CTM_TRIANGLE_COUNT);
+  mIndices.resize(numTriangles * 3);
+  const CTMuint * indices = ctm.GetIntegerArray(CTM_INDICES);
+  for(CTMuint i = 0; i < numTriangles * 3; ++ i)
+    mIndices[i] = indices[i];
+
+  // Extract vertices
+  CTMuint numVertices = ctm.GetInteger(CTM_VERTEX_COUNT);
+  mVertices.resize(numVertices);
+  const CTMfloat * vertices = ctm.GetFloatArray(CTM_VERTICES);
+  for(CTMuint i = 0; i < numVertices; ++ i)
   {
-    // Load the file
-    ctmLoad(ctm, aFileName);
-    if(ctmGetError(ctm) != CTM_NONE)
-      throw runtime_error("Unable to load the file.");
+    mVertices[i].x = vertices[i * 3];
+    mVertices[i].y = vertices[i * 3 + 1];
+    mVertices[i].z = vertices[i * 3 + 2];
+  }
 
-    // Extract file comment
-    const char * comment = ctmGetString(ctm, CTM_FILE_COMMENT);
-    if(comment)
-      mComment = string(comment);
-
-    // Extract indices
-    CTMuint numTriangles = ctmGetInteger(ctm, CTM_TRIANGLE_COUNT);
-    mIndices.resize(numTriangles * 3);
-    const CTMuint * indices = ctmGetIntegerArray(ctm, CTM_INDICES);
-    for(CTMuint i = 0; i < numTriangles * 3; ++ i)
-      mIndices[i] = indices[i];
-
-    // Extract vertices
-    CTMuint numVertices = ctmGetInteger(ctm, CTM_VERTEX_COUNT);
-    mVertices.resize(numVertices);
-    const CTMfloat * vertices = ctmGetFloatArray(ctm, CTM_VERTICES);
+  // Extract normals
+  if(ctm.GetInteger(CTM_HAS_NORMALS) == CTM_TRUE)
+  {
+    mNormals.resize(numVertices);
+    const CTMfloat * normals = ctm.GetFloatArray(CTM_NORMALS);
     for(CTMuint i = 0; i < numVertices; ++ i)
     {
-      mVertices[i].x = vertices[i * 3];
-      mVertices[i].y = vertices[i * 3 + 1];
-      mVertices[i].z = vertices[i * 3 + 2];
+      mNormals[i].x = normals[i * 3];
+      mNormals[i].y = normals[i * 3 + 1];
+      mNormals[i].z = normals[i * 3 + 2];
     }
-
-    // Extract normals
-    if(ctmGetInteger(ctm, CTM_HAS_NORMALS) == CTM_TRUE)
-    {
-      mNormals.resize(numVertices);
-      const CTMfloat * normals = ctmGetFloatArray(ctm, CTM_NORMALS);
-      for(CTMuint i = 0; i < numVertices; ++ i)
-      {
-        mNormals[i].x = normals[i * 3];
-        mNormals[i].y = normals[i * 3 + 1];
-        mNormals[i].z = normals[i * 3 + 2];
-      }
-    }
-
-    // Extract texture coordinates
-    if(ctmGetInteger(ctm, CTM_TEX_MAP_COUNT) > 0)
-    {
-      mTexCoords.resize(numVertices);
-      const CTMfloat * texCoords = ctmGetFloatArray(ctm, CTM_TEX_MAP_1);
-      for(CTMuint i = 0; i < numVertices; ++ i)
-      {
-        mTexCoords[i].u = texCoords[i * 2];
-        mTexCoords[i].v = texCoords[i * 2 + 1];
-      }
-    }
-
-    // Extract colors
-    CTMenum colorAttrib = ctmGetNamedAttribMap(ctm, "Colors");
-    if(colorAttrib != CTM_NONE)
-    {
-      mColors.resize(numVertices);
-      const CTMfloat * colors = ctmGetFloatArray(ctm, colorAttrib);
-      for(CTMuint i = 0; i < numVertices; ++ i)
-      {
-        mColors[i].x = colors[i * 4];
-        mColors[i].y = colors[i * 4 + 1];
-        mColors[i].z = colors[i * 4 + 2];
-        mColors[i].w = colors[i * 4 + 3];
-      }
-    }
-
-    // We are done with the OpenCTM context
-    ctmFreeContext(ctm);
   }
-  catch(exception &e)
+
+  // Extract texture coordinates
+  if(ctm.GetInteger(CTM_TEX_MAP_COUNT) > 0)
   {
-    ctmFreeContext(ctm);
-    throw;
+    mTexCoords.resize(numVertices);
+    const CTMfloat * texCoords = ctm.GetFloatArray(CTM_TEX_MAP_1);
+    for(CTMuint i = 0; i < numVertices; ++ i)
+    {
+      mTexCoords[i].u = texCoords[i * 2];
+      mTexCoords[i].v = texCoords[i * 2 + 1];
+    }
+  }
+
+  // Extract colors
+  CTMenum colorAttrib = ctm.GetNamedAttribMap("Colors");
+  if(colorAttrib != CTM_NONE)
+  {
+    mColors.resize(numVertices);
+    const CTMfloat * colors = ctm.GetFloatArray(colorAttrib);
+    for(CTMuint i = 0; i < numVertices; ++ i)
+    {
+      mColors[i].x = colors[i * 4];
+      mColors[i].y = colors[i * 4 + 1];
+      mColors[i].z = colors[i * 4 + 2];
+      mColors[i].w = colors[i * 4 + 3];
+    }
   }
 }
 
@@ -139,60 +129,50 @@ void Mesh::SaveToFile(const char * aFileName)
 void Mesh::SaveToFile(const char * aFileName, Options &aOptions)
 {
   // Save the file using the OpenCTM API
-  CTMcontext ctm = ctmNewContext(CTM_EXPORT);
-  try
+  CTMexporter ctm;
+
+  // Define mesh
+  CTMfloat * normals = 0;
+  if(mNormals.size() > 0)
+    normals = &mNormals[0].x;
+  ctm.DefineMesh((CTMfloat *) &mVertices[0].x, mVertices.size(),
+                 (const CTMuint*) &mIndices[0], mIndices.size() / 3,
+                 normals);
+  if(ctm.GetError() != CTM_NONE)
+    throw runtime_error("Unable to save the file.");
+
+  // Define texture coordinates
+  if(mTexCoords.size() > 0)
   {
-    // Define mesh
-    CTMfloat * normals = 0;
-    if(mNormals.size() > 0)
-      normals = &mNormals[0].x;
-    ctmDefineMesh(ctm, (CTMfloat *) &mVertices[0].x, mVertices.size(),
-                  (const CTMuint*) &mIndices[0], mIndices.size() / 3,
-                  normals);
-    if(ctmGetError(ctm) != CTM_NONE)
-      throw runtime_error("Unable to save the file.");
-
-    // Define texture coordinates
-    if(mTexCoords.size() > 0)
-    {
-      CTMenum map = ctmAddTexMap(ctm, &mTexCoords[0].u, "Diffuse color", NULL);
-      ctmTexCoordPrecision(ctm, map, aOptions.mTexMapPrecision);
-    }
-
-    // Define vertex colors
-    if(mColors.size() > 0)
-    {
-      CTMenum map = ctmAddAttribMap(ctm, &mColors[0].x, "Colors");
-      ctmAttribPrecision(ctm, map, aOptions.mColorPrecision);
-    }
-
-    // Set file comment
-    if(mComment.size() > 0)
-      ctmFileComment(ctm, mComment.c_str());
-
-    // Set compression method
-    ctmCompressionMethod(ctm, aOptions.mMethod);
-
-	// Set vertex precision
-    if(aOptions.mVertexPrecision > 0.0f)
-      ctmVertexPrecision(ctm, aOptions.mVertexPrecision);
-    else
-      ctmVertexPrecisionRel(ctm, aOptions.mVertexPrecisionRel);
-
-	// Set normal precision
-    ctmNormalPrecision(ctm, aOptions.mNormalPrecision);
-
-    // Export file
-    ctmSave(ctm, aFileName);
-
-    // Free OpenCTM context
-    ctmFreeContext(ctm);
+    CTMenum map = ctm.AddTexMap(&mTexCoords[0].u, "Diffuse color", NULL);
+    ctm.TexCoordPrecision(map, aOptions.mTexMapPrecision);
   }
-  catch(exception &e)
+
+  // Define vertex colors
+  if(mColors.size() > 0)
   {
-    ctmFreeContext(ctm);
-    throw;
+    CTMenum map = ctm.AddAttribMap(&mColors[0].x, "Colors");
+    ctm.AttribPrecision(map, aOptions.mColorPrecision);
   }
+
+  // Set file comment
+  if(mComment.size() > 0)
+    ctm.FileComment(mComment.c_str());
+
+  // Set compression method
+  ctm.CompressionMethod(aOptions.mMethod);
+
+  // Set vertex precision
+  if(aOptions.mVertexPrecision > 0.0f)
+    ctm.VertexPrecision(aOptions.mVertexPrecision);
+  else
+    ctm.VertexPrecisionRel(aOptions.mVertexPrecisionRel);
+
+  // Set normal precision
+  ctm.NormalPrecision(aOptions.mNormalPrecision);
+
+  // Export file
+  ctm.Save(aFileName);
 }
 
 /// Calculate smooth per-vertex normals
