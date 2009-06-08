@@ -144,13 +144,17 @@ def file_callback(filename):
 
 			# Add normals?
 			if pnormals:
-				for f in mesh.faces:
-					f.smooth = 1
 				i = 0
 				for v in mesh.verts:
 					n = Vector(pnormals[i], pnormals[i + 1], pnormals[i + 2])
 					v.no = n
 					i += 3
+			else:
+				mesh.calcNormals()
+
+			# Always use smooth normals - regardless if they are defined or calculated
+			for f in mesh.faces:
+				f.smooth = 1
 
 			# Add texture coordinates?
 			if ptexCoords:
