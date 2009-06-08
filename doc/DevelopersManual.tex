@@ -63,9 +63,9 @@ Visual Studio 2008 Command Prompt menu from the IDE), and do the following:
 > nmake /fMakefile.msvc
 \end{lstlisting}
 
-...where [sourcedir] is the location of the OpenCTM source. This should produce the
-files openctm.dll, openctm.lib, tools$\backslash$ctmconv.exe and
-tools$\backslash$ctmviewer.exe (the latter requires GLUT).
+...where [sourcedir] is the location of the OpenCTM source. This should produce
+the files openctm.dll, openctm.lib, tools\textbackslash ctmconv.exe and
+tools\textbackslash ctmviewer.exe (the latter requires GLUT).
 
 
 \section{Windows - MinGW32}
@@ -76,9 +76,9 @@ Start a command prompt, and do the following:
 > mingw32-make -f Makefile.mgw
 \end{lstlisting}
 
-...where [sourcedir] is the location of the OpenCTM source. This should produce the
-files openctm.dll, libopenctm.a, tools$\backslash$ctmconv.exe and
-tools$\backslash$ctmviewer.exe (the latter requires GLUT).
+...where [sourcedir] is the location of the OpenCTM source. This should produce
+the files openctm.dll, libopenctm.a, tools\textbackslash ctmconv.exe and
+tools\textbackslash ctmviewer.exe (the latter requires GLUT).
 
 
 \section{Mac OS X}
@@ -89,8 +89,8 @@ Start a shell, and do the following:
 > make -f Makefile.macosx
 \end{lstlisting}
 
-...where [sourcedir] is the location of the OpenCTM source. This should produce the
-files openctm.dylib, tools/ctmconv and tools/ctmviewer.
+...where [sourcedir] is the location of the OpenCTM source. This should produce
+the files openctm.dylib, tools/ctmconv and tools/ctmviewer.
 
 
 \section{Linux}
@@ -101,9 +101,9 @@ Start a shell, and do the following:
 > make -f Makefile.linux
 \end{lstlisting}
 
-...where [sourcedir] is the location of the OpenCTM source. This should produce the
-files libopenctm.so, tools/ctmconv and tools/ctmviewer (the latter requires GLUT
-or freeglut).
+...where [sourcedir] is the location of the OpenCTM source. This should produce
+the files libopenctm.so, tools/ctmconv and tools/ctmviewer (the latter requires
+GLUT or freeglut).
 
 
 
@@ -118,10 +118,10 @@ To use the OpenCTM API, you need to include the OpenCTM include file, like this:
 #include <openctm.h>
 \end{lstlisting}
 
-You also need to link with the OpenCTM import library. For instance, in MS Visual Studio
-you can add "openctm.lib" to your Additional Dependencies field in the Linker section.
-For gcc/g++ or similar compilers, you will typically add -lopenctm to the list of
-compiler options, for instance:
+You also need to link with the OpenCTM import library. For instance, in MS
+Visual Studio you can add "openctm.lib" to your Additional Dependencies field
+in the Linker section. For gcc/g++ or similar compilers, you will typically
+add -lopenctm to the list of compiler options, for instance:
 
 \begin{lstlisting}
 > g++ -o foo foo.cpp -lopenctm
