@@ -73,7 +73,7 @@ docs:
 tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) -f Makefile.mingw && cd ..
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-mingw1.def openctm-mingw2.def
 	dllwrap --def openctm-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS)
 	strip $@
 	dlltool --kill-at --output-lib $(LINKLIB) --def openctm-mingw2.def

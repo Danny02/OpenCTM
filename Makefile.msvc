@@ -72,10 +72,9 @@ docs:
 tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) /nologo /f Makefile.msvc && cd ..
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-msvc.def
 	link /nologo /out:$@ /dll /implib:$(LINKLIB) /def:openctm-msvc.def $(OBJS) $(LZMA_OBJS)
 	copy /Y $@ tools
-#	link /nologo /OUT:$@ /dll /implib:$(LINKLIB) $(OBJS) $(LZMA_OBJS)
 
 openctm.obj: openctm.c openctm.h internal.h
 	$(CC) $(CFLAGS) openctm.c

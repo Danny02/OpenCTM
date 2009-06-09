@@ -114,6 +114,12 @@ class CTMimporter {
       return ctmGetNamedAttribMap(mContext, aName);
     }
 
+    /// Wrapper for ctmGetAttribMapString()
+    const char * GetAttribMapString(CTMenum aAttribMap, CTMenum aProperty)
+    {
+      return ctmGetAttribMapString(mContext, aAttribMap, aProperty);
+    }
+
     /// Wrapper for ctmGetString()
     const char * GetString(CTMenum aProperty)
     {

@@ -225,7 +225,8 @@ typedef enum {
   CTM_FILE_COMMENT      = 0x0401, ///< File comment (string).
 
   // Texture map queries
-  CTM_FILE_NAME         = 0x0501, ///< File name reference (texture map string).
+  CTM_NAME              = 0x0501, ///< Unique name (texture/attrib map string).
+  CTM_FILE_NAME         = 0x0502, ///< File name reference (texture map string).
 
   // Array queries
   CTM_INDICES           = 0x0601, ///< Triangle indices (integer array).
@@ -369,6 +370,23 @@ CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
 ///         CTM_NONE is returned.
 CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
   const char * aName);
+
+/// Get information about a vertex attribute map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aAttribMap Which vertex attribute map to query (CTM_ATTRIB_MAP_1
+///            or higher).
+/// @param[in] aProperty Which vertex attribute map property to return.
+/// @return A string value, representing the vertex attribute map property given
+///         by \c aProperty.
+/// @note The string is only valid as long as the vertex attribute map within
+///       the OpenCTM context is valid. Trying to access an invalid string will
+///       result in undefined behaviour. Therefor it is recommended that the
+///       string is copied to a new variable if it is to be used other than
+///       directly after the call to ctmGetAttribMapString().
+/// @see CTMenum
+CTMEXPORT const char * CTMCALL ctmGetAttribMapString(CTMcontext aContext,
+  CTMenum aAttribMap, CTMenum aProperty);
 
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by

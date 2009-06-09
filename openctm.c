@@ -321,6 +321,9 @@ CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
   // Get the requested string
   switch(aProperty)
   {
+    case CTM_NAME:
+      return (const char *) map->mName;
+
     case CTM_FILE_NAME:
       return (const char *) map->mFileName;
 
@@ -329,7 +332,44 @@ CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
   }
 
   return (const char *) 0;
+}
 
+//-----------------------------------------------------------------------------
+// ctmGetAttribMapString()
+//-----------------------------------------------------------------------------
+CTMEXPORT const char * CTMCALL ctmGetAttribMapString(CTMcontext aContext,
+  CTMenum aAttribMap, CTMenum aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
+  if(!self) return (const char *) 0;
+
+  // Find the indicated map
+  map = self->mAttribMaps;
+  i = CTM_ATTRIB_MAP_1;
+  while(map && (i != aAttribMap))
+  {
+    ++ i;
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return (const char *) 0;
+  }
+
+  // Get the requested string
+  switch(aProperty)
+  {
+    case CTM_NAME:
+      return (const char *) map->mName;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return (const char *) 0;
 }
 
 //-----------------------------------------------------------------------------
