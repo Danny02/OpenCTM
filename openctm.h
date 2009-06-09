@@ -124,20 +124,19 @@ extern "C" {
   // Windows
   #if defined(OPENCTM_STATIC)
     #define CTMEXPORT
-    #define CTMCALL
   #else
     #if defined(OPENCTM_BUILD)
       #define CTMEXPORT __declspec(dllexport)
     #else
       #define CTMEXPORT __declspec(dllimport)
     #endif
-    #if defined(__MINGW32__)
-      #define CTMCALL __attribute__ ((__stdcall__))
-    #elif (defined(_M_MRX000) || defined(_M_IX86) || defined(_M_ALPHA) || defined(_M_PPC)) && !defined(MIDL_PASS)
-      #define CTMCALL __stdcall
-    #else
-      #define CTMCALL
-    #endif
+  #endif
+  #if defined(__MINGW32__)
+    #define CTMCALL __attribute__ ((__stdcall__))
+  #elif (defined(_M_MRX000) || defined(_M_IX86) || defined(_M_ALPHA) || defined(_M_PPC)) && !defined(MIDL_PASS)
+    #define CTMCALL __stdcall
+  #else
+    #define CTMCALL
   #endif
 #else
   // Unix
@@ -165,8 +164,8 @@ typedef unsigned int uint32_t;
 #endif
 
 
-/// OpenCTM API version (0.4).
-#define CTM_API_VERSION 0x00000004
+/// OpenCTM API version (0.5).
+#define CTM_API_VERSION 0x00000005
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
@@ -257,7 +256,7 @@ typedef enum {
 ///            ctmLoadCustom() function.
 /// @return The number of bytes actually read (if this is less than aCount, it
 ///         indicates that an error occured or the end of file was reached).
-typedef CTMuint (* CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserData);
+typedef CTMuint (* CTMCALL CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserData);
 
 /// Stream write() function pointer.
 /// @param[in] aBuf Pointer to the memory buffer from which data should be written.
@@ -266,7 +265,7 @@ typedef CTMuint (* CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserData);
 ///            ctmSaveCustom() function.
 /// @return The number of bytes actually written (if this is less than aCount, it
 ///         indicates that an error occured).
-typedef CTMuint (* CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserData);
+typedef CTMuint (* CTMCALL CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserData);
 
 /// Create a new OpenCTM context. The context is used for all subsequent
 /// OpenCTM function calls. Several contexts can coexist at the same time.

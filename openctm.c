@@ -808,7 +808,8 @@ CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
 //-----------------------------------------------------------------------------
 // _ctmDefaultRead()
 //-----------------------------------------------------------------------------
-static CTMuint _ctmDefaultRead(void * aBuf, CTMuint aCount, void * aUserData)
+static CTMuint CTMCALL _ctmDefaultRead(void * aBuf, CTMuint aCount,
+  void * aUserData)
 {
   return (CTMuint) fread(aBuf, 1, (size_t) aCount, (FILE *) aUserData);
 }
@@ -1009,7 +1010,7 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
 //-----------------------------------------------------------------------------
 // _ctmDefaultWrite()
 //-----------------------------------------------------------------------------
-static CTMuint _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
+static CTMuint CTMCALL _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
   void * aUserData)
 {
   return (CTMuint) fwrite(aBuf, 1, (size_t) aCount, (FILE *) aUserData);
