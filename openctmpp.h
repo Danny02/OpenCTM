@@ -138,18 +138,12 @@ class CTMimporter {
       ctmLoadCustom(mContext, aReadFn, aUserData);
     }
 
-    // Special treatement of the copy constructor and assignment operator. You
-    // can not copy nor assign from one CTMimporter object to another, since
-    // the object contains hidden state.
-    CTMimporter(const CTMimporter& v)
-    {
-      mContext = ctmNewContext(CTM_IMPORT);
-    }
-
-    CTMimporter& operator=(const CTMimporter& v)
-    {
-      return *this;
-    }
+    // You can not copy nor assign from one CTMimporter object to another, since
+    // the object contains hidden state. By declaring these dummy prototypes
+    // without an implementation, you will at least get linker errors if you try
+    // to copy or assign a CTMimporter object.
+    CTMimporter(const CTMimporter& v);
+    CTMimporter& operator=(const CTMimporter& v);
 };
 
 
@@ -271,18 +265,12 @@ class CTMexporter {
       ctmSaveCustom(mContext, aWriteFn, aUserData);
     }
 
-    // Special treatement of the copy constructor and assignment operator. You
-    // can not copy nor assign from one CTMexporter object to another, since
-    // the object contains hidden state.
-    CTMexporter(const CTMexporter& v)
-    {
-      mContext = ctmNewContext(CTM_EXPORT);
-    }
-
-    CTMexporter& operator=(const CTMexporter& v)
-    {
-      return *this;
-    }
+    // You can not copy nor assign from one CTMexporter object to another, since
+    // the object contains hidden state. By declaring these dummy prototypes
+    // without an implementation, you will at least get linker errors if you try
+    // to copy or assign a CTMexporter object.
+    CTMexporter(const CTMexporter& v);
+    CTMexporter& operator=(const CTMexporter& v);
 };
 
 #endif // __OPENCTMPP_H_
