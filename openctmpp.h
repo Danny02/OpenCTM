@@ -72,21 +72,6 @@ class CTMimporter {
       ctmFreeContext(mContext);
     }
 
-    /// Special treatement of the copy constructor. You can not copy from one
-    /// CTMimporter object to another, since the object contains hidden state.
-    CTMimporter(const CTMimporter& v)
-    {
-      mContext = ctmNewContext(CTM_IMPORT);
-    }
-
-    /// Special treatment of the assignment operator. You can not assign from
-    /// one CTMimporter object to another, since the object contains hidden
-    /// state.
-    CTMimporter& operator=(const CTMimporter& v)
-    {
-        return *this;
-    }
-
     /// Wrapper for ctmGetError()
     CTMenum GetError()
     {
@@ -146,6 +131,19 @@ class CTMimporter {
     {
       ctmLoadCustom(mContext, aReadFn, aUserData);
     }
+
+    // Special treatement of the copy constructor and assignment operator. You
+    // can not copy nor assign from one CTMimporter object to another, since
+    // the object contains hidden state.
+    CTMimporter(const CTMimporter& v)
+    {
+      mContext = ctmNewContext(CTM_IMPORT);
+    }
+
+    CTMimporter& operator=(const CTMimporter& v)
+    {
+      return *this;
+    }
 };
 
 
@@ -183,21 +181,6 @@ class CTMexporter {
     ~CTMexporter()
     {
       ctmFreeContext(mContext);
-    }
-
-    /// Special treatement of the copy constructor. You can not copy from one
-    /// CTMexporter object to another, since the object contains hidden state.
-    CTMexporter(const CTMexporter& v)
-    {
-      mContext = ctmNewContext(CTM_EXPORT);
-    }
-
-    /// Special treatment of the assignment operator. You can not assign from
-    /// one CTMexporter object to another, since the object contains hidden
-    /// state.
-    CTMexporter& operator=(const CTMexporter& v)
-    {
-        return *this;
     }
 
     /// Wrapper for ctmGetError()
@@ -280,6 +263,19 @@ class CTMexporter {
     void SaveCustom(CTMwritefn aWriteFn, void * aUserData)
     {
       ctmSaveCustom(mContext, aWriteFn, aUserData);
+    }
+
+    // Special treatement of the copy constructor and assignment operator. You
+    // can not copy nor assign from one CTMexporter object to another, since
+    // the object contains hidden state.
+    CTMexporter(const CTMexporter& v)
+    {
+      mContext = ctmNewContext(CTM_EXPORT);
+    }
+
+    CTMexporter& operator=(const CTMexporter& v)
+    {
+      return *this;
     }
 };
 

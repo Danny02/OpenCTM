@@ -29,11 +29,9 @@ LZMADIR = liblzma
 CC = gcc
 CFLAGS = -O3 -W -Wall -c -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
 CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_PREFIX_CTM -std=c99 -pedantic
-AR = ar
-ARFLAGS = rcs
 RM = del /Q
 DOXYGEN = doxygen
-DEPEND = $(CPP) -MM
+DEPEND = $(CC) -MM
 
 DYNAMICLIB = openctm.dll
 LINKLIB = libopenctm.a
@@ -77,9 +75,9 @@ tools: $(DYNAMICLIB)
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
 	dllwrap --def openctm-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS)
+	strip $@
 	dlltool --kill-at --output-lib $(LINKLIB) --def openctm-mingw2.def
 	copy /Y $@ tools
-#	$(CC) -shared -s -o $@ $(OBJS) $(LZMA_OBJS) -Wl,--out-implib,$(LINKLIB)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
