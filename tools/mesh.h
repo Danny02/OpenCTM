@@ -89,6 +89,11 @@ class Vector4 {
       x = a.x; y = a.y; z = a.z; w = a.w;
     }
 
+    Vector4(const Vector3 &a)
+    {
+      x = a.x; y = a.y; z = a.z; w = 1.0;
+    }
+
     float x, y, z, w;
 };
 

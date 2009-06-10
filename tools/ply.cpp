@@ -91,7 +91,9 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
 
   // Read header
   unsigned int count, vertexCount = 0, faceCount = 0;
-  int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, nxPos = -1, nyPos = -1, nzPos = -1, propCnt = 0;
+  int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, nxPos = -1,
+      nyPos = -1, nzPos = -1, redPos = -1, greenPos = -1, bluePos = -1,
+      propCnt = 0;
   string elementType("");
   string comment("");
   string str;
@@ -152,6 +154,12 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
           nyPos = propCnt;
         else if(porpName == string("nz"))
           nzPos = propCnt;
+        else if(porpName == string("red"))
+          redPos = propCnt;
+        else if(porpName == string("green"))
+          greenPos = propCnt;
+        else if(porpName == string("blue"))
+          bluePos = propCnt;
       }
       else if(elementType == string("face"))
       {
@@ -187,6 +195,8 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
     aMesh.mTexCoords.resize(vertexCount);
   if(nxPos >= 0)
     aMesh.mNormals.resize(vertexCount);
+  if(redPos >= 0)
+    aMesh.mColors.resize(vertexCount);
   for(unsigned int i = 0; i < vertexCount; ++ i)
   {
     getline(aStream, str);
@@ -195,6 +205,14 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
       aMesh.mTexCoords[i] = ParseVector2(str, sPos, tPos);
     if(nxPos >= 0)
       aMesh.mNormals[i] = ParseVector3(str, nxPos, nyPos, nzPos);
+    if(redPos >= 0)
+    {
+      Vector3 col = ParseVector3(str, redPos, greenPos, bluePos);
+      col.x /= 255.0f;
+      col.y /= 255.0f;
+      col.z /= 255.0f;
+      aMesh.mColors[i] = Vector4(col);
+    }
   }
 
   // Read faces
@@ -233,6 +251,12 @@ void PLY_Export(ostream &aStream, Mesh &aMesh)
     aStream << "property float ny" << endl;
     aStream << "property float nz" << endl;
   }
+  if(aMesh.mColors.size() > 0)
+  {
+    aStream << "property uchar red" << endl;
+    aStream << "property uchar green" << endl;
+    aStream << "property uchar blue" << endl;
+  }
   aStream << "element face " << aMesh.mIndices.size() / 3 << endl;
   aStream << "property list uchar int vertex_indices" << endl;
   aStream << "end_header" << endl;
@@ -250,6 +274,10 @@ void PLY_Export(ostream &aStream, Mesh &aMesh)
       aStream << " " << aMesh.mNormals[i].x << " " <<
                         aMesh.mNormals[i].y << " " <<
                         aMesh.mNormals[i].z;
+    if(aMesh.mColors.size() > 0)
+      aStream << " " << int(floorf(255.0f * aMesh.mColors[i].x + 0.5f)) << " " <<
+                        int(floorf(255.0f * aMesh.mColors[i].y + 0.5f)) << " " <<
+                        int(floorf(255.0f * aMesh.mColors[i].z + 0.5f));
     aStream << endl;
   }
 
