@@ -59,79 +59,132 @@ for new languages should be fairly straight forward, since the API was written
 with cross-language portability in mind).
 
 The full documentation of the OpenCTM API can be found in the Doxygen-generated
-documentation, which describes all API functions, types, constants etc.
-
-
-\section{The OpenCTM context}
-Bla-bla-bla...
+documentation ("API Reference"), which describes all API functions, types,
+constants etc.
 
 
 \section{The triangle mesh}
-Bla-bla-bla...
+The triangle mesh, in OpenCTM terms, is managed in a format that is well suited
+for a modern 3D rendering pipeline, such as OpenGL.
+
+At a glance, the OpenCTM mesh has the following properties:
+
+\begin{itemize}
+    \item A vertex is a set of attributes that uniquely identify the vertex.
+          This includes: vertex coordinate, normal, texture coordinate(s) and
+          custom vertex attrubite(s) (such as color, weight, etc).
+    \item A triangle is described by three vertex indices.
+    \item In the OpenCTM API, these mesh data are treated as arrays (an integer
+          array for the triangle indices, and floating point arrays for the
+          vertex data).
+    \item All vertex data arrays in a mesh must have the same number of elements
+          (for instance, there is exactly one normal associated with each
+          vertex coordinate).
+    \item All mesh data are optional, except for the triangle indices and the
+          vertex coordinates. For instance, it is possible to leave out the
+          normal information.
+\end{itemize}
+
+For an example of the mesh data structure see table \ref{tab:MeshVert} (vertex
+data) and table \ref{tab:MeshTri} (triangle data).
+
+\begin{table}[p]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|}\hline
+\textbf{Index} & 0 & 1 & 2 & 3 & 4 & \textellipsis & N\\ \hline
+\textbf{Vertex} & $v_0$ & $v_1$ & $v_2$ & $v_3$ & $v_4$ & \textellipsis & $v_N$\\ \hline
+\textbf{Normal} & $n_0$ & $n_1$ & $n_2$ & $n_3$ & $n_4$ & \textellipsis & $n_N$\\ \hline
+\textbf{TexCoord1} & $t1_0$ & $t1_1$ & $t1_2$ & $t1_3$ & $t1_4$ & \textellipsis & $t1_N$\\ \hline
+\textbf{TexCoord2} & $t2_0$ & $t2_1$ & $t2_2$ & $t2_3$ & $t2_4$ & \textellipsis & $t2_N$\\ \hline
+\textbf{Attrib1} & $a1_0$ & $a1_1$ & $a1_2$ & $a1_3$ & $a1_4$ & \textellipsis & $a1_N$\\ \hline
+\textbf{Attrib2} & $a2_0$ & $a2_1$ & $a2_2$ & $a2_3$ & $a2_4$ & \textellipsis & $a2_N$\\ \hline
+\end{tabular}
+\caption{Mesh vertex data structure in OpenCTM, for a mesh with normals,
+two texture coordinates per vertex, and two custom attributes per vertex.}
+\label{tab:MeshVert}
+\end{table}
+
+\begin{table}[p]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|}\hline
+\textbf{Triangle} & $tri_0$ & $tri_1$ & $tri_2$ & $tri_3$ & $tri_4$ & \textellipsis & $tri_M$\\ \hline
+\end{tabular}
+\caption{Mesh triangle data structure in OpenCTM, where $tri_k$ is a tuple of
+three vertex indices. For instance,
+$tri_0=(0, 1, 2)$,
+$tri_1=(0, 2, 3)$,
+$tri_2=(3, 5, 4)$, \textellipsis}
+\label{tab:MeshTri}
+\end{table}
 
 
+\subsection{Triangle indices}
 
-%-------------------------------------------------------------------------------
+Each triangle is described by three integers: one vertex index for each corner
+of the triangle). The triangle index array looks like this:
 
-\chapter{Building from source}
-To use the OpenCTM API, you need the shared library and language bindings
-for loading and calling it. It can either be downloaded as a precompiled binary
-package for your platform, or you can build it from the source package.
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|}\hline
+$tri^0_0$ & $tri^1_0$ & $tri^2_0$ & $tri^0_1$ & $tri^1_1$ & $tri^2_1$ & \textellipsis & $tri^0_M$ & $tri^1_M$ & $tri^2_M$\\ \hline
+\end{tabular}
 
-This chapter describes how to build the OpenCTM shared library from the source
-package.
-
-\section{Windows - MS Visual Studio}
-Start an MS Visual Studio command line (for instance using the Tools
-\textgreater Visual Studio 2008 Command Prompt menu from the IDE), and do the
-following:
-
-\begin{lstlisting}
-> cd [sourcedir]
-> nmake /fMakefile.msvc
-\end{lstlisting}
-
-...where [sourcedir] is the location of the OpenCTM source. This should produce
-the files openctm.dll, openctm.lib, tools\textbackslash ctmconv.exe and
-tools\textbackslash ctmviewer.exe (the latter requires GLUT).
+\textellipsis where $tri^j_k$ is the vertex index for the $j$:th corner of the
+$k$:th triangle.
 
 
-\section{Windows - MinGW32}
-Start a command prompt, and do the following:
+\subsection{Vertex coordinates}
 
-\begin{lstlisting}
-> cd [sourcedir]
-> mingw32-make -f Makefile.mgw
-\end{lstlisting}
+Each vertex coordinate is described by three floating point values: $x$, $y$
+and $z$. The vertex coordinate array looks like this:
 
-...where [sourcedir] is the location of the OpenCTM source. This should produce
-the files openctm.dll, libopenctm.a, tools\textbackslash ctmconv.exe and
-tools\textbackslash ctmviewer.exe (the latter requires GLUT).
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}\hline
+$x_0$ & $y_0$ & $z_0$ & $x_1$ & $y_1$ & $z_1$ & \textellipsis & $x_N$ & $y_N$ & $z_N$\\ \hline
+\end{tabular}
 
-
-\section{Mac OS X}
-Start a shell, and do the following:
-
-\begin{lstlisting}
-> cd [sourcedir]
-> make -f Makefile.macosx
-\end{lstlisting}
-
-...where [sourcedir] is the location of the OpenCTM source. This should produce
-the files openctm.dylib, tools/ctmconv and tools/ctmviewer.
+\textellipsis where $x_k$, $y_k$ and $z_k$ are the $x$, $y$ and $z$ coordinates
+of the $k$:th vertex.
 
 
-\section{Linux}
-Start a shell, and do the following:
+\subsection{Normals}
 
-\begin{lstlisting}
-> cd [sourcedir]
-> make -f Makefile.linux
-\end{lstlisting}
+Each normal is described by three floating point values: $x$, $y$
+and $z$. The normal array looks like this:
 
-...where [sourcedir] is the location of the OpenCTM source. This should produce
-the files libopenctm.so, tools/ctmconv and tools/ctmviewer (the latter requires
-GLUT or freeglut).
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}\hline
+$x_0$ & $y_0$ & $z_0$ & $x_1$ & $y_1$ & $z_1$ & \textellipsis & $x_N$ & $y_N$ & $z_N$\\ \hline
+\end{tabular}
+
+\textellipsis where $x_k$, $y_k$ and $z_k$ are the $x$, $y$ and $z$ components
+of the $k$:th normal.
+
+
+\subsection{Texture coordinates}
+
+Each texture coordinate is described by two floating point values: $u$ and $v$.
+A texture coordinate array looks like this:
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|}\hline
+$u_0$ & $v_0$ & $u_1$ & $v_1$ & $u_2$ & $v_2$ & \textellipsis & $u_N$ & $v_N$\\ \hline
+\end{tabular}
+
+\textellipsis where $u_k$ and $v_k$ are the $u$ and $v$ components
+of the $k$:th texture coordinate.
+
+
+\subsection{Custom vertex attributes}
+
+Each vertex attribute is described by four floating point values: $a$, $b$, $c$
+and $d$. An attribute array looks like this:
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}\hline
+$a_0$ & $b_0$ & $c_0$ & $d_0$ & $a_1$ & $b_1$ & $c_1$ & $d_1$ & \textellipsis & $a_N$ & $b_N$ & $c_N$ & $d_N$\\ \hline
+\end{tabular}
+
+\textellipsis where $a_k$, $b_k$, $c_k$ and $d_k$ are the four attribute values
+of the $k$:th attribute.
+
+
+\section{The OpenCTM context}
+TBD
 
 
 
@@ -200,11 +253,11 @@ will have access to two new classes: CTMimporer and CTMexporter.
 
 
 \section{The CTMimporter class}
-Bla-bla-bla...
+TBD
 
 
 \section{The CTMexporter class}
-Bla-bla-bla...
+TBD
 
 
 \end{document}
