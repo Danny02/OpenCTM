@@ -285,12 +285,20 @@ CTMEXPORT void CTMCALL ctmFreeContext(CTMcontext aContext);
 /// Returns the latest error. Calling this function will return the last
 /// produced error code, or CTM_NO_ERROR (zero) if no error has occured since
 /// the last call to ctmGetError(). When this function is called, the internal
-/// error varibale will be reset to CTM_NO_ERROR.
+/// error varibale will be reset to CTM_NONE.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @return An OpenCTM error code.
 /// @see CTMenum
 CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext);
+
+/// Converts an OpenCTM error code to a zero-terminated string. 
+/// @param[in] aError An OpenCTM error code, as returned by ctmGetError().
+/// @return A zero terminated string that describes the error. For instance,
+///         if \c aError is CTM_INVALID_OPERATION, then the return value will
+///         be "CTM_INVALID_OPERATION".
+/// @see CTMenum
+CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError);
 
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by

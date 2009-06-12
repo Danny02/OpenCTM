@@ -33,6 +33,28 @@
 #include "openctm.h"
 #endif
 
+#include <exception>
+
+/// OpenCTM exception. When an error occurs, a \c ctm_error exception is
+/// thrown. Its what() function returns the name of the OpenCTM error code
+/// (for instance "CTM_INVALID_OPERATION").
+class ctm_error: public std::exception
+{
+  private:
+    CTMenum mErrorCode;
+
+  public:
+    explicit ctm_error(CTMenum aError)
+    {
+      mErrorCode = aError;
+    }
+
+    virtual const char* what() const throw()
+    {
+      return ctmErrorString(mErrorCode);
+    }
+};
+
 
 /// OpenCTM importer class. This is a C++ wrapper class for an OpenCTM import
 /// context. Usage example:
@@ -59,6 +81,15 @@ class CTMimporter {
     /// The OpenCTM context handle.
     CTMcontext mContext;
 
+    /// Check for OpenCTM errors, and throw an exception if an error has
+    /// occured.
+    void CheckError()
+    {
+      CTMenum err = ctmGetError(mContext);
+      if(err != CTM_NONE)
+        throw ctm_error(err);
+    }
+
   public:
     /// Constructor
     CTMimporter()
@@ -72,70 +103,82 @@ class CTMimporter {
       ctmFreeContext(mContext);
     }
 
-    /// Wrapper for ctmGetError()
-    CTMenum GetError()
-    {
-      return ctmGetError(mContext);
-    }
-
     /// Wrapper for ctmGetInteger()
     CTMuint GetInteger(CTMenum aProperty)
     {
-      return ctmGetInteger(mContext, aProperty);
+      CTMuint res = ctmGetInteger(mContext, aProperty);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetError()
     const CTMuint * GetIntegerArray(CTMenum aProperty)
     {
-      return ctmGetIntegerArray(mContext, aProperty);
+      const CTMuint * res = ctmGetIntegerArray(mContext, aProperty);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetFloatArray()
     const CTMfloat * GetFloatArray(CTMenum aProperty)
     {
-      return ctmGetFloatArray(mContext, aProperty);
+      const CTMfloat * res = ctmGetFloatArray(mContext, aProperty);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetNamedTexMap()
     CTMenum GetNamedTexMap(const char * aName)
     {
-      return ctmGetNamedTexMap(mContext, aName);
+      CTMenum res = ctmGetNamedTexMap(mContext, aName);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetTexMapString()
     const char * GetTexMapString(CTMenum aTexMap, CTMenum aProperty)
     {
-      return ctmGetTexMapString(mContext, aTexMap, aProperty);
+      const char * res = ctmGetTexMapString(mContext, aTexMap, aProperty);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetNamedAttribMap()
     CTMenum GetNamedAttribMap(const char * aName)
     {
-      return ctmGetNamedAttribMap(mContext, aName);
+      CTMenum res = ctmGetNamedAttribMap(mContext, aName);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetAttribMapString()
     const char * GetAttribMapString(CTMenum aAttribMap, CTMenum aProperty)
     {
-      return ctmGetAttribMapString(mContext, aAttribMap, aProperty);
+      const char * res = ctmGetAttribMapString(mContext, aAttribMap, aProperty);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmGetString()
     const char * GetString(CTMenum aProperty)
     {
-      return ctmGetString(mContext, aProperty);
+      const char * res = ctmGetString(mContext, aProperty);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmLoad()
     void Load(const char * aFileName)
     {
       ctmLoad(mContext, aFileName);
+      CheckError();
     }
 
     /// Wrapper for ctmLoadCustom()
     void LoadCustom(CTMreadfn aReadFn, void * aUserData)
     {
       ctmLoadCustom(mContext, aReadFn, aUserData);
+      CheckError();
     }
 
     // You can not copy nor assign from one CTMimporter object to another, since
@@ -170,6 +213,15 @@ class CTMexporter {
     /// The OpenCTM context handle.
     CTMcontext mContext;
 
+    /// Check for OpenCTM errors, and throw an exception if an error has
+    /// occured.
+    void CheckError()
+    {
+      CTMenum err = ctmGetError(mContext);
+      if(err != CTM_NONE)
+        throw ctm_error(err);
+    }
+
   public:
     /// Constructor
     CTMexporter()
@@ -183,52 +235,53 @@ class CTMexporter {
       ctmFreeContext(mContext);
     }
 
-    /// Wrapper for ctmGetError()
-    CTMenum GetError()
-    {
-      return ctmGetError(mContext);
-    }
-
     /// Wrapper for ctmCompressionMethod()
     void CompressionMethod(CTMenum aMethod)
     {
       ctmCompressionMethod(mContext, aMethod);
+      CheckError();
     }
 
     /// Wrapper for ctmVertexPrecision()
     void VertexPrecision(CTMfloat aPrecision)
     {
       ctmVertexPrecision(mContext, aPrecision);
+      CheckError();
     }
 
     /// Wrapper for ctmVertexPrecisionRel()
     void VertexPrecisionRel(CTMfloat aRelPrecision)
     {
       ctmVertexPrecisionRel(mContext, aRelPrecision);
+      CheckError();
     }
 
     /// Wrapper for ctmNormalPrecision()
     void NormalPrecision(CTMfloat aPrecision)
     {
       ctmNormalPrecision(mContext, aPrecision);
+      CheckError();
     }
 
     /// Wrapper for ctmTexCoordPrecision()
     void TexCoordPrecision(CTMenum aTexMap, CTMfloat aPrecision)
     {
       ctmTexCoordPrecision(mContext, aTexMap, aPrecision);
+      CheckError();
     }
 
     /// Wrapper for ctmAttribPrecision()
     void AttribPrecision(CTMenum aAttribMap, CTMfloat aPrecision)
     {
       ctmAttribPrecision(mContext, aAttribMap, aPrecision);
+      CheckError();
     }
 
     /// Wrapper for ctmFileComment()
     void FileComment(const char * aFileComment)
     {
       ctmFileComment(mContext, aFileComment);
+      CheckError();
     }
 
     /// Wrapper for ctmDefineMesh()
@@ -238,31 +291,38 @@ class CTMexporter {
     {
       ctmDefineMesh(mContext, aVertices, aVertexCount, aIndices, aTriangleCount,
                     aNormals);
+      CheckError();
     }
 
     /// Wrapper for ctmAddTexMap()
     CTMenum AddTexMap(const CTMfloat * aTexCoords, const char * aName,
       const char * aFileName)
     {
-      return ctmAddTexMap(mContext, aTexCoords, aName, aFileName);
+      CTMenum res = ctmAddTexMap(mContext, aTexCoords, aName, aFileName);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmAddAttribMap()
     CTMenum AddAttribMap(const CTMfloat * aAttribValues, const char * aName)
     {
-      return ctmAddAttribMap(mContext, aAttribValues, aName);
+      CTMenum res = ctmAddAttribMap(mContext, aAttribValues, aName);
+      CheckError();
+      return res;
     }
 
     /// Wrapper for ctmSave()
     void Save(const char * aFileName)
     {
       ctmSave(mContext, aFileName);
+      CheckError();
     }
 
     /// Wrapper for ctmSaveCustom()
     void SaveCustom(CTMwritefn aWriteFn, void * aUserData)
     {
       ctmSaveCustom(mContext, aWriteFn, aUserData);
+      CheckError();
     }
 
     // You can not copy nor assign from one CTMexporter object to another, since

@@ -16,6 +16,7 @@ EXPORTS
     ctmGetNamedTexMap
     ctmGetString
     ctmGetTexMapString
+    ctmErrorString
     ctmLoad
     ctmLoadCustom
     ctmNewContext

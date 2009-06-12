@@ -16,12 +16,13 @@ EXPORTS
     ctmGetNamedTexMap@8 @14
     ctmGetString@8 @15
     ctmGetTexMapString@12 @16
-    ctmLoad@8 @17
-    ctmLoadCustom@12 @18
-    ctmNewContext@4 @19
-    ctmNormalPrecision@8 @20
-    ctmSave@8 @21
-    ctmSaveCustom@12 @22
-    ctmTexCoordPrecision@12 @23
-    ctmVertexPrecision@8 @24
-    ctmVertexPrecisionRel@8 @25
+    ctmErrorString@4 @17
+    ctmLoad@8 @18
+    ctmLoadCustom@12 @19
+    ctmNewContext@4 @20
+    ctmNormalPrecision@8 @21
+    ctmSave@8 @22
+    ctmSaveCustom@12 @23
+    ctmTexCoordPrecision@12 @24
+    ctmVertexPrecision@8 @25
+    ctmVertexPrecisionRel@8 @26

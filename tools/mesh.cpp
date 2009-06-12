@@ -51,8 +51,6 @@ void Mesh::LoadFromFile(const char * aFileName)
 
   // Load the file
   ctm.Load(aFileName);
-  if(ctm.GetError() != CTM_NONE)
-    throw runtime_error("Unable to load the file.");
 
   // Extract file comment
   const char * comment = ctm.GetString(CTM_FILE_COMMENT);
@@ -138,8 +136,6 @@ void Mesh::SaveToFile(const char * aFileName, Options &aOptions)
   ctm.DefineMesh((CTMfloat *) &mVertices[0].x, mVertices.size(),
                  (const CTMuint*) &mIndices[0], mIndices.size() / 3,
                  normals);
-  if(ctm.GetError() != CTM_NONE)
-    throw runtime_error("Unable to save the file.");
 
   // Define texture coordinates
   if(mTexCoords.size() > 0)

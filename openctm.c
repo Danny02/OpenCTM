@@ -151,6 +151,36 @@ CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext)
 }
 
 //-----------------------------------------------------------------------------
+// ctmErrorString()
+//-----------------------------------------------------------------------------
+CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError)
+{
+  switch(aError)
+  {
+    case CTM_INVALID_CONTEXT:
+      return "CTM_INVALID_CONTEXT";
+    case CTM_INVALID_ARGUMENT:
+      return "CTM_INVALID_ARGUMENT";
+    case CTM_INVALID_OPERATION:
+      return "CTM_INVALID_OPERATION";
+    case CTM_INVALID_MESH:
+      return "CTM_INVALID_MESH";
+    case CTM_OUT_OF_MEMORY:
+      return "CTM_OUT_OF_MEMORY";
+    case CTM_FILE_ERROR:
+      return "CTM_FILE_ERROR";
+    case CTM_FORMAT_ERROR:
+      return "CTM_FORMAT_ERROR";
+    case CTM_LZMA_ERROR:
+      return "CTM_LZMA_ERROR";
+    case CTM_INTERNAL_ERROR:
+      return "CTM_INTERNAL_ERROR";
+    default:
+      return "Unknown error code";
+  }
+}
+
+//-----------------------------------------------------------------------------
 // ctmGetInteger()
 //-----------------------------------------------------------------------------
 CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
@@ -287,7 +317,6 @@ CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
   }
   if(!map)
   {
-    self->mError = CTM_INVALID_ARGUMENT;
     return CTM_NONE;
   }
   return result;
@@ -392,7 +421,6 @@ CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
   }
   if(!map)
   {
-    self->mError = CTM_INVALID_ARGUMENT;
     return CTM_NONE;
   }
   return result;
