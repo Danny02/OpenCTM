@@ -55,7 +55,7 @@ type
 //------------------------------------------------------------------------------
 
 const
-  CTM_API_VERSION = $00000005;
+  CTM_API_VERSION = $00000006;
   CTM_TRUE  = 1;
   CTM_FALSE = 0;
 
@@ -111,6 +111,7 @@ const
 function ctmNewContext(AMode: TCTMenum): TCTMcontext; stdcall;
 procedure ctmFreeContext(AContext: TCTMcontext); stdcall;
 function ctmGetError(AContext: TCTMcontext): TCTMenum; stdcall;
+function ctmErrorString(AError: TCTMenum): PChar; stdcall;
 function ctmGetInteger(AContext: TCTMcontext; AProperty: TCTMenum): TCTMuint; stdcall;
 function ctmGetIntegerArray(AContext: TCTMcontext; AProperty: TCTMenum): PCTMuint; stdcall;
 function ctmGetFloatArray(AContext: TCTMcontext; AProperty: TCTMenum): PCTMfloat; stdcall;
@@ -147,6 +148,7 @@ const
 function ctmNewContext; external DLLNAME;
 procedure ctmFreeContext; external DLLNAME;
 function ctmGetError; external DLLNAME;
+function ctmErrorString; external DLLNAME;
 function ctmGetInteger; external DLLNAME;
 function ctmGetIntegerArray; external DLLNAME;
 function ctmGetFloatArray; external DLLNAME;
