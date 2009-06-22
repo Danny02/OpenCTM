@@ -154,9 +154,9 @@ of the $k$:th vertex.
 
 It is recommended (but not required) that:
 \begin{itemize}
-    \item \textellipsis the "up" direction of 3D coordinates should be the
+    \item \textellipsis the "up" direction of all vertex coordinates is the
           positive $z$-axis.
-    \item \textellipsis the unit of 3D coordinates should be meters ($m$).
+    \item \textellipsis the unit of all vertex coordinates is meters ($m$).
 \end{itemize}
 
 
@@ -236,14 +236,19 @@ It is recommended (but not required) that:
     \item \textellipsis the value range of clamped attributes, such as color
           or percentage attributes, is $[0,1]$.
     \item \textellipsis unused components are set to either zero or one,
-          depending on the context. For instance, for a single component vertex
-          weight factor, set $a=weight$ and $b=c=d=0$. For a three component
-          vertex color, set $a=red$, $b=green$, $c=blue$ and $d=1$, as the
-          fourth component is often interpreted as an alpha value (with
-          $alpha=1$ meaning a fully opaque surface).
+          depending on the context.
     \item \textellipsis the attribute map name is a descriptive name of the
-          attribute, such as "Color", "Weight" or "Ambient occlusion".
+          attribute.
 \end{itemize}
+
+The following attribute names and formats should be used whenever possible to
+represent specific information (please note that names are case sensitive):
+
+\begin{tabular}{|l|l|l|l|}\hline
+\textbf{Name} & \textbf{Format $(a,b,c,d)$} & \textbf{Range} & \textbf{Description}\\ \hline
+Color & $(R,G,B,A)$ & $[0,1]$ & Color and alpha (opacity).\\ \hline
+Weight & $(W,0,0,0)$ & $[0,1]$ & Weight factor.\\ \hline
+\end{tabular}
 
 
 \section{The OpenCTM context}
@@ -312,11 +317,46 @@ ctmFreeContext(context);
 To take better advantage of some of the C++ language features, such as
 exception handling, a few C++ wrapper classes is availbale through the standard
 API when compiling a C++ program. As usual, just include "openctm.h", and you
-will have access to two new classes: CTMimporer and CTMexporter.
+will have access to two C++ classes: CTMimporer and CTMexporter.
 
+The main differences between the C++ classes and the standard API are:
+
+\begin{itemize}
+    \item The C++ classes call ctmNewContext() and ctmFreeContext() in their
+          constructors and destructors respectively, which makes it easier to
+          use the C++ dynamic scope mechanisms (such as exception handling).
+    \item Whenever an OpenCTM error occurs, an exception is thrown. Hence, there
+          is no method corresponding to the ctmGetError() function.
+\end{itemize}
 
 \section{The CTMimporter class}
-TBD
+
+Here is an example of how to use the CTMimporter class in C++:
+
+\begin{lstlisting}
+try
+{
+  // Create a new OpenCTM importer object
+  CTMimporter ctm;
+
+  // Load the OpenCTM file
+  ctm.Load("mymesh.ctm");
+
+  // Access the mesh data
+  CTMuint vertCount = ctm.GetInteger(CTM_VERTEX_COUNT);
+  CTMfloat * vertices = ctm.GetFloatArray(CTM_VERTICES);
+  CTMuint triCount = ctm.GetInteger(CTM_TRIANGLE_COUNT);
+  CTMuint * indices = ctm.GetIntegerArray(CTM_INDICES);
+
+  // Deal with the mesh (e.g. transcode it to our
+  // internal representation)
+  // ...
+}
+catch(exception &e)
+{
+  cout << "Error: " << e.what() << endl;
+}
+\end{lstlisting}
 
 
 \section{The CTMexporter class}
