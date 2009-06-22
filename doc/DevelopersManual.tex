@@ -119,6 +119,7 @@ $tri_2=(3, 5, 4)$, \textellipsis}
 
 
 \subsection{Triangle indices}
+\label{sec:MeshIndices}
 
 Each triangle is described by three integers: one vertex index for each corner
 of the triangle). The triangle index array looks like this:
@@ -129,6 +130,14 @@ $tri^0_0$ & $tri^1_0$ & $tri^2_0$ & $tri^0_1$ & $tri^1_1$ & $tri^2_1$ & \textell
 
 \textellipsis where $tri^j_k$ is the vertex index for the $j$:th corner of the
 $k$:th triangle.
+
+It is recommended (but not required) that:
+\begin{itemize}
+    \item \textellipsis given the three coordinates of a triangle,
+          $p_1, p_2, p_3$, the front/out direction of the triangle (the "flat
+          normal") should be defined by the normalized cross product:
+          $(p_2-p_1)\times (p_3-p_1)$.
+\end{itemize}
 
 
 \subsection{Vertex coordinates}
@@ -143,6 +152,13 @@ $x_0$ & $y_0$ & $z_0$ & $x_1$ & $y_1$ & $z_1$ & \textellipsis & $x_N$ & $y_N$ & 
 \textellipsis where $x_k$, $y_k$ and $z_k$ are the $x$, $y$ and $z$ coordinates
 of the $k$:th vertex.
 
+It is recommended (but not required) that:
+\begin{itemize}
+    \item \textellipsis the "up" direction of 3D coordinates should be the
+          positive $z$-axis.
+    \item \textellipsis the unit of 3D coordinates should be meters ($m$).
+\end{itemize}
+
 
 \subsection{Normals}
 
@@ -156,8 +172,25 @@ $x_0$ & $y_0$ & $z_0$ & $x_1$ & $y_1$ & $z_1$ & \textellipsis & $x_N$ & $y_N$ & 
 \textellipsis where $x_k$, $y_k$ and $z_k$ are the $x$, $y$ and $z$ components
 of the $k$:th normal.
 
+It is recommended (but not required) that:
+\begin{itemize}
+    \item \textellipsis all normals have unit lengths (i.e.
+          $x_k^2+y_k^2+z_k^2=1\:\forall\:k$).
+    \item \textellipsis the vertex normal points in the "out" direction of the
+          surface, as defined by the flat normals of the neighbouring triangles
+          (see \ref{sec:MeshIndices}).
+\end{itemize}
+
 
 \subsection{Texture coordinates}
+
+A mesh may have several texture maps, where each texture map is described by:
+
+\begin{itemize}
+    \item A texture coordinate array.
+    \item A unique texture map name.
+    \item An file name reference (optional).
+\end{itemize}
 
 Each texture coordinate is described by two floating point values: $u$ and $v$.
 A texture coordinate array looks like this:
@@ -169,8 +202,24 @@ $u_0$ & $v_0$ & $u_1$ & $v_1$ & $u_2$ & $v_2$ & \textellipsis & $u_N$ & $v_N$\\ 
 \textellipsis where $u_k$ and $v_k$ are the $u$ and $v$ components
 of the $k$:th texture coordinate.
 
+$(u=0, v=0)$ represents the lower left corner of the texture, and $(u=1, v=1)$
+represents the upper right corner of the texture.
+
+It is recommended (but not required) that:
+\begin{itemize}
+    \item \textellipsis the texture coordinates are in the range $[0,1]$.
+\end{itemize}
+
 
 \subsection{Custom vertex attributes}
+
+A mesh may have several custom vertex attribute maps, where each attribute map
+is described by:
+
+\begin{itemize}
+    \item A vertex attribute array.
+    \item A unique attribute map name.
+\end{itemize}
 
 Each vertex attribute is described by four floating point values: $a$, $b$, $c$
 and $d$. An attribute array looks like this:
@@ -181,6 +230,20 @@ $a_0$ & $b_0$ & $c_0$ & $d_0$ & $a_1$ & $b_1$ & $c_1$ & $d_1$ & \textellipsis & 
 
 \textellipsis where $a_k$, $b_k$, $c_k$ and $d_k$ are the four attribute values
 of the $k$:th attribute.
+
+It is recommended (but not required) that:
+\begin{itemize}
+    \item \textellipsis the value range of clamped attributes, such as color
+          or percentage attributes, is $[0,1]$.
+    \item \textellipsis unused components are set to either zero or one,
+          depending on the context. For instance, for a single component vertex
+          weight factor, set $a=weight$ and $b=c=d=0$. For a three component
+          vertex color, set $a=red$, $b=green$, $c=blue$ and $d=1$, as the
+          fourth component is often interpreted as an alpha value (with
+          $alpha=1$ meaning a fully opaque surface).
+    \item \textellipsis the attribute map name is a descriptive name of the
+          attribute, such as "Color", "Weight" or "Ambient occlusion".
+\end{itemize}
 
 
 \section{The OpenCTM context}
