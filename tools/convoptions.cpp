@@ -10,6 +10,7 @@ using namespace std;
 Options::Options()
 {
   // Set default values
+  mScale = 1.0f;
   mUpAxis = uaZ;
   mMethod = CTM_METHOD_MG2;
   mVertexPrecision = 0.0f;
@@ -36,7 +37,12 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
   for(int i = aStartIdx; i < argc; ++ i)
   {
     string cmd(argv[i]);
-    if((cmd == string("--upaxis")) && (i < (argc - 1)))
+    if((cmd == string("--scale")) && (i < (argc - 1)))
+    {
+      mScale = GetFloatArg(argv[i + 1]);
+      ++ i;
+    }
+    else if((cmd == string("--upaxis")) && (i < (argc - 1)))
     {
       string upaxis(argv[i + 1]);
       ++ i;

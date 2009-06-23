@@ -16,8 +16,11 @@ class Options {
     /// Get options from the command line arguments
     void GetFromArgs(int argc, char **argv, int aStartIdx);
 
+    CTMfloat mScale;
     UpAxis mUpAxis;
+
     CTMenum mMethod;
+
     CTMfloat mVertexPrecision;
     CTMfloat mVertexPrecisionRel;
     CTMfloat mNormalPrecision;
