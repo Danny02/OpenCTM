@@ -869,7 +869,7 @@ CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
     // The default vertex attribute precision is 2^-8
     map->mPrecision = 1.0f / 256.0f;
     ++ self->mAttribMapCount;
-    return CTM_TEX_MAP_1 + self->mAttribMapCount - 1;
+    return CTM_ATTRIB_MAP_1 + self->mAttribMapCount - 1;
   }
 }
 
