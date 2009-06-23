@@ -202,6 +202,9 @@ int main(int argc, char ** argv)
     cout << "  --nprec arg     Set normal precision" << endl;
     cout << "  --tprec arg     Set texture map precision" << endl;
     cout << "  --cprec arg     Set color precision" << endl;
+    cout << endl << " Miscellaneous" << endl;
+    cout << "  --comment arg   Set the file comment (default is to use the comment" << endl;
+    cout << "                  from the input file, if any." << endl;
     return 0;
   }
 
@@ -226,6 +229,10 @@ int main(int argc, char ** argv)
 
     // Manipulate the mesh
     PreProcessMesh(mesh, opt);
+
+    // Override comment?
+    if(opt.mComment.size() > 0)
+      mesh.mComment = opt.mComment;
 
     // Save output file
     cout << "Saving " << outFile << "..." << endl;

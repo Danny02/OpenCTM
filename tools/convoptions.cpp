@@ -99,6 +99,11 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
       mColorPrecision = GetFloatArg(argv[i + 1]);
       ++ i;
     }
+    else if((cmd == string("--comment")) && (i < (argc - 1)))
+    {
+      mComment = string(argv[i + 1]);
+      ++ i;
+    }
     else
       throw runtime_error(string("Invalid argument: ") + cmd);
   }

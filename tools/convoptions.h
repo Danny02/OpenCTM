@@ -1,6 +1,7 @@
 #ifndef __CONVOPTIONS_H_
 #define __CONVOPTIONS_H_
 
+#include <string>
 #include <openctm.h>
 
 
@@ -26,6 +27,8 @@ class Options {
     CTMfloat mNormalPrecision;
     CTMfloat mTexMapPrecision;
     CTMfloat mColorPrecision;
+
+    std::string mComment;
 };
 
 #endif // __CONVOPTIONS_H_
