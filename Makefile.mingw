@@ -32,6 +32,7 @@ CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_PREFIX_CTM -std=c99 -pedantic
 RM = del /Q
 DOXYGEN = doxygen
 DEPEND = $(CC) -MM
+RC = windres
 
 DYNAMICLIB = openctm.dll
 LINKLIB = libopenctm.a
@@ -73,11 +74,14 @@ docs:
 tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) -f Makefile.mingw && cd ..
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-mingw1.def openctm-mingw2.def
-	dllwrap --def openctm-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS)
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-mingw1.def openctm-mingw2.def openctm-res.o
+	dllwrap --def openctm-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS) openctm-res.o
 	strip $@
 	dlltool --kill-at --output-lib $(LINKLIB) --def openctm-mingw2.def
 	copy /Y $@ tools
+
+openctm-res.o: openctm.rc
+	$(RC) $< $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<

@@ -31,6 +31,7 @@ CFLAGS = /nologo /Ox /W3 /c /DOPENCTM_BUILD /I$(LZMADIR) /DLZMA_PREFIX_CTM /D_CR
 CFLAGS_LZMA = /nologo /Ox /W3 /c /DLZMA_PREFIX_CTM
 RM = del /Q
 DOXYGEN = doxygen
+RC = rc
 
 DYNAMICLIB = openctm.dll
 LINKLIB = openctm.lib
@@ -72,9 +73,12 @@ docs:
 tools: $(DYNAMICLIB)
 	cd tools && $(MAKE) /nologo /f Makefile.msvc && cd ..
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-msvc.def
-	link /nologo /out:$@ /dll /implib:$(LINKLIB) /def:openctm-msvc.def $(OBJS) $(LZMA_OBJS)
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-msvc.def openctm.res
+	link /nologo /out:$@ /dll /implib:$(LINKLIB) /def:openctm-msvc.def $(OBJS) $(LZMA_OBJS) openctm.res
 	copy /Y $@ tools
+
+openctm.res: openctm.rc
+	$(RC) openctm.rc
 
 openctm.obj: openctm.c openctm.h internal.h
 	$(CC) $(CFLAGS) openctm.c
