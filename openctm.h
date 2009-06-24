@@ -257,7 +257,7 @@ typedef enum {
 ///            ctmLoadCustom() function.
 /// @return The number of bytes actually read (if this is less than aCount, it
 ///         indicates that an error occured or the end of file was reached).
-typedef CTMuint (* CTMCALL CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserData);
+typedef CTMuint (CTMCALL * CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserData);
 
 /// Stream write() function pointer.
 /// @param[in] aBuf Pointer to the memory buffer from which data should be written.
@@ -266,7 +266,7 @@ typedef CTMuint (* CTMCALL CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserD
 ///            ctmSaveCustom() function.
 /// @return The number of bytes actually written (if this is less than aCount, it
 ///         indicates that an error occured).
-typedef CTMuint (* CTMCALL CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserData);
+typedef CTMuint (CTMCALL * CTMwritefn)(const void * aBuf, CTMuint aCount, void * aUserData);
 
 /// Create a new OpenCTM context. The context is used for all subsequent
 /// OpenCTM function calls. Several contexts can coexist at the same time.
