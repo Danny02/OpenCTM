@@ -65,7 +65,7 @@ all: $(DYNAMICLIB) tools
 .PHONY: clean docs tools
 
 clean:
-	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS)
+	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm.res
 
 docs:
 	cd doc && $(DOXYGEN) && cd ..

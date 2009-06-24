@@ -66,7 +66,7 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
 all: $(DYNAMICLIB) tools
 
 clean:
-	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS)
+	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm-res.o
 
 docs:
 	cd doc && $(DOXYGEN) && cd ..
