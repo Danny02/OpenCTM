@@ -561,14 +561,15 @@ CTMEXPORT CTMenum CTMCALL ctmAddTexMap(CTMcontext aContext,
 CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
   const CTMfloat * aAttribValues, const char * aName);
 
-/// Load an OpenCTM format file. The mesh can be retrieved using ctmGetMesh().
+/// Load an OpenCTM format file into the context. The mesh data can be retrieved
+/// with the various ctmGet functions.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be loaded.
 CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName);
 
 /// Load an OpenCTM format file using a custom stream read function. The mesh
-/// can be retrieved using ctmGetMesh().
+/// data can be retrieved with the various ctmGet functions.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aReadFn Pointer to a custom stream read function.
