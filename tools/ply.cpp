@@ -168,6 +168,7 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
            (propDescr != string("list char int vertex_indices")) &&
            (propDescr != string("list char uint vertex_indices")) &&
            (propDescr != string("list uchar int vertex_indices")) &&
+           (propDescr != string("list uchar int vertex_index")) &&
            (propDescr != string("list uchar uint vertex_indices")))
           throw runtime_error("Unsupported face description property.");
       }
