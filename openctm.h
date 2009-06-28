@@ -164,8 +164,8 @@ typedef unsigned int uint32_t;
 #endif
 
 
-/// OpenCTM API version (0.6).
-#define CTM_API_VERSION 0x00000006
+/// OpenCTM API version (0.7).
+#define CTM_API_VERSION 0x00000007
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
@@ -201,9 +201,10 @@ typedef enum {
   CTM_INVALID_MESH      = 0x0004, ///< The mesh was invalid (e.g. no vertices).
   CTM_OUT_OF_MEMORY     = 0x0005, ///< Not enough memory to proceed.
   CTM_FILE_ERROR        = 0x0006, ///< File I/O error.
-  CTM_FORMAT_ERROR      = 0x0007, ///< File format error (e.g. unrecognized format).
+  CTM_BAD_FORMAT        = 0x0007, ///< File format error (e.g. unrecognized format or corrupted file).
   CTM_LZMA_ERROR        = 0x0008, ///< An error occured within the LZMA library.
   CTM_INTERNAL_ERROR    = 0x0009, ///< An internal error occured (indicates a bug).
+  CTM_UNSUPPORTED_FORMAT_VERSION = 0x000A, ///< Unsupported file format version.
 
   // OpenCTM context modes
   CTM_IMPORT            = 0x0101, ///< The OpenCTM context will be used for importing data.
@@ -214,19 +215,21 @@ typedef enum {
   CTM_METHOD_MG1        = 0x0202, ///< Lossless compression (floating point).
   CTM_METHOD_MG2        = 0x0203, ///< Lossless compression (fixed point).
 
-  // Integer queries
+  // Context queries
   CTM_VERTEX_COUNT      = 0x0301, ///< Number of vertices in the mesh (integer).
   CTM_TRIANGLE_COUNT    = 0x0302, ///< Number of triangles in the mesh (integer).
   CTM_HAS_NORMALS       = 0x0303, ///< CTM_TRUE if the mesh has normals (integer).
   CTM_TEX_MAP_COUNT     = 0x0304, ///< Number of texture coordinate sets (integer).
   CTM_ATTRIB_MAP_COUNT  = 0x0305, ///< Number of custom attribute sets (integer).
+  CTM_VERTEX_PRECISION  = 0x0306, ///< Vertex precision - for MG2 (float).
+  CTM_NORMAL_PRECISION  = 0x0307, ///< Normal precision - for MG2 (float).
+  CTM_COMPRESSION_METHOD = 0x0308, ///< Compression method (integer).
+  CTM_FILE_COMMENT      = 0x0309, ///< File comment (string).
 
-  // String queries
-  CTM_FILE_COMMENT      = 0x0401, ///< File comment (string).
-
-  // Texture map queries
+  // Texture/attribute map queries
   CTM_NAME              = 0x0501, ///< Unique name (texture/attrib map string).
   CTM_FILE_NAME         = 0x0502, ///< File name reference (texture map string).
+  CTM_PRECISION         = 0x0503, ///< Value precision (texture/attrib map float).
 
   // Array queries
   CTM_INDICES           = 0x0601, ///< Triangle indices (integer array).
@@ -309,6 +312,15 @@ CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError);
 /// @see CTMenum
 CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
 
+/// Get information about an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aProperty Which property to return.
+/// @return A floating point value, representing the OpenCTM context property
+///         given by \c aProperty.
+/// @see CTMenum
+CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
+
 /// Get an integer array from an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///             ctmNewContext().
@@ -369,6 +381,17 @@ CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
 CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
   CTMenum aTexMap, CTMenum aProperty);
 
+/// Get information about a texture map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aTexMap Which texture map to query (CTM_TEX_MAP_1 or higher).
+/// @param[in] aProperty Which texture map property to return.
+/// @return A floating point value, representing the texture map property given
+///         by \c aProperty.
+/// @see CTMenum
+CTMEXPORT CTMfloat CTMCALL ctmGetTexMapFloat(CTMcontext aContext,
+  CTMenum aTexMap, CTMenum aProperty);
+
 /// Get a reference to the named vertex attribute map.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
@@ -394,6 +417,18 @@ CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
 ///       directly after the call to ctmGetAttribMapString().
 /// @see CTMenum
 CTMEXPORT const char * CTMCALL ctmGetAttribMapString(CTMcontext aContext,
+  CTMenum aAttribMap, CTMenum aProperty);
+
+/// Get information about a vertex attribute map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aAttribMap Which vertex attribute map to query (CTM_ATTRIB_MAP_1
+///            or higher).
+/// @param[in] aProperty Which vertex attribute map property to return.
+/// @return A floating point value, representing the vertex attribute map
+///         property given by \c aProperty.
+/// @see CTMenum
+CTMEXPORT CTMfloat CTMCALL ctmGetAttribMapFloat(CTMcontext aContext,
   CTMenum aAttribMap, CTMenum aProperty);
 
 /// Get information about an OpenCTM context.

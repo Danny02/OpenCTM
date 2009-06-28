@@ -1091,19 +1091,19 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Read MG2-specific header information from the stream
   if(_ctmStreamReadUINT(self) != FOURCC("MG2H"))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   self->mVertexPrecision = _ctmStreamReadFLOAT(self);
   if(self->mVertexPrecision <= 0.0f)
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   self->mNormalPrecision = _ctmStreamReadFLOAT(self);
   if(self->mNormalPrecision <= 0.0f)
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   grid.mMin[0] = _ctmStreamReadFLOAT(self);
@@ -1116,7 +1116,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
      (grid.mMax[1] < grid.mMin[1]) ||
      (grid.mMax[2] < grid.mMin[2]))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   grid.mDivision[0] = _ctmStreamReadUINT(self);
@@ -1124,7 +1124,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   grid.mDivision[2] = _ctmStreamReadUINT(self);
   if((grid.mDivision[0] < 1) || (grid.mDivision[1] < 1) || (grid.mDivision[2] < 1))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
 
@@ -1135,7 +1135,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Read vertices
   if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   intVertices = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 3);
@@ -1154,7 +1154,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   if(_ctmStreamReadUINT(self) != FOURCC("GIDX"))
   {
     free((void *) intVertices);
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   gridIndices = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
@@ -1185,7 +1185,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Read triangle indices
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
   if(!_ctmStreamReadPackedInts(self, (CTMint *) self->mIndices, self->mTriangleCount, 3, CTM_FALSE))
@@ -1215,7 +1215,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       free((void *) intNormals);
       return CTM_FALSE;
     }
@@ -1248,7 +1248,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       free((void *) intTexCoords);
       return CTM_FALSE;
     }
@@ -1257,7 +1257,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     map->mPrecision = _ctmStreamReadFLOAT(self);
     if(map->mPrecision <= 0.0f)
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       free((void *) intTexCoords);
       return CTM_FALSE;
     }
@@ -1288,7 +1288,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
     if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       free((void *) intAttribs);
       return CTM_FALSE;
     }
@@ -1296,7 +1296,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     map->mPrecision = _ctmStreamReadFLOAT(self);
     if(map->mPrecision <= 0.0f)
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       free((void *) intAttribs);
       return CTM_FALSE;
     }

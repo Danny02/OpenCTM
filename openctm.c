@@ -169,12 +169,14 @@ CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError)
       return "CTM_OUT_OF_MEMORY";
     case CTM_FILE_ERROR:
       return "CTM_FILE_ERROR";
-    case CTM_FORMAT_ERROR:
-      return "CTM_FORMAT_ERROR";
+    case CTM_BAD_FORMAT:
+      return "CTM_BAD_FORMAT";
     case CTM_LZMA_ERROR:
       return "CTM_LZMA_ERROR";
     case CTM_INTERNAL_ERROR:
       return "CTM_INTERNAL_ERROR";
+    case CTM_UNSUPPORTED_FORMAT_VERSION:
+      return "CTM_UNSUPPORTED_FORMAT_VERSION";
     default:
       return "Unknown error code";
   }
@@ -205,11 +207,37 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
     case CTM_HAS_NORMALS:
       return self->mNormals ? CTM_TRUE : CTM_FALSE;
 
+    case CTM_COMPRESSION_METHOD:
+      return (CTMuint) self->mMethod;
+
     default:
       self->mError = CTM_INVALID_ARGUMENT;
   }
 
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+// ctmGetFloat()
+//-----------------------------------------------------------------------------
+CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return 0.0f;
+
+  switch(aProperty)
+  {
+    case CTM_VERTEX_PRECISION:
+      return self->mVertexPrecision;
+
+    case CTM_NORMAL_PRECISION:
+      return self->mNormalPrecision;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return 0.0f;
 }
 
 //-----------------------------------------------------------------------------
@@ -364,6 +392,44 @@ CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
+// ctmGetTexMapFloat()
+//-----------------------------------------------------------------------------
+CTMEXPORT CTMfloat CTMCALL ctmGetTexMapFloat(CTMcontext aContext,
+  CTMenum aTexMap, CTMenum aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
+  if(!self) return 0.0f;
+
+  // Find the indicated map
+  map = self->mTexMaps;
+  i = CTM_TEX_MAP_1;
+  while(map && (i != aTexMap))
+  {
+    ++ i;
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return 0.0f;
+  }
+
+  // Get the requested string
+  switch(aProperty)
+  {
+    case CTM_PRECISION:
+      return map->mPrecision;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return 0.0f;
+}
+
+//-----------------------------------------------------------------------------
 // ctmGetAttribMapString()
 //-----------------------------------------------------------------------------
 CTMEXPORT const char * CTMCALL ctmGetAttribMapString(CTMcontext aContext,
@@ -399,6 +465,44 @@ CTMEXPORT const char * CTMCALL ctmGetAttribMapString(CTMcontext aContext,
   }
 
   return (const char *) 0;
+}
+
+//-----------------------------------------------------------------------------
+// ctmGetAttribMapFloat()
+//-----------------------------------------------------------------------------
+CTMEXPORT CTMfloat CTMCALL ctmGetAttribMapFloat(CTMcontext aContext,
+  CTMenum aAttribMap, CTMenum aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMfloatmap * map;
+  CTMuint i;
+  if(!self) return 0.0f;
+
+  // Find the indicated map
+  map = self->mAttribMaps;
+  i = CTM_ATTRIB_MAP_1;
+  while(map && (i != aAttribMap))
+  {
+    ++ i;
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return 0.0f;
+  }
+
+  // Get the requested string
+  switch(aProperty)
+  {
+    case CTM_PRECISION:
+      return map->mPrecision;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return 0.0f;
 }
 
 //-----------------------------------------------------------------------------
@@ -978,13 +1082,13 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
   // Read header from stream
   if(_ctmStreamReadUINT(self) != FOURCC("OCTM"))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return;
   }
   formatVersion = _ctmStreamReadUINT(self);
   if(formatVersion != _CTM_FORMAT_VERSION)
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_UNSUPPORTED_FORMAT_VERSION;
     return;
   }
   method = _ctmStreamReadUINT(self);
@@ -996,19 +1100,19 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
     self->mMethod = CTM_METHOD_MG2;
   else
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return;
   }
   self->mVertexCount = _ctmStreamReadUINT(self);
   if(self->mVertexCount == 0)
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return;
   }
   self->mTriangleCount = _ctmStreamReadUINT(self);
   if(self->mTriangleCount == 0)
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return;
   }
   self->mTexMapCount = _ctmStreamReadUINT(self);

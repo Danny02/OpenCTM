@@ -119,7 +119,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   // Read triangle indices
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return 0;
   }
   for(i = 0; i < self->mTriangleCount * 3; ++ i)
@@ -128,7 +128,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   // Read vertices
   if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
   {
-    self->mError = CTM_FORMAT_ERROR;
+    self->mError = CTM_BAD_FORMAT;
     return 0;
   }
   for(i = 0; i < self->mVertexCount * 3; ++ i)
@@ -139,7 +139,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       return 0;
     }
     for(i = 0; i < self->mVertexCount * 3; ++ i)
@@ -152,7 +152,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       return 0;
     }
     _ctmStreamReadSTRING(self, &map->mName);
@@ -168,7 +168,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
     {
-      self->mError = CTM_FORMAT_ERROR;
+      self->mError = CTM_BAD_FORMAT;
       return 0;
     }
     _ctmStreamReadSTRING(self, &map->mName);

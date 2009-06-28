@@ -53,6 +53,11 @@ class ctm_error: public std::exception
     {
       return ctmErrorString(mErrorCode);
     }
+
+    CTMenum error_code() const throw()
+    {
+      return mErrorCode;
+    }
 };
 
 
@@ -111,7 +116,15 @@ class CTMimporter {
       return res;
     }
 
-    /// Wrapper for ctmGetError()
+    /// Wrapper for ctmGetFloat()
+    CTMfloat GetFloat(CTMenum aProperty)
+    {
+      CTMfloat res = ctmGetFloat(mContext, aProperty);
+      CheckError();
+      return res;
+    }
+
+    /// Wrapper for ctmGetIntegerArray()
     const CTMuint * GetIntegerArray(CTMenum aProperty)
     {
       const CTMuint * res = ctmGetIntegerArray(mContext, aProperty);
@@ -143,6 +156,14 @@ class CTMimporter {
       return res;
     }
 
+    /// Wrapper for ctmGetTexMapFloat()
+    CTMfloat GetTexMapFloat(CTMenum aTexMap, CTMenum aProperty)
+    {
+      CTMfloat res = ctmGetTexMapFloat(mContext, aTexMap, aProperty);
+      CheckError();
+      return res;
+    }
+
     /// Wrapper for ctmGetNamedAttribMap()
     CTMenum GetNamedAttribMap(const char * aName)
     {
@@ -155,6 +176,14 @@ class CTMimporter {
     const char * GetAttribMapString(CTMenum aAttribMap, CTMenum aProperty)
     {
       const char * res = ctmGetAttribMapString(mContext, aAttribMap, aProperty);
+      CheckError();
+      return res;
+    }
+
+    /// Wrapper for ctmGetAttribMapFloat()
+    CTMfloat GetAttribMapFloat(CTMenum aAttribMap, CTMenum aProperty)
+    {
+      CTMfloat res = ctmGetAttribMapFloat(mContext, aAttribMap, aProperty);
       CheckError();
       return res;
     }
