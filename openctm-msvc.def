@@ -7,14 +7,17 @@ EXPORTS
     ctmDefineMesh
     ctmFileComment
     ctmFreeContext
+    ctmGetAttribMapFloat
     ctmGetAttribMapString
     ctmGetError
+    ctmGetFloat
     ctmGetFloatArray
     ctmGetInteger
     ctmGetIntegerArray
     ctmGetNamedAttribMap
     ctmGetNamedTexMap
     ctmGetString
+    ctmGetTexMapFloat
     ctmGetTexMapString
     ctmErrorString
     ctmLoad

@@ -55,7 +55,7 @@ type
 //------------------------------------------------------------------------------
 
 const
-  CTM_API_VERSION = $00000006;
+  CTM_API_VERSION = $00000007;
   CTM_TRUE  = 1;
   CTM_FALSE = 0;
 
@@ -67,9 +67,10 @@ const
   CTM_INVALID_MESH      = $0004;
   CTM_OUT_OF_MEMORY     = $0005;
   CTM_FILE_ERROR        = $0006;
-  CTM_FORMAT_ERROR      = $0007;
+  CTM_BAD_FORMAT        = $0007;
   CTM_LZMA_ERROR        = $0008;
   CTM_INTERNAL_ERROR    = $0009;
+  CTM_UNSUPPORTED_FORMAT_VERSION = $000A;
   CTM_IMPORT            = $0101;
   CTM_EXPORT            = $0102;
   CTM_METHOD_RAW        = $0201;
@@ -80,9 +81,13 @@ const
   CTM_HAS_NORMALS       = $0303;
   CTM_TEX_MAP_COUNT     = $0304;
   CTM_ATTRIB_MAP_COUNT  = $0305;
-  CTM_FILE_COMMENT      = $0401;
+  CTM_VERTEX_PRECISION  = $0306;
+  CTM_NORMAL_PRECISION  = $0307;
+  CTM_COMPRESSION_METHOD = $0308;
+  CTM_FILE_COMMENT      = $0309;
   CTM_NAME              = $0501;
   CTM_FILE_NAME         = $0502;
+  CTM_PRECISION         = $0503;
   CTM_INDICES           = $0601;
   CTM_VERTICES          = $0602;
   CTM_NORMALS           = $0603;
@@ -113,12 +118,15 @@ procedure ctmFreeContext(AContext: TCTMcontext); stdcall;
 function ctmGetError(AContext: TCTMcontext): TCTMenum; stdcall;
 function ctmErrorString(AError: TCTMenum): PChar; stdcall;
 function ctmGetInteger(AContext: TCTMcontext; AProperty: TCTMenum): TCTMuint; stdcall;
+function ctmGetFloat(AContext: TCTMcontext; AProperty: TCTMenum): TCTMfloat; stdcall;
 function ctmGetIntegerArray(AContext: TCTMcontext; AProperty: TCTMenum): PCTMuint; stdcall;
 function ctmGetFloatArray(AContext: TCTMcontext; AProperty: TCTMenum): PCTMfloat; stdcall;
 function ctmGetNamedTexMap(AContext: TCTMcontext; AName: PChar): TCTMenum; stdcall;
 function ctmGetTexMapString(AContext: TCTMcontext; ATexMap: TCTMenum; AProperty: TCTMenum): PChar; stdcall;
+function ctmGetTexMapFloat(AContext: TCTMcontext; ATexMap: TCTMenum; AProperty: TCTMenum): TCTMfloat; stdcall;
 function ctmGetNamedAttribMap(AContext: TCTMcontext; AName: PChar): TCTMenum; stdcall;
 function ctmGetAttribMapString(AContext: TCTMcontext; AAttribMap: TCTMenum; AProperty: TCTMenum): PChar; stdcall;
+function ctmGetAttribMapFloat(AContext: TCTMcontext; AAttribMap: TCTMenum; AProperty: TCTMenum): TCTMfloat; stdcall;
 function ctmGetString(AContext: TCTMcontext; AProperty: TCTMenum): PChar; stdcall;
 procedure ctmCompressionMethod(AContext: TCTMcontext; AMethod: TCTMenum); stdcall;
 procedure ctmVertexPrecision(AContext: TCTMcontext; APrecision: TCTMfloat); stdcall;
@@ -150,12 +158,15 @@ procedure ctmFreeContext; external DLLNAME;
 function ctmGetError; external DLLNAME;
 function ctmErrorString; external DLLNAME;
 function ctmGetInteger; external DLLNAME;
+function ctmGetFloat; external DLLNAME;
 function ctmGetIntegerArray; external DLLNAME;
 function ctmGetFloatArray; external DLLNAME;
 function ctmGetNamedTexMap; external DLLNAME;
 function ctmGetTexMapString; external DLLNAME;
+function ctmGetTexMapFloat; external DLLNAME;
 function ctmGetNamedAttribMap; external DLLNAME;
 function ctmGetAttribMapString; external DLLNAME;
+function ctmGetAttribMapFloat; external DLLNAME;
 function ctmGetString; external DLLNAME;
 procedure ctmCompressionMethod; external DLLNAME;
 procedure ctmVertexPrecision; external DLLNAME;

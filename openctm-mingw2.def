@@ -7,22 +7,25 @@ EXPORTS
     ctmDefineMesh@24 @5
     ctmFileComment@8 @6
     ctmFreeContext@4 @7
-    ctmGetAttribMapString@12 @8
-    ctmGetError@4 @9
-    ctmGetFloatArray@8 @10
-    ctmGetInteger@8 @11
-    ctmGetIntegerArray@8 @12
-    ctmGetNamedAttribMap@8 @13
-    ctmGetNamedTexMap@8 @14
-    ctmGetString@8 @15
-    ctmGetTexMapString@12 @16
-    ctmErrorString@4 @17
-    ctmLoad@8 @18
-    ctmLoadCustom@12 @19
-    ctmNewContext@4 @20
-    ctmNormalPrecision@8 @21
-    ctmSave@8 @22
-    ctmSaveCustom@12 @23
-    ctmTexCoordPrecision@12 @24
-    ctmVertexPrecision@8 @25
-    ctmVertexPrecisionRel@8 @26
+    ctmGetAttribMapFloat@12 @8
+    ctmGetAttribMapString@12 @9
+    ctmGetError@4 @10
+    ctmGetFloat@8 @11
+    ctmGetFloatArray@8 @12
+    ctmGetInteger@8 @13
+    ctmGetIntegerArray@8 @14
+    ctmGetNamedAttribMap@8 @15
+    ctmGetNamedTexMap@8 @16
+    ctmGetString@8 @17
+    ctmGetTexMapFloat@12 @18
+    ctmGetTexMapString@12 @19
+    ctmErrorString@4 @20
+    ctmLoad@8 @21
+    ctmLoadCustom@12 @22
+    ctmNewContext@4 @23
+    ctmNormalPrecision@8 @24
+    ctmSave@8 @25
+    ctmSaveCustom@12 @26
+    ctmTexCoordPrecision@12 @27
+    ctmVertexPrecision@8 @28
+    ctmVertexPrecisionRel@8 @29
