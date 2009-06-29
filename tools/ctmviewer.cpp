@@ -3,14 +3,14 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include "mesh.h"
-
 #include <GL/glew.h>
 #ifdef __APPLE_CC__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+#include <jpeglib.h>
+#include "mesh.h"
 
 using namespace std;
 
@@ -137,18 +137,39 @@ void InitShader()
 /// Initialize the texture.
 void InitTexture(const char * aFileName)
 {
-  unsigned char * data;
-  int width, height, components;
+  unsigned char * data = 0;
+  int width = 256, height = 256, components = 1;
 
+  // Load texture from a JPEG file
   if(aFileName)
   {
-    // Load the texture from a file
-    // FIXME
-    width = height = 256;
-    components = 1;
-    data = 0;
+    FILE * inFile;
+    if((inFile = fopen(aFileName, "rb")) != NULL)
+    {
+      struct jpeg_decompress_struct cinfo;
+      struct jpeg_error_mgr jerr;
+      cinfo.err = jpeg_std_error(&jerr);
+      jpeg_create_decompress(&cinfo);
+      jpeg_stdio_src(&cinfo, inFile);
+      jpeg_read_header(&cinfo, TRUE);
+      jpeg_start_decompress(&cinfo);
+      width = cinfo.output_width;
+      height = cinfo.output_height;
+      components = cinfo.output_components;
+      data = new unsigned char[width * height * components];
+      for(int i = 0; i < height; ++ i)
+      {
+        unsigned char * scanLines[1];
+        scanLines[0] = &data[(height - 1 - i) * width * components];
+	      jpeg_read_scanlines(&cinfo, scanLines, 1);
+      }
+      jpeg_finish_decompress(&cinfo);
+      jpeg_destroy_decompress(&cinfo);
+    }
   }
-  else
+
+  // If no texture was loaded
+  if(!data)
   {
     // Create a default, synthetic texture
     width = height = 256;
