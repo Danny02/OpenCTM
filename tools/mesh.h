@@ -120,6 +120,7 @@ class Mesh {
     void BoundingBox(Vector3 &aMin, Vector3 &aMax);
 
     std::string mComment;
+    std::string mTexFileName;
     std::vector<int> mIndices;
     std::vector<Vector3> mVertices;
     std::vector<Vector3> mNormals;

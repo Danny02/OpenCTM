@@ -34,6 +34,7 @@ Vector3 Normalize(Vector3 v)
 void Mesh::Clear()
 {
   mComment = string("");
+  mTexFileName = string("");
   mIndices.clear();
   mVertices.clear();
   mNormals.clear();
@@ -98,6 +99,11 @@ void Mesh::LoadFromFile(const char * aFileName)
       mTexCoords[i].u = texCoords[i * 2];
       mTexCoords[i].v = texCoords[i * 2 + 1];
     }
+    const char * str = ctm.GetTexMapString(CTM_TEX_MAP_1, CTM_FILE_NAME);
+    if(str)
+      mTexFileName = string(str);
+    else
+      mTexFileName = string("");
   }
 
   // Extract colors

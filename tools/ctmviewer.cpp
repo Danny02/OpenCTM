@@ -146,6 +146,7 @@ void InitTexture(const char * aFileName)
     FILE * inFile;
     if((inFile = fopen(aFileName, "rb")) != NULL)
     {
+      cout << "Loading texture (" << aFileName << ")..." << endl;
       struct jpeg_decompress_struct cinfo;
       struct jpeg_error_mgr jerr;
       cinfo.err = jpeg_std_error(&jerr);
@@ -171,6 +172,8 @@ void InitTexture(const char * aFileName)
   // If no texture was loaded
   if(!data)
   {
+    cout << "Loading texture (dummy)..." << endl;
+
     // Create a default, synthetic texture
     width = height = 256;
     components = 1;
@@ -194,8 +197,6 @@ void InitTexture(const char * aFileName)
     texHandle = 0;
   if(texHandle)
   {
-    cout << "Loading texture..." << endl;
-
     // Determine the color format
     GLuint format;
     if(components == 3)
@@ -615,9 +616,9 @@ void KeyDown(unsigned char key, int x, int y)
 int main(int argc, char **argv)
 {
   // Usage?
-  if(argc != 2)
+  if((argc < 2) || (argc > 3))
   {
-    cout << "Usage: ctmviewer file" << endl;
+    cout << "Usage: ctmviewer file [texturefile]" << endl;
     return 0;
   }
 
@@ -672,7 +673,15 @@ int main(int argc, char **argv)
 
     // Load the texture
     if(mesh.mTexCoords.size() == mesh.mVertices.size())
-      InitTexture(0);
+    {
+      string texFileName = mesh.mTexFileName;
+      if(argc >= 3)
+        texFileName = string(argv[2]);
+      if(texFileName.size() > 0)
+        InitTexture(texFileName.c_str());
+      else
+        InitTexture(0);
+    }
 
     // Load the phong shader, if we can
     if(GLEW_VERSION_2_0)
