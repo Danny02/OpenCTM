@@ -204,7 +204,10 @@ int main(int argc, char ** argv)
     cout << "  --cprec arg     Set color precision" << endl;
     cout << endl << " Miscellaneous" << endl;
     cout << "  --comment arg   Set the file comment (default is to use the comment" << endl;
-    cout << "                  from the input file, if any." << endl;
+    cout << "                  from the input file, if any)." << endl;
+    cout << "  --texfile arg   Set the texture file name reference for the texture" << endl;
+    cout << "                  (default is to use the texture file name reference" << endl;
+    cout << "                  from the input file, if any)." << endl;
     return 0;
   }
 
@@ -233,6 +236,10 @@ int main(int argc, char ** argv)
     // Override comment?
     if(opt.mComment.size() > 0)
       mesh.mComment = opt.mComment;
+
+    // Override texture file name?
+    if(opt.mTexFileName.size() > 0)
+      mesh.mTexFileName = opt.mTexFileName;
 
     // Save output file
     cout << "Saving " << outFile << "..." << endl;

@@ -146,7 +146,10 @@ void Mesh::SaveToFile(const char * aFileName, Options &aOptions)
   // Define texture coordinates
   if(mTexCoords.size() > 0)
   {
-    CTMenum map = ctm.AddTexMap(&mTexCoords[0].u, "Diffuse color", NULL);
+    const char * fileName = NULL;
+    if(mTexFileName.size() > 0)
+      fileName = mTexFileName.c_str();
+    CTMenum map = ctm.AddTexMap(&mTexCoords[0].u, "Diffuse color", fileName);
     ctm.TexCoordPrecision(map, aOptions.mTexMapPrecision);
   }
 

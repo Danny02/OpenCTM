@@ -29,6 +29,7 @@ class Options {
     CTMfloat mColorPrecision;
 
     std::string mComment;
+    std::string mTexFileName;
 };
 
 #endif // __CONVOPTIONS_H_

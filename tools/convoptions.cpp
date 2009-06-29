@@ -18,6 +18,8 @@ Options::Options()
   mNormalPrecision = 1.0f / 256.0f;
   mTexMapPrecision = 1.0f / 4096.0f;
   mColorPrecision = 1.0f / 256.0f;
+  mComment = string("");
+  mTexFileName = string("");
 }
 
 /// Convert a string to a floating point value
@@ -102,6 +104,11 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
     else if((cmd == string("--comment")) && (i < (argc - 1)))
     {
       mComment = string(argv[i + 1]);
+      ++ i;
+    }
+    else if((cmd == string("--texfile")) && (i < (argc - 1)))
+    {
+      mTexFileName = string(argv[i + 1]);
       ++ i;
     }
     else
