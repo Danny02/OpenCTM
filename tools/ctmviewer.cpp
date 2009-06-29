@@ -235,9 +235,9 @@ void SetupLighting()
   // Set scene lighting properties
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-  ambient[0] = 0.05;
-  ambient[1] = 0.05;
-  ambient[2] = 0.05;
+  ambient[0] = 0.08;
+  ambient[1] = 0.08;
+  ambient[2] = 0.08;
   ambient[3] = 1.0;
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
@@ -476,14 +476,16 @@ void WindowRedraw(void)
 
   // Draw the mesh
   SetupMaterial();
-  glColor3f(0.9f, 0.86f, 0.7f);
   glEnable(GL_DEPTH_TEST);
   glPolygonMode(GL_FRONT_AND_BACK, polyMode);
   if(texHandle)
   {
     glBindTexture(GL_TEXTURE_2D, texHandle);
     glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0f, 1.0f, 1.0f);
   }
+  else
+    glColor3f(0.9f, 0.86f, 0.7f);
   glCallList(displayList);
   glDisable(GL_TEXTURE_2D);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
