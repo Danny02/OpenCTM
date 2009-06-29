@@ -27,7 +27,7 @@ ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
 
 $(JPEGDIR)/libjpeg.a:
-	cd $(JPEGDIR) && $(MAKE) -f makefile.unix libjpeg.a
+	cd $(JPEGDIR) && $(MAKE) -f makefile.linux libjpeg.a
 
 glew.o: glew/glew.c
 	gcc -c -Os -W -I$(GLEWDIR) -o $@ $<
