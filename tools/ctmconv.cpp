@@ -9,6 +9,7 @@
 #include "mesh.h"
 #include "ply.h"
 #include "stl.h"
+#include "3ds.h"
 #include <openctm.h>
 
 using namespace std;
@@ -82,6 +83,30 @@ void SaveSTL(string &aFileName, Mesh &aMesh)
   if(fout.fail())
     throw runtime_error("Could not open output file.");
   STL_Export(fout, aMesh);
+  fout.close();
+}
+
+//-----------------------------------------------------------------------------
+// Load3DS()
+//-----------------------------------------------------------------------------
+void Load3DS(string &aFileName, Mesh &aMesh)
+{
+  ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
+  if(fin.fail())
+    throw runtime_error("Could not open input file.");
+  Import_3DS(fin, aMesh);
+  fin.close();
+}
+
+//-----------------------------------------------------------------------------
+// Save3DS()
+//-----------------------------------------------------------------------------
+void Save3DS(string &aFileName, Mesh &aMesh)
+{
+  ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
+  if(fout.fail())
+    throw runtime_error("Could not open output file.");
+  Export_3DS(fout, aMesh);
   fout.close();
 }
 
@@ -225,6 +250,8 @@ int main(int argc, char ** argv)
       LoadPLY(inFile, mesh);
     else if(fileExt == string(".STL"))
       LoadSTL(inFile, mesh);
+    else if(fileExt == string(".3DS"))
+      Load3DS(inFile, mesh);
     else if(fileExt == string(".CTM"))
       LoadCTM(inFile, mesh);
     else
@@ -248,6 +275,8 @@ int main(int argc, char ** argv)
       SavePLY(outFile, mesh);
     else if(fileExt == string(".STL"))
       SaveSTL(outFile, mesh);
+    else if(fileExt == string(".3DS"))
+      Save3DS(outFile, mesh);
     else if(fileExt == string(".CTM"))
       SaveCTM(outFile, mesh, opt);
     else
