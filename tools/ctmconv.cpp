@@ -181,9 +181,9 @@ void PreProcessMesh(Mesh &aMesh, Options &aOptions)
 
   // Update all vertex coordinates
   for(CTMuint i = 0; i < aMesh.mVertices.size(); ++ i)
-    aMesh.mVertices[i] = nX * aMesh.mVertices[i].x +
-                         nY * aMesh.mVertices[i].y +
-                         nZ * aMesh.mVertices[i].z;
+    aMesh.mVertices[i] = vX * aMesh.mVertices[i].x +
+                         vY * aMesh.mVertices[i].y +
+                         vZ * aMesh.mVertices[i].z;
 
   // Update all normals
   for(CTMuint i = 0; i < aMesh.mNormals.size(); ++ i)
