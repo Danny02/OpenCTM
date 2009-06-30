@@ -18,7 +18,7 @@ import os
 
 
 __author__ = "Marcus Geelnard"
-__version__ = "0.1"
+__version__ = "0.2"
 __bpydoc__ = """\
 This script exports OpenCTM files from Blender. It supports normals,
 colours, and texture coordinates per vertex. Only one mesh can be exported
@@ -35,6 +35,10 @@ at a time.
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
+#
+# v0.2, 2009-06-30
+#    - Added precision settings for MG2 export
+#    - Added some error checking
 #
 # v0.1, 2009-05-31
 #    - First test version with an alpha version of the OpenCTM API
@@ -90,6 +94,41 @@ def file_callback(filename):
 	else:
 		EXPORT_COLORS = False
 	EXPORT_MG2 = EXPORT_MG2.val
+
+	# If the user wants to export MG2, then show another GUI...
+	if EXPORT_MG2:
+		pupBlock = []
+		EXPORT_VPREC = Draw.Create(0.01)
+		pupBlock.append(('Vertex', EXPORT_VPREC, 0.0001, 1.0, 'Relative vertex precision (fixed point).'))
+		if EXPORT_NORMALS:
+			EXPORT_NPREC = Draw.Create(1.0/256.0)
+			pupBlock.append(('Normal', EXPORT_NPREC, 0.0001, 1.0, 'Normal precision (fixed point).'))
+		if EXPORT_UV:
+			EXPORT_UVPREC = Draw.Create(1.0/1024.0)
+			pupBlock.append(('UV', EXPORT_UVPREC, 0.0001, 1.0, 'UV precision (fixed point).'))
+		if EXPORT_COLORS:
+			EXPORT_CPREC = Draw.Create(1.0/256.0)
+			pupBlock.append(('Color', EXPORT_CPREC, 0.0001, 1.0, 'Color precision (fixed point).'))
+		if not Draw.PupBlock('Fixed point precision...', pupBlock):
+			return
+
+	# Adjust export settings according to GUI selections
+	if EXPORT_MG2:
+		EXPORT_VPREC = EXPORT_VPREC.val
+	else:
+		EXPORT_VPREC = 0.1
+	if EXPORT_MG2 and EXPORT_NORMALS:
+		EXPORT_NPREC = EXPORT_NPREC.val
+	else:
+		EXPORT_NPREC = 0.1
+	if EXPORT_MG2 and EXPORT_UV:
+		EXPORT_UVPREC = EXPORT_UVPREC.val
+	else:
+		EXPORT_UVPREC = 0.1
+	if EXPORT_MG2 and EXPORT_COLORS:
+		EXPORT_CPREC = EXPORT_CPREC.val
+	else:
+		EXPORT_CPREC = 0.1
 
 	is_editmode = Blender.Window.EditMode()
 	if is_editmode:
@@ -202,6 +241,12 @@ def file_callback(filename):
 		ctmNewContext.restype = c_void_p
 		ctmFreeContext = libHDL.ctmFreeContext
 		ctmFreeContext.argtypes = [c_void_p]
+		ctmGetError = libHDL.ctmGetError
+		ctmGetError.argtypes = [c_void_p]
+		ctmGetError.restype = c_int
+		ctmErrorString = libHDL.ctmErrorString
+		ctmErrorString.argtypes = [c_int]
+		ctmErrorString.restype = c_char_p
 		ctmFileComment = libHDL.ctmFileComment
 		ctmFileComment.argtypes = [c_void_p, c_char_p]
 		ctmDefineMesh = libHDL.ctmDefineMesh
@@ -218,6 +263,12 @@ def file_callback(filename):
 		ctmCompressionMethod.argtypes = [c_void_p, c_int]
 		ctmVertexPrecisionRel = libHDL.ctmVertexPrecisionRel
 		ctmVertexPrecisionRel.argtypes = [c_void_p, c_float]
+		ctmNormalPrecision = libHDL.ctmNormalPrecision
+		ctmNormalPrecision.argtypes = [c_void_p, c_float]
+		ctmTexCoordPrecision = libHDL.ctmTexCoordPrecision
+		ctmTexCoordPrecision.argtypes = [c_void_p, c_int, c_float]
+		ctmAttribPrecision = libHDL.ctmAttribPrecision
+		ctmAttribPrecision.argtypes = [c_void_p, c_int, c_float]
 
 		# Create an OpenCTM context
 		ctm = ctmNewContext(0x0102)  # CTM_EXPORT
@@ -230,21 +281,35 @@ def file_callback(filename):
 
 			# Add texture coordinates?
 			if EXPORT_UV:
-				ctmAddTexMap(ctm, ptexCoords, c_char_p(), c_char_p())
+				tm = ctmAddTexMap(ctm, ptexCoords, c_char_p(), c_char_p())
+				if EXPORT_MG2:
+					ctmTexCoordPrecision(ctm, tm, EXPORT_UVPREC)
 
 			# Add colors?
 			if EXPORT_COLORS:
-				ctmAddAttribMap(ctm, pcolors, c_char_p('Colors'))
+				cm = ctmAddAttribMap(ctm, pcolors, c_char_p('Colors'))
+				if EXPORT_MG2:
+					ctmAttribPrecision(ctm, cm, EXPORT_CPREC)
 
 			# Set compression method
 			if EXPORT_MG2:
 				ctmCompressionMethod(ctm, 0x0203)  # CTM_METHOD_MG2
-				ctmVertexPrecisionRel(ctm, 0.01)
+				ctmVertexPrecisionRel(ctm, EXPORT_VPREC)
+				if EXPORT_NORMALS:
+					ctmNormalPrecision(ctm, EXPORT_NPREC)
+
 			else:
 				ctmCompressionMethod(ctm, 0x0202)  # CTM_METHOD_MG1
 
 			# Save the file
 			ctmSave(ctm, c_char_p(filename))
+
+			# Check for errors
+			e = ctmGetError(ctm)
+			if e != 0:
+				s = ctmErrorString(e)
+				Blender.Draw.PupMenu('Error%t|Could not save the file: ' + s)
+
 		finally:
 			# Free the OpenCTM context
 			ctmFreeContext(ctm)

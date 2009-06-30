@@ -19,7 +19,7 @@ import os
 
 
 __author__ = "Marcus Geelnard"
-__version__ = "0.1"
+__version__ = "0.2"
 __bpydoc__ = """\
 This script imports OpenCTM files into Blender. It supports normals,
 colours, and texture coordinates per vertex.
@@ -35,6 +35,9 @@ colours, and texture coordinates per vertex.
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
+#
+# v0.2, 2009-06-30
+#    - Better error reporting
 #
 # v0.1, 2009-05-31
 #    - First test version with an alpha version of the OpenCTM API
@@ -66,6 +69,9 @@ def file_callback(filename):
 		ctmGetError = libHDL.ctmGetError
 		ctmGetError.argtypes = [c_void_p]
 		ctmGetError.restype = c_int
+		ctmErrorString = libHDL.ctmErrorString
+		ctmErrorString.argtypes = [c_int]
+		ctmErrorString.restype = c_char_p
 		ctmLoad = libHDL.ctmLoad
 		ctmLoad.argtypes = [c_void_p, c_char_p]
 		ctmGetInteger = libHDL.ctmGetInteger
@@ -91,7 +97,8 @@ def file_callback(filename):
 			ctmLoad(ctm, c_char_p(filename))
 			err = ctmGetError(ctm)
 			if err != 0:
-				Blender.Draw.PupMenu('Could not load the file (error code %d)' % err)
+				s = ctmErrorString(err)
+				Blender.Draw.PupMenu('Could not load the file: ' + s)
 				return
 
 			# Get the mesh properties
