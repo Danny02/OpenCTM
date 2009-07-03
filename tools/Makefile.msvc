@@ -8,13 +8,13 @@ CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(JPEGDIR) /I$(GLEWDIR) /D
 all: ctmconv.exe ctmviewer.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ply.obj stl.obj 3ds.obj mesh.obj glew.obj
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj glew.obj
 
-ctmconv.exe: ctmconv.obj convoptions.obj ply.obj stl.obj 3ds.obj mesh.obj $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ply.obj stl.obj 3ds.obj mesh.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+ctmconv.exe: ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
 
-ctmviewer.exe: ctmviewer.obj convoptions.obj mesh.obj glew.obj $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.objmesh.obj glew.obj /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
+ctmviewer.exe: ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj glew.obj $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj glew.obj /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
 
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<
@@ -23,6 +23,7 @@ ctmconv.obj: ctmconv.cpp convoptions.h ply.h stl.h mesh.h
 ctmviewer.obj: ctmviewer.cpp mesh.h
 convoptions.obj: convoptions.cpp convoptions.h
 mesh.obj: mesh.cpp mesh.h convoptions.h
+ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h
 ply.obj: ply.cpp ply.h mesh.h
 stl.obj: stl.cpp stl.h mesh.h
 3ds.obj: 3ds.cpp 3ds.h mesh.h
