@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <fstream>
 #include <vector>
 #include <list>
 #include "3ds.h"
@@ -137,24 +138,32 @@ static void WriteVector3(ostream &aStream, Vector3 aValue)
   WriteInt32(aStream, val.i);
 }
 
-/// Import a 3DS file from a stream.
-void Import_3DS(istream &aStream, Mesh &aMesh)
+/// Import a 3DS file from a file.
+void Import_3DS(const char * aFileName, Mesh &aMesh)
 {
-  uint16 chunk, count;
-  uint32 chunkLen;
+  // Clear the mesh
+  aMesh.Clear();
+
+  // Open the input file
+  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open input file.");
 
   // Get file size
-  aStream.seekg(0, ios_base::end);
-  uint32 fileSize = aStream.tellg();
-  aStream.seekg(0, ios_base::beg);
+  f.seekg(0, ios_base::end);
+  uint32 fileSize = f.tellg();
+  f.seekg(0, ios_base::beg);
 
   // Check file size (rough initial check)
   if(fileSize < 6)
     throw runtime_error("Invalid 3DS file format.");
 
+  uint16 chunk, count;
+  uint32 chunkLen;
+
   // Read & check file header identifier
-  chunk = ReadInt16(aStream);
-  chunkLen = ReadInt32(aStream);
+  chunk = ReadInt16(f);
+  chunkLen = ReadInt32(f);
   if((chunk != CHUNK_MAIN) || (chunkLen != fileSize))
     throw runtime_error("Invalid 3DS file format.");
 
@@ -162,11 +171,11 @@ void Import_3DS(istream &aStream, Mesh &aMesh)
   Obj3DS * obj = 0;
   list<Obj3DS> objList;
   bool hasUVCoords = false;
-  while(aStream.tellg() < fileSize)
+  while(f.tellg() < fileSize)
   {
     // Read next chunk
-    chunk = ReadInt16(aStream);
-    chunkLen = ReadInt32(aStream);
+    chunk = ReadInt16(f);
+    chunkLen = ReadInt32(f);
 
     // What chunk did we get?
     switch(chunk)
@@ -178,7 +187,7 @@ void Import_3DS(istream &aStream, Mesh &aMesh)
       // Object -> Step into
       case CHUNK_OBJECT:
         // Skip object name (null terminated string)
-        while((aStream.tellg() < fileSize) && aStream.get());
+        while((f.tellg() < fileSize) && f.get());
 
         // Create a new object
         objList.push_back(Obj3DS());
@@ -191,57 +200,60 @@ void Import_3DS(istream &aStream, Mesh &aMesh)
 
       // Vertex list (point coordinates)
       case CHUNK_VERTEXLIST:
-        count = ReadInt16(aStream);
+        count = ReadInt16(f);
         if((!obj) || ((obj->mVertices.size() > 0) && (obj->mVertices.size() != count)))
         {
-          aStream.seekg(count * 12, ios_base::cur);
+          f.seekg(count * 12, ios_base::cur);
           break;
         }
         if(obj->mVertices.size() == 0)
           obj->mVertices.resize(count);
         for(uint16 i = 0; i < count; ++ i)
-          obj->mVertices[i] = ReadVector3(aStream);
+          obj->mVertices[i] = ReadVector3(f);
         break;
 
       // Texture map coordinates (UV coordinates)
       case CHUNK_MAPPINGCOORDS:
-        count = ReadInt16(aStream);
+        count = ReadInt16(f);
         if((!obj) || ((obj->mUVCoords.size() > 0) && (obj->mUVCoords.size() != count)))
         {
-          aStream.seekg(count * 8, ios_base::cur);
+          f.seekg(count * 8, ios_base::cur);
           break;
         }
         if(obj->mUVCoords.size() == 0)
           obj->mUVCoords.resize(count);
         for(uint16 i = 0; i < count; ++ i)
-          obj->mUVCoords[i] = ReadVector2(aStream);
+          obj->mUVCoords[i] = ReadVector2(f);
         if(count > 0)
           hasUVCoords = true;
         break;
 
       // Face description (triangle indices)
       case CHUNK_FACES:
-        count = ReadInt16(aStream);
+        count = ReadInt16(f);
         if(!obj)
         {
-          aStream.seekg(count * 8, ios_base::cur);
+          f.seekg(count * 8, ios_base::cur);
           break;
         }
         if(obj->mIndices.size() == 0)
           obj->mIndices.resize(3 * count);
         for(uint32 i = 0; i < count; ++ i)
         {
-          obj->mIndices[i * 3] = ReadInt16(aStream);
-          obj->mIndices[i * 3 + 1] = ReadInt16(aStream);
-          obj->mIndices[i * 3 + 2] = ReadInt16(aStream);
-          ReadInt16(aStream); // Skip face flag
+          obj->mIndices[i * 3] = ReadInt16(f);
+          obj->mIndices[i * 3 + 1] = ReadInt16(f);
+          obj->mIndices[i * 3 + 2] = ReadInt16(f);
+          ReadInt16(f); // Skip face flag
         }
         break;
         
       default:      // Unknown/ignored - skip past this one
-        aStream.seekg(chunkLen - 6, ios_base::cur);
+        f.seekg(chunkLen - 6, ios_base::cur);
     }
   }
+
+  // Close the input file
+  f.close();
 
   // Convert the loaded object list to the mesh structore (merge all geometries)
   aMesh.Clear();
@@ -272,8 +284,8 @@ void Import_3DS(istream &aStream, Mesh &aMesh)
   }
 }
 
-/// Export a 3DS file to a stream.
-void Export_3DS(ostream &aStream, Mesh &aMesh)
+/// Export a 3DS file to a file.
+void Export_3DS(const char * aFileName, Mesh &aMesh)
 {
   // First, check that the mesh fits in a 3DS file (at most 65535 triangles
   // and 65535 vertices are supported).
@@ -304,83 +316,88 @@ void Export_3DS(ostream &aStream, Mesh &aMesh)
     triMeshSize += 8 + 8 * vertCount;
 
   // Calculate the total file size
-  uint32 fileSize = 34 + objName.size() + 1 + materialSize + triMeshSize;
+  uint32 fileSize = 38 + objName.size() + 1 + materialSize + triMeshSize;
+
+  // Open the output file
+  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open output file.");
 
   // Write file header
-  WriteInt16(aStream, CHUNK_MAIN);
-  WriteInt32(aStream, fileSize);
-  WriteInt16(aStream, CHUNK_M3D_VERSION);
-  WriteInt32(aStream, 6 + 4);
-  WriteInt32(aStream, 0x00000003);
+  WriteInt16(f, CHUNK_MAIN);
+  WriteInt32(f, fileSize);
+  WriteInt16(f, CHUNK_M3D_VERSION);
+  WriteInt32(f, 6 + 4);
+  WriteInt32(f, 0x00000003);
 
   // 3D Edit chunk
-  WriteInt16(aStream, CHUNK_3DEDIT);
-  WriteInt32(aStream, 16 + materialSize + objName.size() + 1 + triMeshSize);
-  WriteInt16(aStream, CHUNK_MESH_VERSION);
-  WriteInt32(aStream, 6 + 4);
-  WriteInt32(aStream, 0x00000003);
+  WriteInt16(f, CHUNK_3DEDIT);
+  WriteInt32(f, 16 + materialSize + objName.size() + 1 + triMeshSize);
+  WriteInt16(f, CHUNK_MESH_VERSION);
+  WriteInt32(f, 6 + 4);
+  WriteInt32(f, 0x00000003);
 
   // Material chunk
   if(materialSize > 0)
   {
-    WriteInt16(aStream, CHUNK_MAT_ENTRY);
-    WriteInt32(aStream, materialSize);
-    WriteInt16(aStream, CHUNK_MAT_NAME);
-    WriteInt32(aStream, 6 + matName.size() + 1);
-    aStream.write(matName.c_str(), matName.size() + 1);
-    WriteInt16(aStream, CHUNK_MAT_TEXMAP);
-    WriteInt32(aStream, 12 + aMesh.mTexFileName.size() + 1);
-    WriteInt16(aStream, CHUNK_MAT_MAPNAME);
-    WriteInt32(aStream, 6 + aMesh.mTexFileName.size() + 1);
-    aStream.write(aMesh.mTexFileName.c_str(), aMesh.mTexFileName.size() + 1);
+    WriteInt16(f, CHUNK_MAT_ENTRY);
+    WriteInt32(f, materialSize);
+    WriteInt16(f, CHUNK_MAT_NAME);
+    WriteInt32(f, 6 + matName.size() + 1);
+    f.write(matName.c_str(), matName.size() + 1);
+    WriteInt16(f, CHUNK_MAT_TEXMAP);
+    WriteInt32(f, 12 + aMesh.mTexFileName.size() + 1);
+    WriteInt16(f, CHUNK_MAT_MAPNAME);
+    WriteInt32(f, 6 + aMesh.mTexFileName.size() + 1);
+    f.write(aMesh.mTexFileName.c_str(), aMesh.mTexFileName.size() + 1);
   }
 
   // Object chunk
-  WriteInt16(aStream, CHUNK_OBJECT);
-  WriteInt32(aStream, 6 + objName.size() + 1 + triMeshSize);
-  aStream.write(objName.c_str(), objName.size() + 1);
+  WriteInt16(f, CHUNK_OBJECT);
+  WriteInt32(f, 6 + objName.size() + 1 + triMeshSize);
+  f.write(objName.c_str(), objName.size() + 1);
 
   // Triangle Mesh chunk
-  WriteInt16(aStream, CHUNK_TRIMESH);
-  WriteInt32(aStream, triMeshSize);
+  WriteInt16(f, CHUNK_TRIMESH);
+  WriteInt32(f, triMeshSize);
 
   // Vertex List chunk
-  WriteInt16(aStream, CHUNK_VERTEXLIST);
-  WriteInt32(aStream, 8 + 12 * vertCount);
-  WriteInt16(aStream, vertCount);
+  WriteInt16(f, CHUNK_VERTEXLIST);
+  WriteInt32(f, 8 + 12 * vertCount);
+  WriteInt16(f, vertCount);
   for(uint32 i = 0; i < vertCount; ++ i)
-    WriteVector3(aStream, aMesh.mVertices[i]);
+    WriteVector3(f, aMesh.mVertices[i]);
 
   // Mapping Coordinates chunk
   if(hasUVCoors)
   {
-    WriteInt16(aStream, CHUNK_MAPPINGCOORDS);
-    WriteInt32(aStream, 8 + 8 * vertCount);
-    WriteInt16(aStream, vertCount);
+    WriteInt16(f, CHUNK_MAPPINGCOORDS);
+    WriteInt32(f, 8 + 8 * vertCount);
+    WriteInt16(f, vertCount);
     for(uint32 i = 0; i < vertCount; ++ i)
-      WriteVector2(aStream, aMesh.mTexCoords[i]);
+      WriteVector2(f, aMesh.mTexCoords[i]);
   }
 
   // Faces chunk
-  WriteInt16(aStream, CHUNK_FACES);
-  WriteInt32(aStream, 8 + 8 * triCount);
-  WriteInt16(aStream, triCount);
+  WriteInt16(f, CHUNK_FACES);
+  WriteInt32(f, 8 + 8 * triCount);
+  WriteInt16(f, triCount);
   for(uint32 i = 0; i < triCount; ++ i)
   {
-    WriteInt16(aStream, uint16(aMesh.mIndices[i * 3]));
-    WriteInt16(aStream, uint16(aMesh.mIndices[i * 3 + 1]));
-    WriteInt16(aStream, uint16(aMesh.mIndices[i * 3 + 2]));
-    WriteInt16(aStream, 0);
+    WriteInt16(f, uint16(aMesh.mIndices[i * 3]));
+    WriteInt16(f, uint16(aMesh.mIndices[i * 3 + 1]));
+    WriteInt16(f, uint16(aMesh.mIndices[i * 3 + 2]));
+    WriteInt16(f, 0);
   }
 
   // Material Group chunk
   if(matGroupSize > 0)
   {
-    WriteInt16(aStream, CHUNK_MSH_MAT_GROUP);
-    WriteInt32(aStream, matGroupSize);
-    aStream.write(matName.c_str(), matName.size() + 1);
-    WriteInt16(aStream, triCount);
+    WriteInt16(f, CHUNK_MSH_MAT_GROUP);
+    WriteInt32(f, matGroupSize);
+    f.write(matName.c_str(), matName.size() + 1);
+    WriteInt16(f, triCount);
     for(uint16 i = 0; i < triCount; ++ i)
-      WriteInt16(aStream, i);
+      WriteInt16(f, i);
   }
 }

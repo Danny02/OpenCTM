@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -78,25 +79,30 @@ class SortVertex {
     }
 };
 
-/// Import an STL file from a stream.
-void STL_Import(istream &aStream, Mesh &aMesh)
+/// Import an STL file from a file.
+void Import_STL(const char * aFileName, Mesh &aMesh)
 {
   // Clear the mesh
   aMesh.Clear();
 
+  // Open the input file
+  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open input file.");
+
   // Get the file size
-  aStream.seekg(0, ios_base::end);
-  uint32 fileSize = (uint32) aStream.tellg();
-  aStream.seekg(0, ios_base::beg);
+  f.seekg(0, ios_base::end);
+  uint32 fileSize = (uint32) f.tellg();
+  f.seekg(0, ios_base::beg);
   if(fileSize < 84)
     throw runtime_error("Invalid format - not a valid STL file.");
 
   // Read header (80 character comment + triangle count)
   char comment[81];
-  aStream.read(comment, 80);
+  f.read(comment, 80);
   comment[80] = 0;
   aMesh.mComment = string(comment);
-  uint32 triangleCount = ReadInt32(aStream);
+  uint32 triangleCount = ReadInt32(f);
   if(fileSize != (84 + triangleCount * 50))
     throw runtime_error("Invalid format - not a valid STL file.");
 
@@ -108,12 +114,12 @@ void STL_Import(istream &aStream, Mesh &aMesh)
     for(uint32 i = 0; i < triangleCount; ++ i)
     {
       // Skip the flat normal
-      aStream.seekg(12, ios_base::cur);
+      f.seekg(12, ios_base::cur);
 
       // Read the three triangle vertices
       for(uint32 j = 0; j < 3; ++ j)
       {
-        Vector3 v = ReadVector3(aStream);
+        Vector3 v = ReadVector3(f);
         uint32 index = i * 3 + j;
         vertices[index].x = v.x;
         vertices[index].y = v.y;
@@ -122,7 +128,7 @@ void STL_Import(istream &aStream, Mesh &aMesh)
       }
 
       // Ignore the two fill bytes
-      aStream.seekg(2, ios_base::cur);
+      f.seekg(2, ios_base::cur);
     }
 
     // Make sure that no redundant copies of vertices exist (STL files are full
@@ -148,11 +154,19 @@ void STL_Import(istream &aStream, Mesh &aMesh)
     }
     aMesh.mVertices.resize(vertIdx + 1);
   }
+
+  // Close the input file
+  f.close();
 }
 
-/// Export an STL file to a stream.
-void STL_Export(ostream &aStream, Mesh &aMesh)
+/// Export an STL file to a file.
+void Export_STL(const char * aFileName, Mesh &aMesh)
 {
+  // Open the output file
+  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open output file.");
+
   // Write header (80-character comment + triangle count)
   char comment[80];
   for(uint32 i = 0; i < 80; ++ i)
@@ -162,9 +176,9 @@ void STL_Export(ostream &aStream, Mesh &aMesh)
     else
       comment[i] = 0;
   }
-  aStream.write(comment, 80);
+  f.write(comment, 80);
   uint32 triangleCount = aMesh.mIndices.size() / 3;
-  WriteInt32(aStream, triangleCount);
+  WriteInt32(f, triangleCount);
 
   // Write the triangle data
   for(uint32 i = 0; i < triangleCount; ++ i)
@@ -180,15 +194,18 @@ void STL_Export(ostream &aStream, Mesh &aMesh)
     Vector3 n = Normalize(Cross(n1, n2));
 
     // Write the triangle normal
-    WriteVector3(aStream, n);
+    WriteVector3(f, n);
 
     // Coordinates
-    WriteVector3(aStream, v1);
-    WriteVector3(aStream, v2);
-    WriteVector3(aStream, v3);
+    WriteVector3(f, v1);
+    WriteVector3(f, v2);
+    WriteVector3(f, v3);
 
     // Set the two fill bytes to zero
-    aStream.put(0);
-    aStream.put(0);
+    f.put(0);
+    f.put(0);
   }
+
+  // Close the output file
+  f.close();
 }

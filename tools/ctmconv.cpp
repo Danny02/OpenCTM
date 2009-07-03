@@ -1,16 +1,14 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <sstream>
 #include <cctype>
 #include "convoptions.h"
 #include "mesh.h"
+#include "ctm.h"
 #include "ply.h"
 #include "stl.h"
 #include "3ds.h"
-#include <openctm.h>
 
 using namespace std;
 
@@ -36,96 +34,6 @@ string ExtractFileExt(const string &aString)
   if(extPos != string::npos)
     result = aString.substr(extPos);
   return result;
-}
-
-//-----------------------------------------------------------------------------
-// LoadPLY()
-//-----------------------------------------------------------------------------
-void LoadPLY(string &aFileName, Mesh &aMesh)
-{
-  ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
-  if(fin.fail())
-    throw runtime_error("Could not open input file.");
-  PLY_Import(fin, aMesh);
-  fin.close();
-}
-
-//-----------------------------------------------------------------------------
-// SavePLY()
-//-----------------------------------------------------------------------------
-void SavePLY(string &aFileName, Mesh &aMesh)
-{
-  ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
-  if(fout.fail())
-    throw runtime_error("Could not open output file.");
-  PLY_Export(fout, aMesh);
-  fout.close();
-}
-
-//-----------------------------------------------------------------------------
-// LoadSTL()
-//-----------------------------------------------------------------------------
-void LoadSTL(string &aFileName, Mesh &aMesh)
-{
-  ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
-  if(fin.fail())
-    throw runtime_error("Could not open input file.");
-  STL_Import(fin, aMesh);
-  fin.close();
-}
-
-//-----------------------------------------------------------------------------
-// SaveSTL()
-//-----------------------------------------------------------------------------
-void SaveSTL(string &aFileName, Mesh &aMesh)
-{
-  ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
-  if(fout.fail())
-    throw runtime_error("Could not open output file.");
-  STL_Export(fout, aMesh);
-  fout.close();
-}
-
-//-----------------------------------------------------------------------------
-// Load3DS()
-//-----------------------------------------------------------------------------
-void Load3DS(string &aFileName, Mesh &aMesh)
-{
-  ifstream fin(aFileName.c_str(), ios_base::in | ios_base::binary);
-  if(fin.fail())
-    throw runtime_error("Could not open input file.");
-  Import_3DS(fin, aMesh);
-  fin.close();
-}
-
-//-----------------------------------------------------------------------------
-// Save3DS()
-//-----------------------------------------------------------------------------
-void Save3DS(string &aFileName, Mesh &aMesh)
-{
-  ofstream fout(aFileName.c_str(), ios_base::out | ios_base::binary);
-  if(fout.fail())
-    throw runtime_error("Could not open output file.");
-  Export_3DS(fout, aMesh);
-  fout.close();
-}
-
-//-----------------------------------------------------------------------------
-// LoadCTM()
-//-----------------------------------------------------------------------------
-void LoadCTM(string &aFileName, Mesh &aMesh)
-{
-  // Import OpenCTM file
-  aMesh.LoadFromFile(aFileName.c_str());
-}
-
-//-----------------------------------------------------------------------------
-// SaveCTM()
-//-----------------------------------------------------------------------------
-void SaveCTM(string &aFileName, Mesh &aMesh, Options &aOptions)
-{
-  // Export OpenCTM file
-  aMesh.SaveToFile(aFileName.c_str(), aOptions);
 }
 
 //-----------------------------------------------------------------------------
@@ -238,22 +146,20 @@ int main(int argc, char ** argv)
 
   try
   {
-    string fileExt;
-
     // Define mesh
     Mesh mesh;
 
     // Load input file
     cout << "Loading " << inFile << "..." << endl;
-    fileExt = UpperCase(ExtractFileExt(inFile));
+    string fileExt = UpperCase(ExtractFileExt(inFile));
     if(fileExt == string(".PLY"))
-      LoadPLY(inFile, mesh);
+      Import_PLY(inFile.c_str(), mesh);
     else if(fileExt == string(".STL"))
-      LoadSTL(inFile, mesh);
+      Import_STL(inFile.c_str(), mesh);
     else if(fileExt == string(".3DS"))
-      Load3DS(inFile, mesh);
+      Import_3DS(inFile.c_str(), mesh);
     else if(fileExt == string(".CTM"))
-      LoadCTM(inFile, mesh);
+      Import_CTM(inFile.c_str(), mesh);
     else
       throw runtime_error("Unknown input file extension.");
 
@@ -272,13 +178,13 @@ int main(int argc, char ** argv)
     cout << "Saving " << outFile << "..." << endl;
     fileExt = UpperCase(ExtractFileExt(outFile));
     if(fileExt == string(".PLY"))
-      SavePLY(outFile, mesh);
+      Export_PLY(outFile.c_str(), mesh);
     else if(fileExt == string(".STL"))
-      SaveSTL(outFile, mesh);
+      Export_STL(outFile.c_str(), mesh);
     else if(fileExt == string(".3DS"))
-      Save3DS(outFile, mesh);
+      Export_3DS(outFile.c_str(), mesh);
     else if(fileExt == string(".CTM"))
-      SaveCTM(outFile, mesh, opt);
+      Export_CTM(outFile.c_str(), mesh, opt);
     else
       throw runtime_error("Unknown output file extension.");
   }

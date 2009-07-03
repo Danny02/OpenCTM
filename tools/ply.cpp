@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <string>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include "ply.h"
@@ -83,11 +84,16 @@ void ParseFace(string &aString, int &aIdx1, int &aIdx2, int &aIdx3)
   sstr >> aIdx3;
 }
 
-/// Import a PLY file from a stream.
-void PLY_Import(istream &aStream, Mesh &aMesh)
+/// Import a PLY file from a file.
+void Import_PLY(const char * aFileName, Mesh &aMesh)
 {
   // Clear the mesh
   aMesh.Clear();
+
+  // Open the input file
+  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open input file.");
 
   // Read header
   unsigned int count, vertexCount = 0, faceCount = 0;
@@ -97,16 +103,16 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
   string elementType("");
   string comment("");
   string str;
-  getline(aStream, str);
+  getline(f, str);
   if(str != string("ply"))
     throw runtime_error("Not a PLY format file.");
-  getline(aStream, str);
+  getline(f, str);
   if(str != string("format ascii 1.0"))
     throw runtime_error("Not an ASCII 1.0 PLY format file.");
   do
   {
     // Get next headr line
-    getline(aStream, str);
+    getline(f, str);
 
     if(str.substr(0, 7) == string("element"))
     {
@@ -176,10 +182,10 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
       ++ propCnt;
     }
   }
-  while((str != string("end_header")) && !aStream.eof());
+  while((str != string("end_header")) && !f.eof());
 
   // End of file?
-  if(((vertexCount > 0) || (faceCount > 0)) && aStream.eof())
+  if(((vertexCount > 0) || (faceCount > 0)) && f.eof())
     throw runtime_error("Premature end of PLY file.");
 
   // Did we get a proper vertex description?
@@ -200,7 +206,7 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
     aMesh.mColors.resize(vertexCount);
   for(unsigned int i = 0; i < vertexCount; ++ i)
   {
-    getline(aStream, str);
+    getline(f, str);
     aMesh.mVertices[i] = ParseVector3(str, xPos, yPos, zPos);
     if(sPos >= 0)
       aMesh.mTexCoords[i] = ParseVector2(str, sPos, tPos);
@@ -220,71 +226,82 @@ void PLY_Import(istream &aStream, Mesh &aMesh)
   aMesh.mIndices.resize(faceCount * 3);
   for(unsigned int i = 0; i < faceCount; ++ i)
   {
-    getline(aStream, str);
+    getline(f, str);
     int idx1, idx2, idx3;
     ParseFace(str, idx1, idx2, idx3);
     aMesh.mIndices[i * 3] = idx1;
     aMesh.mIndices[i * 3 + 1] = idx2;
     aMesh.mIndices[i * 3 + 2] = idx3;
   }
+
+  // Close the input file
+  f.close();
 }
 
-/// Export a PLY file to a stream.
-void PLY_Export(ostream &aStream, Mesh &aMesh)
+/// Export a PLY file to a file.
+void Export_PLY(const char * aFileName, Mesh &aMesh)
 {
+  // Open the output file
+  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open output file.");
+
   // Write header
-  aStream << "ply" << endl;
-  aStream << "format ascii 1.0" << endl;
+  f << "ply" << endl;
+  f << "format ascii 1.0" << endl;
   if(aMesh.mComment.size() > 0)
-    aStream << "comment " << aMesh.mComment << endl;
-  aStream << "element vertex " << aMesh.mVertices.size() << endl;
-  aStream << "property float x" << endl;
-  aStream << "property float y" << endl;
-  aStream << "property float z" << endl;
+    f << "comment " << aMesh.mComment << endl;
+  f << "element vertex " << aMesh.mVertices.size() << endl;
+  f << "property float x" << endl;
+  f << "property float y" << endl;
+  f << "property float z" << endl;
   if(aMesh.mTexCoords.size() > 0)
   {
-    aStream << "property float s" << endl;
-    aStream << "property float t" << endl;
+    f << "property float s" << endl;
+    f << "property float t" << endl;
   }
   if(aMesh.mNormals.size() > 0)
   {
-    aStream << "property float nx" << endl;
-    aStream << "property float ny" << endl;
-    aStream << "property float nz" << endl;
+    f << "property float nx" << endl;
+    f << "property float ny" << endl;
+    f << "property float nz" << endl;
   }
   if(aMesh.mColors.size() > 0)
   {
-    aStream << "property uchar red" << endl;
-    aStream << "property uchar green" << endl;
-    aStream << "property uchar blue" << endl;
+    f << "property uchar red" << endl;
+    f << "property uchar green" << endl;
+    f << "property uchar blue" << endl;
   }
-  aStream << "element face " << aMesh.mIndices.size() / 3 << endl;
-  aStream << "property list uchar int vertex_indices" << endl;
-  aStream << "end_header" << endl;
+  f << "element face " << aMesh.mIndices.size() / 3 << endl;
+  f << "property list uchar int vertex_indices" << endl;
+  f << "end_header" << endl;
 
   // Write vertices
   for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
   {
-    aStream << aMesh.mVertices[i].x << " " <<
+    f << aMesh.mVertices[i].x << " " <<
                aMesh.mVertices[i].y << " " <<
                aMesh.mVertices[i].z;
     if(aMesh.mTexCoords.size() > 0)
-      aStream << " " << aMesh.mTexCoords[i].u << " " <<
+      f << " " << aMesh.mTexCoords[i].u << " " <<
                         aMesh.mTexCoords[i].v;
     if(aMesh.mNormals.size() > 0)
-      aStream << " " << aMesh.mNormals[i].x << " " <<
+      f << " " << aMesh.mNormals[i].x << " " <<
                         aMesh.mNormals[i].y << " " <<
                         aMesh.mNormals[i].z;
     if(aMesh.mColors.size() > 0)
-      aStream << " " << int(floorf(255.0f * aMesh.mColors[i].x + 0.5f)) << " " <<
+      f << " " << int(floorf(255.0f * aMesh.mColors[i].x + 0.5f)) << " " <<
                         int(floorf(255.0f * aMesh.mColors[i].y + 0.5f)) << " " <<
                         int(floorf(255.0f * aMesh.mColors[i].z + 0.5f));
-    aStream << endl;
+    f << endl;
   }
 
   // Write faces
   for(unsigned int i = 0; i < aMesh.mIndices.size() / 3; ++ i)
-    aStream << "3 " << aMesh.mIndices[i * 3] << " " <<
+    f << "3 " << aMesh.mIndices[i * 3] << " " <<
                        aMesh.mIndices[i * 3 + 1] << " " <<
                        aMesh.mIndices[i * 3 + 2] << endl;
+
+  // Close the output file
+  f.close();
 }

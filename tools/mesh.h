@@ -104,15 +104,6 @@ class Mesh {
     /// Clear the mesh
     void Clear();
 
-    /// Load the mesh from a file
-    void LoadFromFile(const char * aFileName);
-
-    /// Save the mesh to a file
-    void SaveToFile(const char * aFileName);
-
-    /// Save the mesh to a file, with options
-    void SaveToFile(const char * aFileName, Options &aOptions);
-
     /// Calculate smooth per-vertex normals
     void CalculateNormals();
 
