@@ -1,20 +1,21 @@
 OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
+RPLYDIR = rply
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(JPEGDIR) -I$(GLEWDIR) -DGLEW_STATIC
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR) -DGLEW_STATIC
 
 all: ctmconv.exe ctmviewer.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.o ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.o ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o
 
-ctmconv.exe: ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o -lopenctm
+ctmconv.exe: ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o -lopenctm
 
-ctmviewer.exe: ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
+ctmviewer.exe: ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
 
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
@@ -31,5 +32,8 @@ stl.o: stl.cpp stl.h mesh.h
 $(JPEGDIR)/libjpeg.a:
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw libjpeg.a
 
-glew.o: glew/glew.c
+glew.o: $(GLEWDIR)/glew.c
 	gcc -c -Os -W -I$(GLEWDIR) -DGLEW_STATIC -o $@ $<
+
+rply.o: $(RPLYDIR)/rply.c
+	gcc -c -O2 -W -I$(RPLYDIR) -o $@ $<

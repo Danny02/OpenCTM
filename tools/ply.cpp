@@ -1,241 +1,187 @@
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <rply.h>
 #include "ply.h"
 
 using namespace std;
 
-/// Parse an "element" string.
-static string ParseElement(string &aLine, unsigned int &aCount)
+typedef struct {
+  Mesh * mMesh;
+  long mFaceIdx;
+  long mVertexIdx;
+  long mNormalIdx;
+  long mTexCoordIdx;
+  long mColorIdx;
+} PLYReaderState;
+
+
+static int PLYFaceCallback(p_ply_argument argument)
 {
-  // Get property name
-  string propName = aLine.substr(8);
-
-  // Get property count
-  size_t pos = propName.find(" ");
-  if(pos == string::npos)
-    throw runtime_error("Invalid PLY property description.");
-  string countStr = propName.substr(pos + 1);
-  istringstream sstr(countStr);
-  sstr >> aCount;
-
-  return propName.substr(0, pos);
+  PLYReaderState * state;
+  long dummy, length, valueIndex;
+  ply_get_argument_user_data(argument, (void **) &state, &dummy);
+  double value = ply_get_argument_value(argument);
+  ply_get_argument_property(argument, NULL, &length, &valueIndex);
+  if((valueIndex >= 0) && (valueIndex <= 2))
+    state->mMesh->mIndices[state->mFaceIdx * 3 + valueIndex] = int(value);
+  if(valueIndex == 2)
+    ++ state->mFaceIdx;
+  return 1;
 }
 
-/// Parse a 3D vector from a vertex string.
-Vector3 ParseVector3(string &aString, int aX, int aY, int aZ)
+static int PLYVertexCallback(p_ply_argument argument)
 {
-  int maxPos = aX;
-  if(aY > maxPos) maxPos = aY;
-  if(aZ > maxPos) maxPos = aZ;
-
-  Vector3 result;
-
-  istringstream sstr(aString);
-  for(int i = 0; i <= maxPos; ++ i)
+  PLYReaderState * state;
+  long index;
+  ply_get_argument_user_data(argument, (void **) &state, &index);
+  double value = ply_get_argument_value(argument);
+  switch(index)
   {
-    float value;
-    sstr >> value;
-    if(i == aX)
-      result.x = value;
-    else if(i == aY)
-      result.y = value;
-    else if(i == aZ)
-      result.z = value;
+    case 0:
+      state->mMesh->mVertices[state->mVertexIdx].x = float(value);
+      break;
+    case 1:
+      state->mMesh->mVertices[state->mVertexIdx].y = float(value);
+      break;
+    case 2:
+      state->mMesh->mVertices[state->mVertexIdx].z = float(value);
+      ++ state->mVertexIdx;
+      break;
   }
-
-  return result;
+  return 1;
 }
 
-/// Parse a 2D vector from a vertex string.
-Vector2 ParseVector2(string &aString, int aS, int aT)
+static int PLYNormalCallback(p_ply_argument argument)
 {
-  int maxPos = aS;
-  if(aT > maxPos) maxPos = aT;
-
-  Vector2 result;
-
-  istringstream sstr(aString);
-  for(int i = 0; i <= maxPos; ++ i)
+  PLYReaderState * state;
+  long index;
+  ply_get_argument_user_data(argument, (void **) &state, &index);
+  double value = ply_get_argument_value(argument);
+  switch(index)
   {
-    float value;
-    sstr >> value;
-    if(i == aS)
-      result.u = value;
-    else if(i == aT)
-      result.v = value;
+    case 0:
+      state->mMesh->mNormals[state->mNormalIdx].x = float(value);
+      break;
+    case 1:
+      state->mMesh->mNormals[state->mNormalIdx].y = float(value);
+      break;
+    case 2:
+      state->mMesh->mNormals[state->mNormalIdx].z = float(value);
+      ++ state->mNormalIdx;
+      break;
   }
-
-  return result;
+  return 1;
 }
 
-/// Parse a face string.
-void ParseFace(string &aString, int &aIdx1, int &aIdx2, int &aIdx3)
+static int PLYTexCoordCallback(p_ply_argument argument)
 {
-  istringstream sstr(aString);
-  int listCount;
-  sstr >> listCount;
-  if(listCount != 3)
-    throw runtime_error("Unsupported PLY face description (only triangles are supported).");
-  sstr >> aIdx1;
-  sstr >> aIdx2;
-  sstr >> aIdx3;
+  PLYReaderState * state;
+  long index;
+  ply_get_argument_user_data(argument, (void **) &state, &index);
+  double value = ply_get_argument_value(argument);
+  switch(index)
+  {
+    case 0:
+      state->mMesh->mTexCoords[state->mTexCoordIdx].u = float(value);
+      break;
+    case 1:
+      state->mMesh->mTexCoords[state->mTexCoordIdx].v = float(value);
+      ++ state->mTexCoordIdx;
+      break;
+  }
+  return 1;
+}
+
+static int PLYColorCallback(p_ply_argument argument)
+{
+  PLYReaderState * state;
+  long index;
+  ply_get_argument_user_data(argument, (void **) &state, &index);
+  double value = ply_get_argument_value(argument);
+  switch(index)
+  {
+    case 0:
+      state->mMesh->mColors[state->mColorIdx].x = float(value) / 255.0;
+      break;
+    case 1:
+      state->mMesh->mColors[state->mColorIdx].y = float(value) / 255.0;
+      break;
+    case 2:
+      state->mMesh->mColors[state->mColorIdx].z = float(value) / 255.0;
+      ++ state->mColorIdx;
+      break;
+  }
+  return 1;
 }
 
 /// Import a PLY file from a file.
 void Import_PLY(const char * aFileName, Mesh &aMesh)
 {
+  PLYReaderState state;
+
   // Clear the mesh
   aMesh.Clear();
 
-  // Open the input file
-  ifstream f(aFileName, ios_base::in | ios_base::binary);
-  if(f.fail())
-    throw runtime_error("Could not open input file.");
+  // Initialize the state
+  state.mMesh = &aMesh;
+  state.mFaceIdx = 0;
+  state.mVertexIdx = 0;
+  state.mNormalIdx = 0;
+  state.mTexCoordIdx = 0;
+  state.mColorIdx = 0;
 
-  // Read header
-  unsigned int count, vertexCount = 0, faceCount = 0;
-  int xPos = -1, yPos = -1, zPos = -1, sPos = -1, tPos = -1, nxPos = -1,
-      nyPos = -1, nzPos = -1, redPos = -1, greenPos = -1, bluePos = -1,
-      propCnt = 0;
-  string elementType("");
-  string comment("");
-  string str;
-  getline(f, str);
-  if(str != string("ply"))
-    throw runtime_error("Not a PLY format file.");
-  getline(f, str);
-  if(str != string("format ascii 1.0"))
-    throw runtime_error("Not an ASCII 1.0 PLY format file.");
-  do
-  {
-    // Get next headr line
-    getline(f, str);
+  // Open the PLY file
+  p_ply ply = ply_open(aFileName, NULL);
+  if(!ply)
+    throw runtime_error("Unable to open PLY file.");
+  if(!ply_read_header(ply))
+    throw runtime_error("Invalid PLY file.");
 
-    if(str.substr(0, 7) == string("element"))
-    {
-      // This is the start of a new element description
-      elementType = ParseElement(str, count);
-      if(elementType == string("vertex"))
-        vertexCount = count;
-      else if(elementType == string("face"))
-        faceCount = count;
-      propCnt = 0;
-    }
-    else if(str.substr(0, 7) == string("comment"))
-    {
-      // This is a comment line
-      string newComment = str.substr(8);
-      if(comment.size() > 0)
-        comment = comment + string(" ") + newComment;
-      else
-        comment = newComment;
-    }
-    else if(str.substr(0, 8) == string("property"))
-    {
-      // This is a property of an element description
-      string propDescr = str.substr(9);
-      if(elementType == string("vertex"))
-      {
-        // Find the position of x, y and z
-        size_t pos = propDescr.find(" ");
-        if(pos == string::npos)
-          throw runtime_error("Unsupported vertex description property.");
-        string porpName = propDescr.substr(pos + 1);
-        if(porpName == string("x"))
-          xPos = propCnt;
-        else if(porpName == string("y"))
-          yPos = propCnt;
-        else if(porpName == string("z"))
-          zPos = propCnt;
-        else if(porpName == string("s"))
-          sPos = propCnt;
-        else if(porpName == string("t"))
-          tPos = propCnt;
-        else if(porpName == string("nx"))
-          nxPos = propCnt;
-        else if(porpName == string("ny"))
-          nyPos = propCnt;
-        else if(porpName == string("nz"))
-          nzPos = propCnt;
-        else if(porpName == string("red"))
-          redPos = propCnt;
-        else if(porpName == string("green"))
-          greenPos = propCnt;
-        else if(porpName == string("blue"))
-          bluePos = propCnt;
-      }
-      else if(elementType == string("face"))
-      {
-        // We only support a single face description type right now...
-        if((propDescr != string("list uint8 int32 vertex_indices")) &&
-           (propDescr != string("list char int vertex_indices")) &&
-           (propDescr != string("list char uint vertex_indices")) &&
-           (propDescr != string("list uchar int vertex_indices")) &&
-           (propDescr != string("list uchar int vertex_index")) &&
-           (propDescr != string("list uchar uint vertex_indices")))
-          throw runtime_error("Unsupported face description property.");
-      }
+  // Set face callback
+  long faceCount = ply_set_read_cb(ply, "face", "vertex_indices", PLYFaceCallback, &state, 0);
+  if(faceCount == 0)
+    faceCount = ply_set_read_cb(ply, "face", "vertex_index", PLYFaceCallback, &state, 0);
 
-      ++ propCnt;
-    }
-  }
-  while((str != string("end_header")) && !f.eof());
+  // Set vertex callback
+  long vertexCount = ply_set_read_cb(ply, "vertex", "x", PLYVertexCallback, &state, 0);
+  ply_set_read_cb(ply, "vertex", "y", PLYVertexCallback, &state, 1);
+  ply_set_read_cb(ply, "vertex", "z", PLYVertexCallback, &state, 2);
 
-  // End of file?
-  if(((vertexCount > 0) || (faceCount > 0)) && f.eof())
-    throw runtime_error("Premature end of PLY file.");
+  // Set normal callback
+  long normalCount = ply_set_read_cb(ply, "vertex", "nx", PLYNormalCallback, &state, 0);
+  ply_set_read_cb(ply, "vertex", "ny", PLYNormalCallback, &state, 1);
+  ply_set_read_cb(ply, "vertex", "nz", PLYNormalCallback, &state, 2);
 
-  // Did we get a proper vertex description?
-  if((xPos < 0) || (yPos < 0) || (zPos < 0))
-    throw runtime_error("Incomplete PLY vertex description format (need x, y and z).");
+  // Set tex coord callback
+  long texCoordCount = ply_set_read_cb(ply, "vertex", "s", PLYTexCoordCallback, &state, 0);
+  ply_set_read_cb(ply, "vertex", "t", PLYTexCoordCallback, &state, 1);
 
-  // Did we get a comment?
-  if(comment.size() > 0)
-    aMesh.mComment = comment;
+  // Set color callback
+  long colorCount = ply_set_read_cb(ply, "vertex", "red", PLYColorCallback, &state, 0);
+  ply_set_read_cb(ply, "vertex", "green", PLYColorCallback, &state, 1);
+  ply_set_read_cb(ply, "vertex", "blue", PLYColorCallback, &state, 2);
 
-  // Read vertices
-  aMesh.mVertices.resize(vertexCount);
-  if(sPos >= 0)
-    aMesh.mTexCoords.resize(vertexCount);
-  if(nxPos >= 0)
-    aMesh.mNormals.resize(vertexCount);
-  if(redPos >= 0)
-    aMesh.mColors.resize(vertexCount);
-  for(unsigned int i = 0; i < vertexCount; ++ i)
-  {
-    getline(f, str);
-    aMesh.mVertices[i] = ParseVector3(str, xPos, yPos, zPos);
-    if(sPos >= 0)
-      aMesh.mTexCoords[i] = ParseVector2(str, sPos, tPos);
-    if(nxPos >= 0)
-      aMesh.mNormals[i] = ParseVector3(str, nxPos, nyPos, nzPos);
-    if(redPos >= 0)
-    {
-      Vector3 col = ParseVector3(str, redPos, greenPos, bluePos);
-      col.x /= 255.0f;
-      col.y /= 255.0f;
-      col.z /= 255.0f;
-      aMesh.mColors[i] = Vector4(col);
-    }
-  }
+  // Sanity check
+  if((faceCount < 1) || (vertexCount < 1))
+    throw runtime_error("Empty PLY mesh - invalid file format?");
 
-  // Read faces
+  // Prepare the mesh
   aMesh.mIndices.resize(faceCount * 3);
-  for(unsigned int i = 0; i < faceCount; ++ i)
-  {
-    getline(f, str);
-    int idx1, idx2, idx3;
-    ParseFace(str, idx1, idx2, idx3);
-    aMesh.mIndices[i * 3] = idx1;
-    aMesh.mIndices[i * 3 + 1] = idx2;
-    aMesh.mIndices[i * 3 + 2] = idx3;
-  }
+  aMesh.mVertices.resize(vertexCount);
+  aMesh.mNormals.resize(normalCount);
+  aMesh.mTexCoords.resize(texCoordCount);
+  aMesh.mColors.resize(colorCount);
 
-  // Close the input file
-  f.close();
+  // Read the PLY file
+  if(!ply_read(ply))
+    throw runtime_error("Unable to load PLY file.");
+
+  // Close the PLY file
+  ply_close(ply);
 }
 
 /// Export a PLY file to a file.
