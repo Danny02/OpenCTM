@@ -28,6 +28,7 @@
 OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
+RPLYDIR = rply
 
 CPP = cl
 CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(GLEWDIR) /DGLEW_STATIC

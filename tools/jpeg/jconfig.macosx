@@ -1,4 +1,4 @@
-/* jconfig.linux --- jconfig.h for Linux. */
+/* jconfig.mac --- jconfig.h for CodeWarrior on Apple Macintosh */
 /* see jconfig.txt for explanations */
 
 #define HAVE_PROTOTYPES
@@ -29,9 +29,8 @@
 #undef RLE_SUPPORTED		/* Utah RLE image file format */
 #define TARGA_SUPPORTED		/* Targa image file format */
 
-#undef TWO_FILE_COMMANDLINE	/* optional */
-#define USE_SETMODE		/* Needed to make one-file style work in DJGPP */
-#undef NEED_SIGNAL_CATCHER	/* Define this if you use jmemname.c */
+#define TWO_FILE_COMMANDLINE	/* Binary I/O thru stdin/stdout doesn't work */
+#undef NEED_SIGNAL_CATCHER
 #undef DONT_USE_B_MODE
 #undef PROGRESS_REPORT		/* optional */
 

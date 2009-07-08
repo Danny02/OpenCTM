@@ -28,6 +28,7 @@
 OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
+RPLYDIR = rply
 
 CPP = g++
 CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR)

@@ -28,6 +28,7 @@
 OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
+RPLYDIR = rply
 
 CPP = g++
 CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR)
@@ -56,7 +57,7 @@ stl.o: stl.cpp stl.h mesh.h
 3ds.o: 3ds.cpp 3ds.h mesh.h
 
 $(JPEGDIR)/libjpeg.a:
-	cd $(JPEGDIR) && $(MAKE) -f makefile.unix libjpeg.a
+	cd $(JPEGDIR) && $(MAKE) -f makefile.macosx libjpeg.a
 
 glew.o: $(GLEWDIR)/glew.c
 	gcc -c -Os -W -I$(GLEWDIR) -o $@ $<
