@@ -141,6 +141,19 @@ void Import_PLY(const char * aFileName, Mesh &aMesh)
   if(!ply_read_header(ply))
     throw runtime_error("Invalid PLY file.");
 
+  // Get the file comment (if any)
+  bool firstComment = true;
+  const char * comment = ply_get_next_comment(ply, NULL);
+  while(comment)
+  {
+    if(firstComment)
+      aMesh.mComment = string(comment);
+    else
+      aMesh.mComment += string(" ") + string(comment);
+    firstComment = false;
+    comment = ply_get_next_comment(ply, comment);
+  }
+
   // Set face callback
   long faceCount = ply_set_read_cb(ply, "face", "vertex_indices", PLYFaceCallback, &state, 0);
   if(faceCount == 0)
