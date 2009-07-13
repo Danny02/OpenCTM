@@ -214,7 +214,7 @@ void Import_3DS(const char * aFileName, Mesh &aMesh)
       // Object -> Step into
       case CHUNK_OBJECT:
         // Skip object name (null terminated string)
-        while((f.tellg() < fileSize) && f.get());
+        while((f.tellg() < fileSize) && f.get()) {};
 
         // Create a new object
         objList.push_back(Obj3DS());
