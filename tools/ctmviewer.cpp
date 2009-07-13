@@ -53,6 +53,15 @@ using namespace std;
 #define PI 3.141592653589793238462643f
 #endif
 
+
+//-----------------------------------------------------------------------------
+// GLSL source code (generated from source by bin2c)
+//-----------------------------------------------------------------------------
+
+#include "phong_vert.h"
+#include "phong_frag.h"
+
+
 //-----------------------------------------------------------------------------
 // UpperCase()
 //-----------------------------------------------------------------------------
@@ -111,45 +120,16 @@ void SetupScene()
                            cameraLookAt.z + 0.2f * delta);
 }
 
-/// Load a text file as a string. Use C++ delete to free the memory.
-char * LoadTextFile(const char * aFileName)
-{
-  ifstream f(aFileName, ios::binary | ios::in);
-  if(f.fail())
-    return NULL;
-
-  f.seekg(0, ios_base::end);
-  unsigned int length = f.tellg();
-  f.seekg(0, ios_base::beg);
-
-  char * result = (char *) new char[length + 1];
-  if(result)
-  {
-    f.read(result, length);
-    result[length] = 0;
-  }
-
-  return result;
-}
-
 /// Initialize the GLSL shader (requires OpenGL 2.0 or better).
 void InitShader()
 {
   // Load vertex shader
-  char *vs = LoadTextFile("phong.vert");
-  if(!vs)
-    throw runtime_error("Unable to load vertex shader.");
   vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertShader, 1, (const GLchar **) &vs, NULL);
-  delete vs;
+  glShaderSource(vertShader, 1, (const GLchar **) &phongVertSrc, NULL);
 
   // Load fragment shader
-  char *fs = LoadTextFile("phong.frag");
-  if(!fs)
-    throw runtime_error("Unable to load fragment shader.");
   fragShader = glCreateShader(GL_FRAGMENT_SHADER);	
-  glShaderSource(fragShader, 1, (const GLchar **) &fs, NULL);
-  delete fs;
+  glShaderSource(fragShader, 1, (const GLchar **) &phongFragSrc, NULL);
 
   int status;
 

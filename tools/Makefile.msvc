@@ -36,7 +36,7 @@ CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I
 all: ctmconv.exe ctmviewer.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj bin2c.exe phong_frag.h phong_vert.h
 
 ctmconv.exe: ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj $(OPENCTMDIR)\openctm.lib
 	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
@@ -47,14 +47,23 @@ ctmviewer.exe: ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mes
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<
 
-ctmconv.obj: ctmconv.cpp convoptions.h ply.h stl.h mesh.h
-ctmviewer.obj: ctmviewer.cpp mesh.h
+ctmconv.obj: ctmconv.cpp convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
+ctmviewer.obj: ctmviewer.cpp ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h
 convoptions.obj: convoptions.cpp convoptions.h
 mesh.obj: mesh.cpp mesh.h convoptions.h
 ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h
 ply.obj: ply.cpp ply.h mesh.h
 stl.obj: stl.cpp stl.h mesh.h
 3ds.obj: 3ds.cpp 3ds.h mesh.h
+
+phong_vert.h: phong.vert bin2c.exe
+	bin2c.exe phong.vert phongVertSrc > $@
+
+phong_frag.h: phong.frag bin2c
+	bin2c.exe phong.frag phongFragSrc > $@
+
+bin2c.exe: bin2c.cpp
+	$(CPP) /nologo /Ox /W3 /EHsc /Fo$@ $<
 
 $(JPEGDIR)\libjpeg.lib: 
 	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc libjpeg.lib

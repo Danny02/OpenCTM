@@ -36,7 +36,7 @@ CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR
 all: ctmconv ctmviewer
 
 clean:
-	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o
+	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
 
 ctmconv: ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o $(OPENCTMDIR)/libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o -Wl,-rpath,. -lopenctm
@@ -47,14 +47,23 @@ ctmviewer: ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
-ctmconv.o: ctmconv.cpp convoptions.h ply.h stl.h mesh.h
-ctmviewer.o: ctmviewer.cpp mesh.h
+ctmconv.o: ctmconv.cpp convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
+ctmviewer.o: ctmviewer.cpp ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h
 convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h
 ctm.o: ctm.cpp ctm.h mesh.h convoptions.h
 ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
 3ds.o: 3ds.cpp 3ds.h mesh.h
+
+phong_vert.h: phong.vert bin2c
+	./bin2c phong.vert phongVertSrc > $@
+
+phong_frag.h: phong.frag bin2c
+	./bin2c phong.frag phongFragSrc > $@
+
+bin2c: bin2c.cpp
+	$(CPP) -Os -W -Wall -o $@ $<
 
 $(JPEGDIR)/libjpeg.a:
 	cd $(JPEGDIR) && $(MAKE) -f makefile.linux libjpeg.a
