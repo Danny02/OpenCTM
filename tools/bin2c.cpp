@@ -53,18 +53,18 @@ int main(int argc, char ** argv)
   cout << "static const unsigned char " << argv[2] << "[] = {" << endl;
   while(!f.eof())
   {
-    unsigned char buf[15];
-    f.read((char *) buf, 15);
+    unsigned char buf[19];
+    f.read((char *) buf, 19);
     unsigned int count = f.gcount();
     if(count > 0)
     {
       cout << "  ";
       for(unsigned int i = 0; i < count; ++ i)
-        cout << "0x" << hex << int(buf[i]) << ",";
+        cout << int(buf[i]) << ",";
       cout << endl;
     }
   }
-  cout << "  0x00" << endl;
+  cout << "  0" << endl;
   cout << "};" << endl;
 
   // Close input file
