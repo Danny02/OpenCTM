@@ -64,7 +64,7 @@ phong_frag.h: phong.frag bin2c
 	bin2c.exe phong.frag phongFragSrc > $@
 
 bin2c.exe: bin2c.cpp
-	$(CPP) /nologo /Ox /W3 /EHsc /Fo$@ $<
+	$(CPP) /nologo /Ox /W3 /EHsc /Fe$@ bin2c.cpp
 
 ctmconv.res: ctmconv.rc openctm.ico
 	$(RC) ctmconv.rc
@@ -76,7 +76,7 @@ $(JPEGDIR)\libjpeg.lib:
 	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc libjpeg.lib
 
 glew.obj: $(GLEWDIR)\glew.c
-	cl /nologo /c /Ox /W3 /I$(GLEWDIR) /DGLEW_STATIC /Fo$@ $<
+	cl /nologo /c /Ox /W3 /I$(GLEWDIR) /DGLEW_STATIC /Fo$@ $(GLEWDIR)\glew.c
 
 rply.obj: $(RPLYDIR)\rply.c
-	cl /nologo /c /Ox /W3 /I$(RPLYDIR) /Fo$@ $<
+	cl /nologo /c /Ox /W3 /I$(RPLYDIR) /D_CRT_SECURE_NO_WARNINGS /Fo$@ $(RPLYDIR)\rply.c

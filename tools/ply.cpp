@@ -132,13 +132,13 @@ static int PLYColorCallback(p_ply_argument argument)
   switch(index)
   {
     case 0:
-      state->mMesh->mColors[state->mColorIdx].x = float(value) / 255.0;
+      state->mMesh->mColors[state->mColorIdx].x = float(value) / 255.0f;
       break;
     case 1:
-      state->mMesh->mColors[state->mColorIdx].y = float(value) / 255.0;
+      state->mMesh->mColors[state->mColorIdx].y = float(value) / 255.0f;
       break;
     case 2:
-      state->mMesh->mColors[state->mColorIdx].z = float(value) / 255.0;
+      state->mMesh->mColors[state->mColorIdx].z = float(value) / 255.0f;
       ++ state->mColorIdx;
       break;
   }

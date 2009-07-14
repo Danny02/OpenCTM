@@ -198,7 +198,7 @@ void Import_3DS(const char * aFileName, Mesh &aMesh)
   Obj3DS * obj = 0;
   list<Obj3DS> objList;
   bool hasUVCoords = false;
-  while(f.tellg() < fileSize)
+  while(uint32(f.tellg()) < fileSize)
   {
     // Read next chunk
     chunk = ReadInt16(f);
@@ -214,7 +214,7 @@ void Import_3DS(const char * aFileName, Mesh &aMesh)
       // Object -> Step into
       case CHUNK_OBJECT:
         // Skip object name (null terminated string)
-        while((f.tellg() < fileSize) && f.get()) {};
+        while((uint32(f.tellg()) < fileSize) && f.get()) {};
 
         // Create a new object
         objList.push_back(Obj3DS());
