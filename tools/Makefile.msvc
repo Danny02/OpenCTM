@@ -32,17 +32,18 @@ RPLYDIR = rply
 
 CPP = cl
 CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(GLEWDIR) /DGLEW_STATIC
+RC = rc
 
 all: ctmconv.exe ctmviewer.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj bin2c.exe phong_frag.h phong_vert.h
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj bin2c.exe phong_frag.h phong_vert.h ctmconv.res ctmviewer.res
 
-ctmconv.exe: ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+ctmconv.exe: ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) openctm.lib
 
-ctmviewer.exe: ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
+ctmviewer.exe: ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
 
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<
@@ -64,6 +65,12 @@ phong_frag.h: phong.frag bin2c
 
 bin2c.exe: bin2c.cpp
 	$(CPP) /nologo /Ox /W3 /EHsc /Fo$@ $<
+
+ctmconv.res: ctmconv.rc openctm.ico
+	$(RC) ctmconv.rc
+
+ctmviewer.res: ctmviewer.rc openctm.ico
+	$(RC) ctmviewer.rc
 
 $(JPEGDIR)\libjpeg.lib: 
 	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc libjpeg.lib

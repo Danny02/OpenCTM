@@ -32,17 +32,18 @@ RPLYDIR = rply
 
 CPP = g++
 CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR) -DGLEW_STATIC
+RC = windres
 
 all: ctmconv.exe ctmviewer.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.o ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.o ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
 
-ctmconv.exe: ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o -lopenctm
+ctmconv.exe: ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o -lopenctm
 
-ctmviewer.exe: ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
+ctmviewer.exe: ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
 
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
@@ -64,6 +65,12 @@ phong_frag.h: phong.frag bin2c
 
 bin2c.exe: bin2c.cpp
 	$(CPP) -Os -W -Wall -o $@ $<
+
+ctmconv-res.o: ctmconv.rc openctm.ico
+	$(RC) $< $@
+
+ctmviewer-res.o: ctmviewer.rc openctm.ico
+	$(RC) $< $@
 
 $(JPEGDIR)/libjpeg.a:
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw libjpeg.a
