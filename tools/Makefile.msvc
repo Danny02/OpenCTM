@@ -43,7 +43,7 @@ ctmconv.exe: ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.ob
 	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) openctm.lib
 
 ctmviewer.exe: ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
+	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
 
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<

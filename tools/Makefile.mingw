@@ -43,7 +43,7 @@ ctmconv.exe: ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmco
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o -lopenctm
 
 ctmviewer.exe: ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
+	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
 
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
