@@ -123,13 +123,17 @@ void SetupScene()
 /// Initialize the GLSL shader (requires OpenGL 2.0 or better).
 void InitShader()
 {
+  const GLchar * src[1];
+
   // Load vertex shader
   vertShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertShader, 1, (const GLchar **) &phongVertSrc, NULL);
+  src[0] = (const GLchar *) phongVertSrc;
+  glShaderSource(vertShader, 1, src, NULL);
 
   // Load fragment shader
   fragShader = glCreateShader(GL_FRAGMENT_SHADER);	
-  glShaderSource(fragShader, 1, (const GLchar **) &phongFragSrc, NULL);
+  src[0] = (const GLchar *) phongFragSrc;
+  glShaderSource(fragShader, 1, src, NULL);
 
   int status;
 
