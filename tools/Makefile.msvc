@@ -60,7 +60,7 @@ stl.obj: stl.cpp stl.h mesh.h
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@
 
-phong_frag.h: phong.frag bin2c
+phong_frag.h: phong.frag bin2c.exe
 	bin2c.exe phong.frag phongFragSrc > $@
 
 bin2c.exe: bin2c.cpp
