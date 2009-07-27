@@ -67,7 +67,7 @@ double SysTimer::PopDelta()
 #ifdef WIN32
   __int64 t;
   QueryPerformanceCounter((LARGE_INTEGER *)&t);
-  delta = double(t - mTimeStart) / double(mTimeFreq));
+  delta = double(t - mTimeStart) / double(mTimeFreq);
 #else
   struct timeval tv;
   gettimeofday(&tv, 0);
