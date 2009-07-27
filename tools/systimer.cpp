@@ -40,7 +40,7 @@ SysTimer::SysTimer()
     mTimeFreq = 0;
 #else
   struct timeval tv;
-  gettimeofday(&tv, (void *) 0);
+  gettimeofday(&tv, 0);
   mTimeStart = (long long) tv.tv_sec * (long long) 1000000 + (long long) tv.tv_usec;
 #endif
 }
@@ -54,7 +54,7 @@ void SysTimer::Push()
   mStack.push_back(double(t - mTimeStart) / double(mTimeFreq));
 #else
   struct timeval tv;
-  gettimeofday(&tv, (void *) 0);
+  gettimeofday(&tv, 0);
   long long t = (long long) tv.tv_sec * (long long) 1000000 + (long long) tv.tv_usec;
   mStack.push_back((1e-6) * double(t - mTimeStart));
 #endif
@@ -70,7 +70,7 @@ double SysTimer::PopDelta()
   delta = double(t - mTimeStart) / double(mTimeFreq));
 #else
   struct timeval tv;
-  gettimeofday(&tv, (void *) 0);
+  gettimeofday(&tv, 0);
   long long t = (long long) tv.tv_sec * (long long) 1000000 + (long long) tv.tv_usec;
   delta = (1e-6) * double(t - mTimeStart);
 #endif
