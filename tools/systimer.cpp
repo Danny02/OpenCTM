@@ -34,6 +34,10 @@ using namespace std;
 SysTimer::SysTimer()
 {
 #ifdef WIN32
+  if(QueryPerformanceFrequency((LARGE_INTEGER *)&mTimeFreq))
+    QueryPerformanceCounter((LARGE_INTEGER *)&mTimeStart);
+  else
+    mTimeFreq = 0;
 #else
   struct timeval tv;
   gettimeofday(&tv, (void *) 0);
@@ -45,7 +49,9 @@ SysTimer::SysTimer()
 void SysTimer::Push()
 {
 #ifdef WIN32
-  mStack.push_back(0.0);
+  __int64 t;
+  QueryPerformanceCounter((LARGE_INTEGER *)&t);
+  mStack.push_back(double(t - mTimeStart) / double(mTimeFreq));
 #else
   struct timeval tv;
   gettimeofday(&tv, (void *) 0);
@@ -59,7 +65,9 @@ double SysTimer::PopDelta()
 {
   double delta;
 #ifdef WIN32
-  delta = 0.0;
+  __int64 t;
+  QueryPerformanceCounter((LARGE_INTEGER *)&t);
+  delta = double(t - mTimeStart) / double(mTimeFreq));
 #else
   struct timeval tv;
   gettimeofday(&tv, (void *) 0);
