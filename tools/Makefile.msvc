@@ -37,19 +37,20 @@ RC = rc
 all: ctmconv.exe ctmviewer.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj bin2c.exe phong_frag.h phong_vert.h ctmconv.res ctmviewer.res
+	del /Q ctmconv.exe ctmviewer.exe ctmconv.obj ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj bin2c.exe phong_frag.h phong_vert.h ctmconv.res ctmviewer.res
 
-ctmconv.exe: ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmconv.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+ctmconv.exe: ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) openctm.lib
 
-ctmviewer.exe: ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmviewer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
+ctmviewer.exe: ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
 
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<
 
-ctmconv.obj: ctmconv.cpp convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
-ctmviewer.obj: ctmviewer.cpp ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h
+ctmconv.obj: ctmconv.cpp systimer.h convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
+ctmviewer.obj: ctmviewer.cpp systimer.h ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h
+systimer.obj: systimer.cpp systimer.h
 convoptions.obj: convoptions.cpp convoptions.h
 mesh.obj: mesh.cpp mesh.h convoptions.h
 ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h

@@ -32,6 +32,7 @@
 #include <iostream>
 #include <string>
 #include <cctype>
+#include "systimer.h"
 #include "convoptions.h"
 #include "mesh.h"
 #include "ctm.h"
@@ -114,7 +115,9 @@ void PreProcessMesh(Mesh &aMesh, Options &aOptions)
   vY = nY * aOptions.mScale;
   vZ = nZ * aOptions.mScale;
 
-  cout << "Processing..." << endl;
+  cout << "Processing... " << flush;
+  SysTimer timer;
+  timer.Push();
 
   // Update all vertex coordinates
   for(CTMuint i = 0; i < aMesh.mVertices.size(); ++ i)
@@ -127,6 +130,9 @@ void PreProcessMesh(Mesh &aMesh, Options &aOptions)
     aMesh.mNormals[i] = nX * aMesh.mNormals[i].x +
                         nY * aMesh.mNormals[i].y +
                         nZ * aMesh.mNormals[i].z;
+
+  double dt = timer.PopDelta();
+  cout << 1000.0 * dt << " ms" << endl;
 }
 
 
@@ -178,9 +184,14 @@ int main(int argc, char ** argv)
     // Define mesh
     Mesh mesh;
 
+    // Create a timer instance
+    SysTimer timer;
+    double dt;
+
     // Load input file
-    cout << "Loading " << inFile << "..." << endl;
+    cout << "Loading " << inFile << "... " << flush;
     string fileExt = UpperCase(ExtractFileExt(inFile));
+    timer.Push();
     if(fileExt == string(".PLY"))
       Import_PLY(inFile.c_str(), mesh);
     else if(fileExt == string(".STL"))
@@ -191,6 +202,8 @@ int main(int argc, char ** argv)
       Import_CTM(inFile.c_str(), mesh);
     else
       throw runtime_error("Unknown input file extension.");
+    dt = timer.PopDelta();
+    cout << 1000.0 * dt << " ms" << endl;
 
     // Manipulate the mesh
     PreProcessMesh(mesh, opt);
@@ -204,7 +217,8 @@ int main(int argc, char ** argv)
       mesh.mTexFileName = opt.mTexFileName;
 
     // Save output file
-    cout << "Saving " << outFile << "..." << endl;
+    cout << "Saving " << outFile << "... " << flush;
+    timer.Push();
     fileExt = UpperCase(ExtractFileExt(outFile));
     if(fileExt == string(".PLY"))
       Export_PLY(outFile.c_str(), mesh);
@@ -216,6 +230,8 @@ int main(int argc, char ** argv)
       Export_CTM(outFile.c_str(), mesh, opt);
     else
       throw runtime_error("Unknown output file extension.");
+    dt = timer.PopDelta();
+    cout << 1000.0 * dt << " ms" << endl;
   }
   catch(exception &e)
   {
