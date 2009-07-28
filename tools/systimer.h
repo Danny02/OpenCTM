@@ -28,6 +28,10 @@
 #ifndef __SYSIMER_H_
 #define __SYSIMER_H_
 
+#if defined(_WIN32)
+#define WIN32
+#endif
+
 #ifdef WIN32
 #include <windows.h>
 #else
