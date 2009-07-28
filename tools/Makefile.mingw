@@ -49,7 +49,7 @@ ctmviewer.exe: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
-ctmviewer.o: ctmviewer.cpp systimer.h ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h
+ctmviewer.o: ctmviewer.cpp systimer.h ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h $(JPEGDIR)/libjpeg.a
 systimer.o: systimer.cpp systimer.h
 convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h
