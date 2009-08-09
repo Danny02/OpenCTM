@@ -19,7 +19,7 @@ import os
 
 
 __author__ = "Marcus Geelnard"
-__version__ = "0.2"
+__version__ = "0.3"
 __bpydoc__ = """\
 This script imports OpenCTM files into Blender. It supports normals,
 colours, and texture coordinates per vertex.
@@ -35,6 +35,9 @@ colours, and texture coordinates per vertex.
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
+#
+# v0.3, 2009-08-09
+#    - Changed vertex color attribute name to "Color"
 #
 # v0.2, 2009-06-30
 #    - Better error reporting
@@ -126,7 +129,7 @@ def file_callback(filename):
 				ptexCoords = None
 
 			# Get colors
-			colorMap = ctmGetNamedAttribMap(ctm, c_char_p('Colors'))
+			colorMap = ctmGetNamedAttribMap(ctm, c_char_p('Color'))
 			if colorMap != 0:
 				pcolors = ctmGetFloatArray(ctm, colorMap)
 			else:

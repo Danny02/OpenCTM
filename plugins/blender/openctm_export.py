@@ -18,7 +18,7 @@ import os
 
 
 __author__ = "Marcus Geelnard"
-__version__ = "0.2"
+__version__ = "0.3"
 __bpydoc__ = """\
 This script exports OpenCTM files from Blender. It supports normals,
 colours, and texture coordinates per vertex. Only one mesh can be exported
@@ -35,6 +35,9 @@ at a time.
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
+#
+# v0.3, 2009-08-09
+#    - Changed vertex color attribute name to "Color"
 #
 # v0.2, 2009-06-30
 #    - Added precision settings for MG2 export
@@ -287,7 +290,7 @@ def file_callback(filename):
 
 			# Add colors?
 			if EXPORT_COLORS:
-				cm = ctmAddAttribMap(ctm, pcolors, c_char_p('Colors'))
+				cm = ctmAddAttribMap(ctm, pcolors, c_char_p('Color'))
 				if EXPORT_MG2:
 					ctmAttribPrecision(ctm, cm, EXPORT_CPREC)
 
