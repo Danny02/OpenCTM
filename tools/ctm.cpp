@@ -98,7 +98,7 @@ void Import_CTM(const char * aFileName, Mesh &aMesh)
   }
 
   // Extract colors
-  CTMenum colorAttrib = ctm.GetNamedAttribMap("Colors");
+  CTMenum colorAttrib = ctm.GetNamedAttribMap("Color");
   if(colorAttrib != CTM_NONE)
   {
     aMesh.mColors.resize(numVertices);
@@ -140,7 +140,7 @@ void Export_CTM(const char * aFileName, Mesh &aMesh, Options &aOptions)
   // Define vertex colors
   if(aMesh.mColors.size() > 0)
   {
-    CTMenum map = ctm.AddAttribMap(&aMesh.mColors[0].x, "Colors");
+    CTMenum map = ctm.AddAttribMap(&aMesh.mColors[0].x, "Color");
     ctm.AttribPrecision(map, aOptions.mColorPrecision);
   }
 
