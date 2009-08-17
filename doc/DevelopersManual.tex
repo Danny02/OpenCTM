@@ -368,13 +368,18 @@ The last error code that indicates a failure is stored per OpenCTM context
 until the ctmGetError() function is called. Calling the function will reset
 the error state.
 
+It is also possible to convert an error code to a an error string, using the
+ctmErrorString() function, which takes an error code as its argument, and
+returns a constant C string (pointer to a null terminated UTF-8 format
+character string).
+
 
 
 %-------------------------------------------------------------------------------
 
 \chapter{C++ extensions}
 To take better advantage of some of the C++ language features, such as
-exception handling, a few C++ wrapper classes is availbale through the standard
+exception handling, a few C++ wrapper classes are availbale through the standard
 API when compiling a C++ program. As usual, just include "openctm.h", and you
 will have access to two C++ classes: CTMimporer and CTMexporter.
 
