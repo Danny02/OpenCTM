@@ -1,5 +1,5 @@
-OpenCTM Format Specification - Format version 0.3
-=================================================
+OpenCTM Format Specification - Format version 5
+===============================================
 
 Copyright (c) 2009 Marcus Geelnard
 
@@ -7,7 +7,7 @@ Copyright (c) 2009 Marcus Geelnard
 1. Introduction
 ---------------
 
-This document describes version 0.3 of the OpenCTM file format.
+This document describes version 5 of the OpenCTM file format.
 
 
 2. File format specification
@@ -42,7 +42,7 @@ The file must start with a header, which looks as follows:
 Offset  Type      Description
 -------------------------------------------------------------------------------
 0       Integer   Magic identifier (0x4d54434f, or "OCTM" when read as ASCII).
-4       Integer   File format version (0x00000003 = version 0.3).
+4       Integer   File format version (0x00000005 = version 5).
 8       Integer   Compression method, which can be one of the following:
                     0x00574152 -> Use the RAW compression method.
                     0x0031474d -> Use the MG1 compression method.
@@ -71,20 +71,5 @@ defined by the "Compression method" field in the header.
 The body data contains the vertex, index, normal, texture map and attribute map
 data, usually in a compressed form.
 
-
-3. Recommendations
-------------------
-
-There are several aspects of a 3D model that are not mandated by this
-specification. However, the specification gives a set of recommendations
-(best practice) that should be followed whenever possible and applicable, in
-order to improve interchangeability of 3D data between different softwares and
-systems.
-
-Here are the recommendations:
-
-1) The "up" direction of 3D coordinates should be the positive Z axis.
-2) The unit of 3D coordinates should be meters (m).
-3) Given the three coordinates of a triangle (P1, P2, P3), the front/up
-   direction of the triangle ("flat normal") should be defined by the
-   normalized cross product: (P2 - P1) X (P3 - P1).
+Please read the source code for details on the specific body data formats
+(compressRAW.c, compressMG1.c and compressMG2.c).

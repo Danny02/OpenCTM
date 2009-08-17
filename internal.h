@@ -31,7 +31,7 @@
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
-// OpenCTM file format version (0.5).
+// OpenCTM file format version (v5).
 #define _CTM_FORMAT_VERSION  0x00000005
 
 // Flags for the Mesh flags field of the file header
