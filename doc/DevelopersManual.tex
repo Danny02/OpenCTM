@@ -253,7 +253,26 @@ Weight & $(W,0,0,0)$ & $[0,1]$ & Weight factor.\\ \hline
 
 
 \section{The OpenCTM context}
-TBD
+To be written...
+
+
+
+%-------------------------------------------------------------------------------
+
+\chapter{Compression Methods}
+To be written...
+
+
+\section{RAW}
+To be written...
+
+
+\section{MG1}
+To be written...
+
+
+\section{MG2}
+To be written...
 
 
 
@@ -311,6 +330,45 @@ ctmFreeContext(context);
 \end{lstlisting}
 
 
+\section{Creating OpenCTM files}
+To be written...
+
+
+
+%-------------------------------------------------------------------------------
+
+\chapter{Error Handling}
+An error can occur when calling any of the OpenCTM API functions. To check
+for errors, call the ctmGetError() function, which returns a positive error
+code if something went wrong, or zero (CTM\_NONE) if no error has occured.
+
+See \ref{tab:ErrorCodes} for a list of possible error codes.
+
+\begin{table}[p]
+\centering
+\begin{tabular}{|l|p{7cm}|}\hline
+\textbf{Code} & \textbf{Description}\\ \hline
+CTM\_NONE (zero) & No error has occured (everything is OK).\\ \hline
+CTM\_INVALID\_CONTEXT & The OpenCTM context was invalid (e.g. NULL).\\ \hline
+CTM\_INVALID\_ARGUMENT & A function argument was invalid.\\ \hline
+CTM\_INVALID\_OPERATION & The operation is not allowed.\\ \hline
+CTM\_INVALID\_MESH & The mesh was invalid (e.g. no vertices).\\ \hline
+CTM\_OUT\_OF\_MEMORY & Not enough memory to proceed.\\ \hline
+CTM\_FILE\_ERROR & File I/O error.\\ \hline
+CTM\_BAD\_FORMAT & File format error (e.g. unrecognized format or corrupted file).\\ \hline
+CTM\_LZMA\_ERROR & An error occured within the LZMA library.\\ \hline
+CTM\_INTERNAL\_ERROR & An internal error occured (indicates a bug).\\ \hline
+CTM\_UNSUPPORTED\_FORMAT\_VERSION & Unsupported file format version.\\ \hline
+\end{tabular}
+\caption{OpenCTM error codes.}
+\label{tab:ErrorCodes}
+\end{table}
+
+The last error code that indicates a failure is stored per OpenCTM context
+until the ctmGetError() function is called. Calling the function will reset
+the error state.
+
+
 
 %-------------------------------------------------------------------------------
 
@@ -361,7 +419,7 @@ catch(exception &e)
 
 
 \section{The CTMexporter class}
-TBD
+To be written...
 
 
 \end{document}
