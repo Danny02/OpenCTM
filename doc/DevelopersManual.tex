@@ -93,7 +93,7 @@ At a glance, the OpenCTM mesh has the following properties:
 \begin{itemize}
     \item A vertex is a set of attributes that uniquely identify the vertex.
           This includes: vertex coordinate, normal, texture coordinate(s) and
-          custom vertex attrubite(s) (such as color, weight, etc).
+          custom vertex attribute(s) (such as color, weight, etc).
     \item A triangle is described by three vertex indices.
     \item In the OpenCTM API, these mesh data are treated as arrays (an integer
           array for the triangle indices, and floating point arrays for the
@@ -198,7 +198,7 @@ It is recommended (but not required) that:
     \item \textellipsis all normals have unit lengths (i.e.
           $x_k^2+y_k^2+z_k^2=1\:\forall\:k$).
     \item \textellipsis the vertex normal points in the "out" direction of the
-          surface, as defined by the flat normals of the neighbouring triangles
+          surface, as defined by the flat normals of the neighboring triangles
           (see \ref{sec:MeshIndices}).
 \end{itemize}
 
@@ -273,26 +273,104 @@ Weight & $(W,0,0,0)$ & $[0,1]$ & Weight factor.\\ \hline
 
 
 \section{The OpenCTM context}
-To be written...
+The OpenCTM API uses a \emph{context} for almost all operations (function calls).
+The context is created and destroyed with the functions ctmNewContext() and
+ctmFreeContext(), respectively.
+
+A program may instantiate any number of contexts, and all OpenCTM function
+calls are completely thread safe (multiple threads can use the OpenCTM API
+at the same time), as long as each context instance is handled by a single
+thread.
+
+Each context is fully self contained and independent of other contexts.
+
+There are two types of OpenCTM context: \emph{import contexts} and
+\emph{export contexts}. Import contexts are used for importing OpenCTM files,
+and export contexts are used for exporting OpenCTM files.
+
+The context type is selected when creating the context.
 
 
 
 %-------------------------------------------------------------------------------
 
 \chapter{Compression Methods}
-To be written...
+The OpenCTM file format supports a few different compression methods, each
+with its own advantages and disadvantages. The API makes it possible to
+select which method to use when creating OpenCTM files (the default method
+is MG1).
 
 
 \section{RAW}
-To be written...
+The RAW compression method is not really a compression method, since it only
+stores the data in a raw, uncompressed form. The result is a file with the same
+size and data format as the in-memory mesh data structure.
+
+The RAW method is mostly useful for testing purposes, but can be preferred in
+certain situations, for instance when file writing speeds and a small memory
+footprint is more important than minimizing file sizes.
+
+Another situation where the RAW method can be useful is when you need an
+easily parsable binary file format. Usually the OpenCTM API can be used in
+almost any application, but in some environments, such as certain script
+languages or data inspecion tools, it can be handy to have access to the
+raw data.
 
 
 \section{MG1}
-To be written...
+The MG1 compression method effectively reduces the size of the mesh data
+by re-coding the connectivity information of the mesh into an easily
+compressible format. The data is then compressed using LZMA.
+
+The floating point data, such as vertex coordinates and normals, is fully
+preserved in the MG1 method, by simply applying lossless LZMA compression
+to it. 
+
+Under typical condititions, the connectivity information is compressed to
+about two bytes per triangle (17\% of the original size), and vertex data
+is compressed to about 75\% of the original size.
+
+While creating MG1 files can be a relatively slow process (compared to the
+RAW method, for instance) the reading speed is usually very high, thanks to
+the fast LZMA decoder and the uncomplicated data format.
 
 
 \section{MG2}
-To be written...
+The MG2 compression method offers the highest level of compression among the
+different OpenCTM methods. It uses the same method for compressing connectivity
+information as the MG1 method, but does a better job at compressing vertex
+data.
+
+Vertex data is converted to a fixed point representation, which allows for
+efficient, lossless, prediction based data compression algorithms.
+
+In short, the MG2 method divides the mesh into small sub-spaces, sorts the data
+geometrically, and applies delta-prediction to the data, which effectively
+lowers the data entropy. The re-coded vertex data is then compressed with
+LZMA.
+
+When using the OpenCTM API for creating MG2 files you can trade mesh resolution
+for compression ratio, and the API provides several functions for controlling
+the resolution of different vertex attributes independently. Therefor it is
+usually important to know the resolution requirements for your specific
+application when using the MG2 method.
+
+In some applications, such as games, movies and art, it is important that the
+3D model is not visually degraded by compression. In such applications
+you will typically tune your resolution settings using trial and error,
+until you find a setting that does not alter the model visually.
+
+In other applications, such as CAD/CAM, 3D scanning, calibration, etc,
+reasonable resolution settings can usually be derived from the limitations
+of the process in which the model is used. For instance, there is usually no
+need for nanometer precision in the design of an airplane wing, and there
+is little use of micrometer resolution in a manufacturing process that can
+not reproduce features smaller than 0.15 mm.
+
+As a side effect of the fact that MG2 produces smaller files than the MG1
+method does, loading files is usually faster with the MG2 method than with
+the MG1 method. Saving files with the MG2 method is about as fast as with
+the MG1 method.
 
 
 
