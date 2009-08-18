@@ -24,9 +24,29 @@
 % Document contents
 \begin{document}
 
-%--[ Title pages ]--------------------------------------------------------------
+%--[ Title page ]---------------------------------------------------------------
 
-\maketitle
+\begin{titlepage}
+\begin{center}
+~
+\vspace{5cm}
+
+\includegraphics[width=10.0cm]{logo.pdf}
+\vspace{0.4cm}
+
+{\large Software Library version 0.7 (beta)}
+
+\vspace{1.0cm}
+
+{\Large Developers Manual}
+\vspace{1.5cm}
+
+Copyright \copyright \ 2009 Marcus Geelnard
+\end{center}
+\end{titlepage}
+
+
+%--[ Table of contents ]--------------------------------------------------------
 
 \tableofcontents
 
@@ -278,7 +298,7 @@ To be written...
 
 %-------------------------------------------------------------------------------
 
-\chapter{Usage}
+\chapter{Basic Usage}
 
 \section{Prerequisites}
 To use the OpenCTM API, you need to include the OpenCTM include file, like this:
@@ -337,6 +357,21 @@ To be written...
 
 %-------------------------------------------------------------------------------
 
+\chapter{Controlling Compression}
+To be written...
+
+
+\section{Selecting the compression method}
+To be written...
+
+
+\section{Selecting fixed point precision}
+To be written...
+
+
+
+%-------------------------------------------------------------------------------
+
 \chapter{Error Handling}
 An error can occur when calling any of the OpenCTM API functions. To check
 for errors, call the ctmGetError() function, which returns a positive error
@@ -377,7 +412,7 @@ character string).
 
 %-------------------------------------------------------------------------------
 
-\chapter{C++ extensions}
+\chapter{C++ Extensions}
 To take better advantage of some of the C++ language features, such as
 exception handling, a few C++ wrapper classes are availbale through the standard
 API when compiling a C++ program. As usual, just include "openctm.h", and you
