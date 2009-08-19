@@ -404,7 +404,7 @@ CTMcontext context;
 CTMuint vertCount, triCount, * indices;
 CTMfloat * vertices;
 
-// Create a new context
+// Create a new importer context
 context = ctmNewContext(CTM_IMPORT);
 
 // Load the OpenCTM file
@@ -422,14 +422,35 @@ if(ctmGetError(context) == CTM_NONE)
   // ...
 }
 
-// Free the context (this frees all memory allocated by
-// the OpenCTM context)
+// Free the context
 ctmFreeContext(context);
 \end{lstlisting}
 
 
 \section{Creating OpenCTM files}
-To be written...
+Below is a minimal example of how to save an OpenCTM file with the OpenCTM API,
+in just a few lines of code:
+
+\begin{lstlisting}
+void MySaveFile(CTMuint aVertCount, CTMuint aTriCount,
+  CTMfloat * aVertices, CTMuint * aIndices,
+  const char * aFileName)
+{
+  CTMcontext context;
+
+  // Create a new exporter context
+  context = ctmNewContext(CTM_EXPORT);
+
+  // Define our mesh representation to OpenCTM
+  ctmDefineMesh(context, aVertices, aVertCount, aIndices, aTriCount, NULL);
+
+  // Save the OpenCTM file
+  ctmSave(context, aFileName);
+
+  // Free the context
+  ctmFreeContext(context);
+}
+\end{lstlisting}
 
 
 
@@ -507,7 +528,6 @@ The main differences between the C++ classes and the standard API are:
 \end{itemize}
 
 \section{The CTMimporter class}
-
 Here is an example of how to use the CTMimporter class in C++:
 
 \begin{lstlisting}
@@ -537,7 +557,30 @@ catch(exception &e)
 
 
 \section{The CTMexporter class}
-To be written...
+Here is an example of how to use the CTMexporter class in C++:
+
+\begin{lstlisting}
+void MySaveFile(CTMuint aVertCount, CTMuint aTriCount,
+  CTMfloat * aVertices, CTMuint * aIndices,
+  const char * aFileName)
+{
+  try
+  {
+    // Create a new OpenCTM exporter object
+    CTMexporter ctm;
+
+    // Define our mesh representation to OpenCTM
+    ctm.DefineMesh(aVertices, aVertCount, aIndices, aTriCount, NULL);
+
+    // Save the OpenCTM file
+    ctm.Save(aFileName);
+  }
+  catch(exception &e)
+  {
+    cout << "Error: " << e.what() << endl;
+  }
+}
+\end{lstlisting}
 
 
 \end{document}
