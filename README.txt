@@ -19,6 +19,7 @@ There are a few makefiles for different systems and compilers. Just pick the
 one that fits your system, and run "make" on the corresponding file. Here are
 a few specific instructions:
 
+
 2.1 Windows, MinGW32
 --------------------
 
@@ -28,19 +29,26 @@ mingw32-make -f Makefile.mingw -j2
 2.2 Windows, MS Visual Studio (Express) 2008
 --------------------------------------------
 
-nmake /fMakefile.msvc
+nmake /f Makefile.msvc
 
 
-2.3 Linux
+2.3 Mac OS X
+------------
+
+make -f Makefile.macosx -j2
+
+
+2.4 Linux
 ---------
 
 make -f Makefile.linux -j2
 
 
-2.4 Mac OS X
-------------
+2.5 OpenSolaris
+---------------
 
-make -f Makefile.macosx -j2
+gmake -f Makefile.linux -j2
+
 
 
 3. LICENSE
