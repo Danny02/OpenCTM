@@ -64,6 +64,10 @@ format files. It is mostly written for C/C++ users, but should be useful for
 other programming languages too, since the concepts and function calls are
 virtually identical regardless of programming language.
 
+For a complete reference to the OpenCTM API, please use the Doxygen generated
+OpenCTM API Reference, which describes all API functions, types, constants etc.
+
+
 
 %-------------------------------------------------------------------------------
 
@@ -78,10 +82,6 @@ The software library itself is written in standard, portable C language, but
 can be used from many other programming languages (writing language bindings
 for new languages should be fairly straight forward, since the API was written
 with cross-language portability in mind).
-
-The full documentation of the OpenCTM API can be found in the Doxygen-generated
-documentation ("API Reference"), which describes all API functions, types,
-constants etc.
 
 
 \section{The triangle mesh}
@@ -457,15 +457,136 @@ void MySaveFile(CTMuint aVertCount, CTMuint aTriCount,
 %-------------------------------------------------------------------------------
 
 \chapter{Controlling Compression}
-To be written...
+When creating OpenCTM files, one of the most important things to control with
+the API is the compression method.
 
 
 \section{Selecting the compression method}
-To be written...
+You can select which compression method to use with the ctmCompressionMethod()
+function. The different options are:
+
+\begin{tabular}{|l|l|}\hline
+\textbf{Name} & \textbf{Description}\\ \hline
+CTM\_METHOD\_RAW & Use the RAW compression method.\\ \hline
+CTM\_METHOD\_MG1 & Use the MG1 compression method (default).\\ \hline
+CTM\_METHOD\_MG2 & Use the MG2 compression method.\\ \hline
+\end{tabular}
+
+For instance, to select the MG2 compression method for a given OpenCTM context,
+use:
+
+\begin{lstlisting}
+  ctmCompressionMethod(context, CTM_METHOD_MG2);
+\end{lstlisting}
 
 
 \section{Selecting fixed point precision}
-To be written...
+When the MG2 compression method is used, further compression control is provided
+through the API that deals with the fixed point precision for different vertex
+attributes. The different attribute precisions that can be controlled are:
+
+\begin{tabular}{|l|l|}\hline
+\textbf{Attribute} & \textbf{API function}\\ \hline
+Vertex coordinate & ctmVertexPrecision() / ctmVertexPrecisionRel()\\ \hline
+Normal & ctmNormalPrecision()\\ \hline
+Texture coordinates & ctmTexCoordPrecision()\\ \hline
+Custom attributes & ctmAttribPrecision()\\ \hline
+\end{tabular}
+
+Reasonable default values for the fixed point precisions are selected by the API
+unless the corresponding API functions are called. However, the API does not know
+the requirements for the mesh, which is why it is always a good idea to specify
+the fixed point precision that is most relevant for your specific mesh.
+
+
+\subsection{Vertex coordinate precision}
+The vertex coordinate precision can be controlled in two ways:
+
+\begin{itemize}
+  \item Absolute precision - ctmVertexPrecision().
+  \item Relative precision - ctmVertexPrecisionRel().
+\end{itemize}
+
+You typically specify the absolute precision when you know the properties of the
+mesh and what is going to be used for (for instance, if it will be used in a
+measurment or manufacturing process). For example, if the vertex coordinate
+unit is meters (which is the recommended unit for OpenCTM meshes), and the
+precision is specified as 0.001, the fixed point precision will be 1 mm:
+
+\begin{lstlisting}
+  ctmVertexPrecision(context, 0.001);
+\end{lstlisting}
+
+When you do not know much about the mesh, it can be useful to specify the
+relative precision. The ctmVertexPrecisionRel() function will analyze the mesh
+to find a useful base measure, which is multiplied by a scaling factor that
+is given as an argument to the function.
+
+The relative precision function uses the average triangle edge length as the
+base measure. So for example, if you specify 0.01 as the relative precision,
+the precision will be 1\% of the average triangle edge length, which is usually
+a good figure for meshes that will be used in visualization applications:
+
+\begin{lstlisting}
+  ctmVertexPrecisionRel(context, 0.01);
+\end{lstlisting}
+
+It should be noted that unlike the ctmVertexPrecision() function, the
+ctmVertexPrecisionRel() function requires that the mesh has been specified
+before calling the function.
+
+The default vertex coordinate precision is $2^{-10} \approx 0.00098$.
+
+
+\subsection{Normal precision}
+In the MG2 compression method, each vertex normal is represented in spherical
+coordinates (the coordinate system is aligned to the average normal of all
+triangles that connect to the vertex).
+
+The precision controls both the angular resolution and the radial resolution
+(magnitude). For instance, 0.01 means that the circle is divided into 100 steps,
+and the normal magnitude is rounded to 2 decimals:
+
+\begin{lstlisting}
+  ctmNormalPrecision(context, 0.01);
+\end{lstlisting}
+
+The default normal precision is $2^{-8} \approx 0.0039$.
+
+
+\subsection{Texture coordinate precision}
+Texture coordinate precision is specified on a per texture map basis, and
+gives the absolute precision in texture coordinate space.
+
+The effects of different precisions depend on many different things, for
+instance the resolution of the texture (a 4096x4096 texture may require
+better precision than a 256x256 texture) and the resolution of the mesh.
+
+To specify a resolution of 0.001 for the texture map $texMap$, use:
+
+\begin{lstlisting}
+  ctmTexCoordPrecision(context, texMap, 0.001);
+\end{lstlisting}
+
+The default texture coordinate precision is $2^{-12} \approx 0.00024$.
+
+
+\subsection{Custom attribute precision}
+As with texture coordinates, the precision for custom vertex attributes are
+specified on a per attribute basis.
+
+The precision of a custom attribute depends entirely on the type of
+attribute. For instance, standard color attributes typically do not require
+more then eigh bits per component, which means that $1/256$ is a good
+precision setting (if the value range is $[0,1]$):
+
+\begin{lstlisting}
+  ctmAttribPrecision(context, attribMap, 1.0/256.0);
+\end{lstlisting}
+
+For integer values, the precision $1.0$ is a good choice.
+
+The default vertex attribute precision is $2^{-8} \approx 0.0039$.
 
 
 
