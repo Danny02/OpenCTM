@@ -28,7 +28,7 @@
 #ifndef __OPENCTM_H_
 #define __OPENCTM_H_
 
-/*! @mainpage OpenCTM Documentation
+/*! @mainpage OpenCTM API Reference
  *
  * @section intro_sec Introduction
  *
