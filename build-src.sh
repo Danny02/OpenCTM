@@ -11,6 +11,7 @@ make -f Makefile.linux clean
 cd jpeg
 make -f Makefile.linux clean
 cd ../..
+rm -f doc/APIReference/*
 
 # Build all the necessary files
 echo Building documentation...
@@ -59,4 +60,12 @@ cp bindings/delphi/* $tmpdir/bindings/delphi/
 # Create archives
 olddir=`pwd`
 cd $tmproot
-tar -cvjf $distname.tar.bz2 $distname
+tar -cvf $distname-src.tar $distname
+bzip2 -9 $distname-src.tar
+zip -9r $distname-src.zip $distname
+cd $olddir
+cp $tmproot/*.bz2 $tmproot/*.zip ./
+
+# Remove temporary directory
+rm -rf $tmproot
+
