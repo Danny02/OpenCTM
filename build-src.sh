@@ -38,7 +38,9 @@ cp tools/jpeg/* $tmpdir/tools/jpeg/
 mkdir $tmpdir/tools/rply
 cp tools/rply/* $tmpdir/tools/rply/
 mkdir $tmpdir/tools/glew
-cp -R tools/glew/* $tmpdir/tools/glew/
+cp tools/glew/* $tmpdir/tools/glew/
+mkdir $tmpdir/tools/glew/GL
+cp tools/glew/GL/* $tmpdir/tools/glew/GL/
 
 mkdir $tmpdir/doc
 cp doc/DevelopersManual.pdf $tmpdir/doc/
@@ -55,4 +57,6 @@ mkdir $tmpdir/bindings/delphi
 cp bindings/delphi/* $tmpdir/bindings/delphi/
 
 # Create archives
-tar -cvf $tmproot/$distname.tar $tmpdir
+olddir=`pwd`
+cd $tmproot
+tar -cvjf $distname.tar.bz2 $distname
