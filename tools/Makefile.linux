@@ -44,7 +44,7 @@ ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.
 ctmviewer: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o -Wl,-rpath,. -lopenctm -ljpeg -lglut
 
-ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.a
+ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
 
 .cpp.o:
