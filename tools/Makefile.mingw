@@ -34,10 +34,10 @@ CPP = g++
 CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR) -DGLEW_STATIC
 RC = windres
 
-all: ctmconv.exe ctmviewer.exe
+all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmconv.o ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
+	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
 
 ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o -lopenctm
@@ -45,11 +45,15 @@ ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o r
 ctmviewer.exe: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
 
+ctmbench.exe: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
+
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
 ctmviewer.o: ctmviewer.cpp systimer.h ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h $(JPEGDIR)/libjpeg.a
+ctmbench.o: ctmbench.cpp systimer.h
 systimer.o: systimer.cpp systimer.h
 convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h

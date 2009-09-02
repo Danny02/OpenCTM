@@ -33,10 +33,10 @@ RPLYDIR = rply
 CPP = g++
 CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR)
 
-all: ctmconv ctmviewer
+all: ctmconv ctmviewer ctmbench
 
 clean:
-	rm -f ctmconv ctmviewer ctmconv.o ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
+	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
 
 ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o -lopenctm
@@ -44,11 +44,15 @@ ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.
 ctmviewer: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o -lopenctm -ljpeg -framework GLUT -framework OpenGL
 
+ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.dylib
+	$(CPP) -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
+
 .cpp.o:
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h ctm.h ply.h stl.h 3ds.h mesh.h
 ctmviewer.o: ctmviewer.cpp systimer.h ctm.h ply.h stl.h 3ds.h mesh.h phong_vert.h phong_frag.h $(JPEGDIR)/libjpeg.a
+ctmbench.o: ctmbench.cpp systimer.h
 systimer.o: systimer.cpp systimer.h
 convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h
