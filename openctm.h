@@ -164,8 +164,8 @@ typedef unsigned int uint32_t;
 #endif
 
 
-/// OpenCTM API version (0.7).
-#define CTM_API_VERSION 0x00000007
+/// OpenCTM API version (0.8).
+#define CTM_API_VERSION 0x00000008
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
@@ -459,6 +459,16 @@ CTMEXPORT const char * CTMCALL ctmGetString(CTMcontext aContext,
 /// @see CTM_METHOD_RAW, CTM_METHOD_MG1, CTM_METHOD_MG2
 CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
   CTMenum aMethod);
+
+/// Set which LZMA compression level to use for the given OpenCTM context.
+/// The compression level can be between 0 (fastest) and 9 (best). The higher
+/// the compression level, the more memory is required for compression and
+/// decompression. The default compression level i 9.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aLevel Which compression level to use (0 to 9).
+CTMEXPORT void CTMCALL ctmCompressionLevel(CTMcontext aContext,
+  CTMuint aLevel);
 
 /// Set the vertex coordinate precision (only used by the MG2 compression
 /// method).

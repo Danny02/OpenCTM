@@ -271,6 +271,13 @@ class CTMexporter {
       CheckError();
     }
 
+    /// Wrapper for ctmCompressionLevel()
+    void CompressionLevel(CTMuint aLevel)
+    {
+      ctmCompressionLevel(mContext, aLevel);
+      CheckError();
+    }
+
     /// Wrapper for ctmVertexPrecision()
     void VertexPrecision(CTMfloat aPrecision)
     {

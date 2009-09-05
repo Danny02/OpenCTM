@@ -109,6 +109,7 @@ CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode)
   self->mMode = aMode;
   self->mError = CTM_NONE;
   self->mMethod = CTM_METHOD_MG1;
+  self->mCompressionLevel = 9;
   self->mVertexPrecision = 1.0f / 1024.0f;
   self->mNormalPrecision = 1.0f / 256.0f;
 
@@ -577,6 +578,33 @@ CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
 
   // Set method
   self->mMethod = aMethod;
+}
+
+//-----------------------------------------------------------------------------
+// ctmCompressionLevel()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmCompressionLevel(CTMcontext aContext,
+  CTMuint aLevel)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // You are only allowed to change compression attributes in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // Check arguments
+  if(aLevel > 9)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+
+  // Set the compression level
+  self->mCompressionLevel = aLevel;
 }
 
 //-----------------------------------------------------------------------------

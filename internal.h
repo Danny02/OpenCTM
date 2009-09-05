@@ -82,6 +82,9 @@ typedef struct {
   // The selected compression method
   CTMenum mMethod;
 
+  // The selected compression level
+  CTMuint mCompressionLevel;
+
   // Vertex coordinate precision
   CTMfloat mVertexPrecision;
 

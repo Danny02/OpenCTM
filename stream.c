@@ -308,8 +308,8 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
                          aCount * aSize * 4,
                          outProps,
                          &outPropsSize,
-                         9,                     // Level (0-9)
-                         0, -1, -1, -1, -1, -1  // Default values (set by level)
+                         self->mCompressionLevel, // Level (0-9)
+                         0, -1, -1, -1, -1, -1    // Default values (set by level)
                         );
 
   // Free temporary array
@@ -473,8 +473,8 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
                          aCount * aSize * 4,
                          outProps,
                          &outPropsSize,
-                         9,                     // Level (0-9)
-                         0, -1, -1, -1, -1, -1  // Default values (set by level)
+                         self->mCompressionLevel, // Level (0-9)
+                         0, -1, -1, -1, -1, -1    // Default values (set by level)
                         );
 
   // Free temporary array

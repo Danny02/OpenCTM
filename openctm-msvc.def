@@ -3,6 +3,7 @@ EXPORTS
     ctmAddAttribMap
     ctmAddTexMap
     ctmAttribPrecision
+    ctmCompressionLevel
     ctmCompressionMethod
     ctmDefineMesh
     ctmFileComment

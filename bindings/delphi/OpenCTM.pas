@@ -55,7 +55,7 @@ type
 //------------------------------------------------------------------------------
 
 const
-  CTM_API_VERSION = $00000007;
+  CTM_API_VERSION = $00000008;
   CTM_TRUE  = 1;
   CTM_FALSE = 0;
 
@@ -129,6 +129,7 @@ function ctmGetAttribMapString(AContext: TCTMcontext; AAttribMap: TCTMenum; APro
 function ctmGetAttribMapFloat(AContext: TCTMcontext; AAttribMap: TCTMenum; AProperty: TCTMenum): TCTMfloat; stdcall;
 function ctmGetString(AContext: TCTMcontext; AProperty: TCTMenum): PChar; stdcall;
 procedure ctmCompressionMethod(AContext: TCTMcontext; AMethod: TCTMenum); stdcall;
+procedure ctmCompressionLevel(AContext: TCTMcontext; ALevel: TCTMuint); stdcall;
 procedure ctmVertexPrecision(AContext: TCTMcontext; APrecision: TCTMfloat); stdcall;
 procedure ctmVertexPrecisionRel(AContext: TCTMcontext; ARelPrecision: TCTMfloat); stdcall;
 procedure ctmNormalPrecision(AContext: TCTMcontext; APrecision: TCTMfloat); stdcall;
@@ -169,6 +170,7 @@ function ctmGetAttribMapString; external DLLNAME;
 function ctmGetAttribMapFloat; external DLLNAME;
 function ctmGetString; external DLLNAME;
 procedure ctmCompressionMethod; external DLLNAME;
+procedure ctmCompressionLevel; external DLLNAME;
 procedure ctmVertexPrecision; external DLLNAME;
 procedure ctmVertexPrecisionRel; external DLLNAME;
 procedure ctmNormalPrecision; external DLLNAME;

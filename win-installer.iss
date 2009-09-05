@@ -5,17 +5,17 @@
 
 [Setup]
 AppName=OpenCTM
-AppVerName=OpenCTM 0.7 (beta)
-VersionInfoVersion=0.7.0.0
+AppVerName=OpenCTM 0.8 (beta)
+VersionInfoVersion=0.8.0.0
 AppPublisher=Marcus Geelnard
 AppPublisherURL=http://openctm.sourceforge.net/
 AppSupportURL=http://openctm.sourceforge.net/
 AppUpdatesURL=http://openctm.sourceforge.net/
-DefaultDirName={pf}\OpenCTM 0.7
-DefaultGroupName=OpenCTM 0.7 (beta)
+DefaultDirName={pf}\OpenCTM 0.8
+DefaultGroupName=OpenCTM 0.8 (beta)
 LicenseFile=LICENSE.txt
 OutputDir=.
-OutputBaseFilename=OpenCTM-0.7-beta-setup
+OutputBaseFilename=OpenCTM-0.8-beta-setup
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
