@@ -48,6 +48,7 @@ class Options {
     UpAxis mUpAxis;
 
     CTMenum mMethod;
+    CTMuint mLevel;
 
     CTMfloat mVertexPrecision;
     CTMfloat mVertexPrecisionRel;

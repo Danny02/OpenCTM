@@ -148,8 +148,9 @@ void Export_CTM(const char * aFileName, Mesh &aMesh, Options &aOptions)
   if(aMesh.mComment.size() > 0)
     ctm.FileComment(aMesh.mComment.c_str());
 
-  // Set compression method
+  // Set compression method and level
   ctm.CompressionMethod(aOptions.mMethod);
+  ctm.CompressionLevel(aOptions.mLevel);
 
   // Set vertex precision
   if(aOptions.mVertexPrecision > 0.0f)

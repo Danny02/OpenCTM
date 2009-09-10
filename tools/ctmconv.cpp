@@ -164,6 +164,7 @@ int main(int argc, char ** argv)
     cout << "                  be flipped." << endl;
     cout << endl << " OpenCTM output" << endl;
     cout << "  --method arg    Select compression method (RAW, MG1, MG2)" << endl;
+    cout << "  --level arg     Set the compression level (0 - 9)" << endl;
     cout << endl << " OpenCTM MG2 method" << endl;
     cout << "  --vprec arg     Set vertex precision" << endl;
     cout << "  --vprecrel arg  Set vertex precision, relative method" << endl;

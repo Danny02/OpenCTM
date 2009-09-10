@@ -40,6 +40,7 @@ Options::Options()
   mScale = 1.0f;
   mUpAxis = uaZ;
   mMethod = CTM_METHOD_MG2;
+  mLevel = 5;
   mVertexPrecision = 0.0f;
   mVertexPrecisionRel = 0.01f;
   mNormalPrecision = 1.0f / 256.0f;
@@ -58,6 +59,17 @@ static CTMfloat GetFloatArg(char * aFloatString)
   CTMfloat f;
   s >> f;
   return f;
+}
+
+/// Convert a string to an integer value
+static CTMint GetIntArg(char * aIntString)
+{
+  stringstream s;
+  s << aIntString;
+  s.seekg(0);
+  CTMint i;
+  s >> i;
+  return i;
 }
 
 /// Get options from the command line arguments
@@ -102,6 +114,14 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
         mMethod = CTM_METHOD_MG2;
       else
         throw runtime_error("Invalid method (use RAW, MG1 or MG2).");
+    }
+    else if((cmd == string("--level")) && (i < (argc - 1)))
+    {
+      CTMint val = GetIntArg(argv[i + 1]);
+      if( (val < 0) || (val > 9) )
+        throw runtime_error("Invalid compression level (it must be in the range 0 - 9).");
+      mLevel = CTMuint(val);
+      ++ i;
     }
     else if((cmd == string("--vprec")) && (i < (argc - 1)))
     {
