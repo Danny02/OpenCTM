@@ -463,7 +463,7 @@ CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
 /// Set which LZMA compression level to use for the given OpenCTM context.
 /// The compression level can be between 0 (fastest) and 9 (best). The higher
 /// the compression level, the more memory is required for compression and
-/// decompression. The default compression level i 9.
+/// decompression. The default compression level is 5.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aLevel Which compression level to use (0 to 9).
@@ -562,19 +562,14 @@ CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
   const CTMfloat * aVertices, CTMuint aVertexCount, const CTMuint * aIndices,
   CTMuint aTriangleCount, const CTMfloat * aNormals);
 
-/// Define a texture map. There can be several texture maps in a mesh. The first
-/// defined texture map is considered the "primary" texture map. Many
-/// applications only support a single texture map, and the recommended
-/// behaviour is for them to extrect the primary texture map from an OpenCTM
-/// file.
+/// Define a texture map. There can be several texture maps in a mesh.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aTexCoords An array of texture coordinates. Each texture
 ///            coordinate is made up by two consecutive floats, and there must
 ///            be as many coordinates as there are vertices in the mesh.
 /// @param[in] aName A unique name for this texture map (zero terminated UTF-8
-///            string). It is recommended that this name is human readable
-///            (e.g. "Pigment" or "Normal map").
+///            string).
 /// @param[in] aFileName A reference to a texture image file (zero terminated
 ///            UTF-8 string). If no file name reference exists, pass NULL.
 /// @return A texture map index (CTM_TEX_MAP_1 and higher). If the function
@@ -595,8 +590,7 @@ CTMEXPORT CTMenum CTMCALL ctmAddTexMap(CTMcontext aContext,
 ///            is made up by four consecutive floats, and there must be as many
 ///            values as there are vertices in the mesh.
 /// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
-///            string). It is recommended that this name is human readable
-///            (e.g. "Color" or "Ambient occlusion").
+///            string).
 /// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
 ///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
 ///         to determine the cause of the error).

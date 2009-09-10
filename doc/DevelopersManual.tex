@@ -440,7 +440,7 @@ several hundered megabytes).
   ctmCompressionMethod(context, 4);
 \end{lstlisting}
 
-The default compression level is 9.
+The default compression level is 5.
 
 
 \section{Selecting fixed point precision}
@@ -665,83 +665,6 @@ void MySaveFile(CTMuint aVertCount, CTMuint aTriCount,
   }
 }
 \end{lstlisting}
-
-
-
-%-------------------------------------------------------------------------------
-%
-%\chapter{Recommendations}
-%The OpenCMT file format is very open and flexible, and different applications
-%are free to use different conventions, for instance for units, coordinate
-%systems, attribute naming, etc.
-%
-%However, in order to create files that are easily interchangeable between
-%applications, some recommendations can be followed.
-%
-%The recommendations that are outlined in this chapter are by no means
-%mandatory, but they can serve as a guide whenever there is an option for
-%an application to select one of sveral conventions.
-%
-%
-%\section{Triangle orientation}
-%It is recommended (but not required) that:
-%\begin{itemize}
-%    \item \textellipsis given the three coordinates of a triangle,
-%          $p_1, p_2, p_3$, the front/out direction of the triangle (the "flat
-%          normal") should be defined by the normalized cross product:
-%          $(p_2-p_1)\times (p_3-p_1)$.
-%\end{itemize}
-%
-%
-%\section{Vertex coordinates}
-%It is recommended (but not required) that:
-%\begin{itemize}
-%    \item \textellipsis the "up" direction of all vertex coordinates is the
-%          positive $z$-axis.
-%    \item \textellipsis the unit of all vertex coordinates is meters ($m$).
-%\end{itemize}
-%
-%
-%\section{Normals}
-%It is recommended (but not required) that:
-%\begin{itemize}
-%    \item \textellipsis all normals have unit lengths (i.e.
-%          $x_k^2+y_k^2+z_k^2=1\:\forall\:k$).
-%    \item \textellipsis the vertex normal points in the "out" direction of the
-%          surface, as defined by the flat normals of the neighboring triangles
-%          (see \ref{sec:MeshIndices}).
-%\end{itemize}
-%
-%
-%\section{Texture coordinates}
-%It is recommended (but not required) that:
-%\begin{itemize}
-%    \item \textellipsis the texture coordinates are in the range $[0,1]$.
-%    \item \textellipsis $(u=0, v=0)$ represents the lower left corner of the
-%          texture, and $(u=1, v=1)$ represents the upper right corner of the
-%          texture.
-%\end{itemize}
-%
-%
-%\section{Custom vertex attributes}
-%It is recommended (but not required) that:
-%\begin{itemize}
-%    \item \textellipsis the value range of clamped attributes, such as color
-%          or percentage attributes, is $[0,1]$.
-%    \item \textellipsis unused components are set to either zero or one,
-%          depending on the context.
-%    \item \textellipsis the attribute map name is a descriptive name of the
-%          attribute.
-%\end{itemize}
-%
-%The following attribute names and formats should be used whenever possible to
-%represent specific information (please note that names are case sensitive):
-%
-%\begin{tabular}{|l|l|l|l|}\hline
-%\textbf{Name} & \textbf{Format $(a,b,c,d)$} & \textbf{Range} & \textbf{Description}\\ \hline
-%Color & $(R,G,B,A)$ & $[0,1]$ & Color and alpha (opacity).\\ \hline
-%\end{tabular}
-%
 
 
 \end{document}

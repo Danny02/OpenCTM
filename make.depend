@@ -3,7 +3,7 @@ stream.o: stream.c openctm.h internal.h
 compressRAW.o: compressRAW.c openctm.h internal.h
 compressMG1.o: compressMG1.c openctm.h internal.h
 compressMG2.o: compressMG2.c openctm.h internal.h
-Alloc.o: liblzma/Alloc.c liblzma/Alloc.h
+Alloc.o: liblzma/Alloc.c liblzma/Alloc.h liblzma/NameMangle.h
 LzFind.o: liblzma/LzFind.c liblzma/LzFind.h liblzma/Types.h \
   liblzma/NameMangle.h liblzma/LzHash.h
 LzmaDec.o: liblzma/LzmaDec.c liblzma/LzmaDec.h liblzma/Types.h \
