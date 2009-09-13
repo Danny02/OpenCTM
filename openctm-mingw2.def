@@ -1,7 +1,7 @@
 LIBRARY openctm.dll
 EXPORTS
     ctmAddAttribMap@12 @1
-    ctmAddTexMap@16 @2
+    ctmAddUVMap@16 @2
     ctmAttribPrecision@12 @3
     ctmCompressionLevel@8 @4
     ctmCompressionMethod@8 @5
@@ -16,10 +16,10 @@ EXPORTS
     ctmGetInteger@8 @14
     ctmGetIntegerArray@8 @15
     ctmGetNamedAttribMap@8 @16
-    ctmGetNamedTexMap@8 @17
+    ctmGetNamedUVMap@8 @17
     ctmGetString@8 @18
-    ctmGetTexMapFloat@12 @19
-    ctmGetTexMapString@12 @20
+    ctmGetUVMapFloat@12 @19
+    ctmGetUVMapString@12 @20
     ctmErrorString@4 @21
     ctmLoad@8 @22
     ctmLoadCustom@12 @23
@@ -27,6 +27,6 @@ EXPORTS
     ctmNormalPrecision@8 @25
     ctmSave@8 @26
     ctmSaveCustom@12 @27
-    ctmTexCoordPrecision@12 @28
+    ctmUVCoordPrecision@12 @28
     ctmVertexPrecision@8 @29
     ctmVertexPrecisionRel@8 @30

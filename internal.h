@@ -39,14 +39,14 @@
 
 //-----------------------------------------------------------------------------
 // _CTMfloatmap - Internal representation of a floating point based vertex map
-// (used for texture maps and attribute maps).
+// (used for UV maps and attribute maps).
 //-----------------------------------------------------------------------------
 typedef struct _CTMfloatmap_struct _CTMfloatmap;
 struct _CTMfloatmap_struct {
   char * mName;         // Unique name
-  char * mFileName;     // File name reference (used only for texture maps)
+  char * mFileName;     // File name reference (used only for UV maps)
   CTMfloat mPrecision;  // Precision for this map
-  CTMfloat * mValues;   // Attribute/texutre coordinate values (per vertex)
+  CTMfloat * mValues;   // Attribute/UV coordinate values (per vertex)
   _CTMfloatmap * mNext; // Pointer to the next map in the list (linked list)
 };
 
@@ -68,9 +68,9 @@ typedef struct {
   // Normals (optional)
   CTMfloat * mNormals;
 
-  // Multiple sets of texture coordinate maps (optional)
-  CTMuint mTexMapCount;
-  _CTMfloatmap * mTexMaps;
+  // Multiple sets of UV coordinate maps (optional)
+  CTMuint mUVMapCount;
+  _CTMfloatmap * mUVMaps;
 
   // Multiple sets of custom vertex attribute maps (optional)
   CTMuint mAttribMapCount;

@@ -83,10 +83,10 @@ static void _ctmClearMesh(_CTMcontext * self)
   self->mTriangleCount = 0;
   self->mNormals = (CTMfloat *) 0;
 
-  // Free texture coordinate map list
-  _ctmFreeMapList(self, self->mTexMaps);
-  self->mTexMaps = (_CTMfloatmap *) 0;
-  self->mTexMapCount = 0;
+  // Free UV coordinate map list
+  _ctmFreeMapList(self, self->mUVMaps);
+  self->mUVMaps = (_CTMfloatmap *) 0;
+  self->mUVMapCount = 0;
 
   // Free attribute map list
   _ctmFreeMapList(self, self->mAttribMaps);
@@ -199,8 +199,8 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
     case CTM_TRIANGLE_COUNT:
       return self->mTriangleCount;
 
-    case CTM_TEX_MAP_COUNT:
-      return self->mTexMapCount;
+    case CTM_UV_MAP_COUNT:
+      return self->mUVMapCount;
 
     case CTM_ATTRIB_MAP_COUNT:
       return self->mAttribMapCount;
@@ -273,12 +273,12 @@ CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
   CTMuint i;
   if(!self) return (CTMfloat *) 0;
 
-  // Did the user request a texture map?
-  if((aProperty >= CTM_TEX_MAP_1) &&
-     ((CTMuint)(aProperty - CTM_TEX_MAP_1) < self->mTexMapCount))
+  // Did the user request a UV map?
+  if((aProperty >= CTM_UV_MAP_1) &&
+     ((CTMuint)(aProperty - CTM_UV_MAP_1) < self->mUVMapCount))
   {
-    map = self->mTexMaps;
-    i = CTM_TEX_MAP_1;
+    map = self->mUVMaps;
+    i = CTM_UV_MAP_1;
     while(map && (i != aProperty))
     {
       map = map->mNext;
@@ -327,9 +327,9 @@ CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
-// ctmGetNamedTexMap()
+// ctmGetNamedUVMap()
 //-----------------------------------------------------------------------------
-CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
+CTMEXPORT CTMenum CTMCALL ctmGetNamedUVMap(CTMcontext aContext,
   const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
@@ -337,8 +337,8 @@ CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
   CTMuint result;
   if(!self) return CTM_NONE;
 
-  map = self->mTexMaps;
-  result = CTM_TEX_MAP_1;
+  map = self->mUVMaps;
+  result = CTM_UV_MAP_1;
   while(map && (strcmp(aName, map->mName) != 0))
   {
     map = map->mNext;
@@ -352,10 +352,10 @@ CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
-// ctmGetTexMapString()
+// ctmGetUVMapString()
 //-----------------------------------------------------------------------------
-CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
-  CTMenum aTexMap, CTMenum aProperty)
+CTMEXPORT const char * CTMCALL ctmGetUVMapString(CTMcontext aContext,
+  CTMenum aUVMap, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -363,9 +363,9 @@ CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
   if(!self) return (const char *) 0;
 
   // Find the indicated map
-  map = self->mTexMaps;
-  i = CTM_TEX_MAP_1;
-  while(map && (i != aTexMap))
+  map = self->mUVMaps;
+  i = CTM_UV_MAP_1;
+  while(map && (i != aUVMap))
   {
     ++ i;
     map = map->mNext;
@@ -393,10 +393,10 @@ CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
-// ctmGetTexMapFloat()
+// ctmGetUVMapFloat()
 //-----------------------------------------------------------------------------
-CTMEXPORT CTMfloat CTMCALL ctmGetTexMapFloat(CTMcontext aContext,
-  CTMenum aTexMap, CTMenum aProperty)
+CTMEXPORT CTMfloat CTMCALL ctmGetUVMapFloat(CTMcontext aContext,
+  CTMenum aUVMap, CTMenum aProperty)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -404,9 +404,9 @@ CTMEXPORT CTMfloat CTMCALL ctmGetTexMapFloat(CTMcontext aContext,
   if(!self) return 0.0f;
 
   // Find the indicated map
-  map = self->mTexMaps;
-  i = CTM_TEX_MAP_1;
-  while(map && (i != aTexMap))
+  map = self->mUVMaps;
+  i = CTM_UV_MAP_1;
+  while(map && (i != aUVMap))
   {
     ++ i;
     map = map->mNext;
@@ -715,10 +715,10 @@ CTMEXPORT void CTMCALL ctmNormalPrecision(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
-// ctmTexCoordPrecision()
+// ctmUVCoordPrecision()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmTexCoordPrecision(CTMcontext aContext,
-  CTMenum aTexMap, CTMfloat aPrecision)
+CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
+  CTMenum aUVMap, CTMfloat aPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
@@ -740,9 +740,9 @@ CTMEXPORT void CTMCALL ctmTexCoordPrecision(CTMcontext aContext,
   }
 
   // Find the indicated map
-  map = self->mTexMaps;
-  i = CTM_TEX_MAP_1;
-  while(map && (i != aTexMap))
+  map = self->mUVMaps;
+  i = CTM_UV_MAP_1;
+  while(map && (i != aUVMap))
   {
     ++ i;
     map = map->mNext;
@@ -959,25 +959,25 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
 }
 
 //-----------------------------------------------------------------------------
-// ctmAddTexMap()
+// ctmAddUVMap()
 //-----------------------------------------------------------------------------
-CTMEXPORT CTMenum CTMCALL ctmAddTexMap(CTMcontext aContext,
-  const CTMfloat * aTexCoords, const char * aName, const char * aFileName)
+CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext,
+  const CTMfloat * aUVCoords, const char * aName, const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
   if(!self) return CTM_NONE;
 
-  // Add a new texture map to the texture map list
-  map = _ctmAddFloatMap(self, aTexCoords, aName, aFileName, &self->mTexMaps);
+  // Add a new UV map to the UV map list
+  map = _ctmAddFloatMap(self, aUVCoords, aName, aFileName, &self->mUVMaps);
   if(!map)
     return CTM_NONE;
   else
   {
-    // The default texture coordinate precision is 2^-12
+    // The default UV coordinate precision is 2^-12
     map->mPrecision = 1.0f / 4096.0f;
-    ++ self->mTexMapCount;
-    return CTM_TEX_MAP_1 + self->mTexMapCount - 1;
+    ++ self->mUVMapCount;
+    return CTM_UV_MAP_1 + self->mUVMapCount - 1;
   }
 }
 
@@ -1143,7 +1143,7 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
     self->mError = CTM_BAD_FORMAT;
     return;
   }
-  self->mTexMapCount = _ctmStreamReadUINT(self);
+  self->mUVMapCount = _ctmStreamReadUINT(self);
   self->mAttribMapCount = _ctmStreamReadUINT(self);
   flags = _ctmStreamReadUINT(self);
   _ctmStreamReadSTRING(self, &self->mFileComment);
@@ -1173,8 +1173,8 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
     }
   }
 
-  // Allocate memory for the texture and attribute maps (if any)
-  if(!_ctmAllocateFloatMaps(self, &self->mTexMaps, self->mTexMapCount, 2))
+  // Allocate memory for the UV and attribute maps (if any)
+  if(!_ctmAllocateFloatMaps(self, &self->mUVMaps, self->mUVMapCount, 2))
   {
     _ctmClearMesh(self);
     self->mError = CTM_OUT_OF_MEMORY;
@@ -1314,7 +1314,7 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
   }
   _ctmStreamWriteUINT(self, self->mVertexCount);
   _ctmStreamWriteUINT(self, self->mTriangleCount);
-  _ctmStreamWriteUINT(self, self->mTexMapCount);
+  _ctmStreamWriteUINT(self, self->mUVMapCount);
   _ctmStreamWriteUINT(self, self->mAttribMapCount);
   _ctmStreamWriteUINT(self, flags);
   _ctmStreamWriteSTRING(self, self->mFileComment);

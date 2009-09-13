@@ -668,23 +668,23 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmMakeTexCoordDeltas() - Calculate various forms of derivatives in order
+// _ctmMakeUVCoordDeltas() - Calculate various forms of derivatives in order
 // to reduce data entropy.
 //-----------------------------------------------------------------------------
-static void _ctmMakeTexCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
-  CTMint * aIntTexCoords, _CTMsortvertex * aSortVertices)
+static void _ctmMakeUVCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
+  CTMint * aIntUVCoords, _CTMsortvertex * aSortVertices)
 {
   CTMuint i, oldIdx;
   CTMint u, v, prevU, prevV;
   CTMfloat scale;
 
-  // Texture coordinate scaling factor
+  // UV coordinate scaling factor
   scale = 1.0f / aMap->mPrecision;
 
   prevU = prevV = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    // Get old texture coordinate index (before vertex sorting)
+    // Get old UV coordinate index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Convert to fixed point
@@ -693,9 +693,9 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
 
     // Calculate delta and store it in the converted array. NOTE: Here we rely
     // on the fact that vertices are sorted, and usually close to each other,
-    // which means that texture coordinates should also be close to each other...
-    aIntTexCoords[i * 2] = u - prevU;
-    aIntTexCoords[i * 2 + 1] = v - prevV;
+    // which means that UV coordinates should also be close to each other...
+    aIntUVCoords[i * 2] = u - prevU;
+    aIntUVCoords[i * 2 + 1] = v - prevV;
 
     prevU = u;
     prevV = v;
@@ -703,25 +703,25 @@ static void _ctmMakeTexCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmRestoreTexCoords() - Calculate inverse derivatives of the texture
+// _ctmRestoreUVCoords() - Calculate inverse derivatives of the UV
 // coordinates.
 //-----------------------------------------------------------------------------
-static void _ctmRestoreTexCoords(_CTMcontext * self, _CTMfloatmap * aMap,
-  CTMint * aIntTexCoords)
+static void _ctmRestoreUVCoords(_CTMcontext * self, _CTMfloatmap * aMap,
+  CTMint * aIntUVCoords)
 {
   CTMuint i;
   CTMint u, v, prevU, prevV;
   CTMfloat scale;
 
-  // Texture coordinate scaling factor
+  // UV coordinate scaling factor
   scale = aMap->mPrecision;
 
   prevU = prevV = 0;
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Calculate inverse delta
-    u = aIntTexCoords[i * 2] + prevU;
-    v = aIntTexCoords[i * 2 + 1] + prevV;
+    u = aIntUVCoords[i * 2] + prevU;
+    v = aIntUVCoords[i * 2 + 1] + prevV;
 
     // Convert to floating point
     aMap->mValues[i * 2] = (CTMfloat) u * scale;
@@ -743,7 +743,7 @@ static void _ctmMakeAttribDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
   CTMint value[4], prev[4];
   CTMfloat scale;
 
-  // Texture coordinate scaling factor
+  // Attribute scaling factor
   scale = 1.0f / aMap->mPrecision;
 
   for(j = 0; j < 4; ++ j)
@@ -751,7 +751,7 @@ static void _ctmMakeAttribDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
 
   for(i = 0; i < self->mVertexCount; ++ i)
   {
-    // Get old texture coordinate index (before vertex sorting)
+    // Get old attribute index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Convert to fixed point, and calculate delta and store it in the converted
@@ -807,7 +807,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   _CTMsortvertex * sortVertices;
   _CTMfloatmap * map;
   CTMuint * indices, * deltaIndices, * gridIndices;
-  CTMint * intVertices, * intNormals, * intTexCoords, * intAttribs;
+  CTMint * intVertices, * intNormals, * intUVCoords, * intAttribs;
   CTMfloat * restoredVertices;
   CTMuint i;
 
@@ -1002,21 +1002,21 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   free((void *) indices);
   free((void *) restoredVertices);
 
-  // Write texture maps
-  map = self->mTexMaps;
+  // Write UV maps
+  map = self->mUVMaps;
   while(map)
   {
-    // Convert texture coordinates to integers and calculate deltas (entropy-reduction)
-    intTexCoords = (CTMint *) malloc(sizeof(CTMint) * 2 * self->mVertexCount);
-    if(!intTexCoords)
+    // Convert UV coordinates to integers and calculate deltas (entropy-reduction)
+    intUVCoords = (CTMint *) malloc(sizeof(CTMint) * 2 * self->mVertexCount);
+    if(!intUVCoords)
     {
       self->mError = CTM_OUT_OF_MEMORY;
       free((void *) sortVertices);
       return CTM_FALSE;
     }
-    _ctmMakeTexCoordDeltas(self, map, intTexCoords, sortVertices);
+    _ctmMakeUVCoordDeltas(self, map, intUVCoords, sortVertices);
 
-    // Write texture coordinates
+    // Write UV coordinates
 #ifdef __DEBUG_
     printf("Texture coordinates (%s): ", map->mName ? map->mName : "no name");
 #endif
@@ -1024,15 +1024,15 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     _ctmStreamWriteSTRING(self, map->mName);
     _ctmStreamWriteSTRING(self, map->mFileName);
     _ctmStreamWriteFLOAT(self, map->mPrecision);
-    if(!_ctmStreamWritePackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
+    if(!_ctmStreamWritePackedInts(self, intUVCoords, self->mVertexCount, 2, CTM_TRUE))
     {
-      free((void *) intTexCoords);
+      free((void *) intUVCoords);
       free((void *) sortVertices);
       return CTM_FALSE;
     }
 
-    // Free temporary texture coordinate data
-    free((void *) intTexCoords);
+    // Free temporary UV coordinate data
+    free((void *) intUVCoords);
 
     map = map->mNext;
   }
@@ -1084,7 +1084,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
   CTMuint * gridIndices, i;
-  CTMint * intVertices, * intNormals, * intTexCoords, * intAttribs;
+  CTMint * intVertices, * intNormals, * intUVCoords, * intAttribs;
   _CTMfloatmap * map;
   _CTMgrid grid;
 
@@ -1236,12 +1236,12 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     free((void *) intNormals);
   }
 
-  // Read texture maps
-  map = self->mTexMaps;
+  // Read UV maps
+  map = self->mUVMaps;
   while(map)
   {
-    intTexCoords = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 2);
-    if(!intTexCoords)
+    intUVCoords = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 2);
+    if(!intUVCoords)
     {
       self->mError = CTM_OUT_OF_MEMORY;
       return CTM_FALSE;
@@ -1249,7 +1249,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
     {
       self->mError = CTM_BAD_FORMAT;
-      free((void *) intTexCoords);
+      free((void *) intUVCoords);
       return CTM_FALSE;
     }
     _ctmStreamReadSTRING(self, &map->mName);
@@ -1258,20 +1258,20 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     if(map->mPrecision <= 0.0f)
     {
       self->mError = CTM_BAD_FORMAT;
-      free((void *) intTexCoords);
+      free((void *) intUVCoords);
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedInts(self, intTexCoords, self->mVertexCount, 2, CTM_TRUE))
+    if(!_ctmStreamReadPackedInts(self, intUVCoords, self->mVertexCount, 2, CTM_TRUE))
     {
-      free((void *) intTexCoords);
+      free((void *) intUVCoords);
       return CTM_FALSE;
     }
 
-    // Restore texture coordinates
-    _ctmRestoreTexCoords(self, map, intTexCoords);
+    // Restore UV coordinates
+    _ctmRestoreUVCoords(self, map, intUVCoords);
 
-    // Free temporary texture coordinate data
-    free((void *) intTexCoords);
+    // Free temporary UV coordinate data
+    free((void *) intUVCoords);
 
     map = map->mNext;
   }

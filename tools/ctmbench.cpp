@@ -104,13 +104,13 @@ void BenchmarkSaves(int aIterations, const char * aInFile, const char * aOutFile
     CTMexporter out;
     out.DefineMesh(vert, vertCount, indx, triCount, norm);
 
-    int texCount = in.GetInteger(CTM_TEX_MAP_COUNT);
-    for(int k = 0; k < texCount; ++ k)
+    int uvCount = in.GetInteger(CTM_UV_MAP_COUNT);
+    for(int k = 0; k < uvCount; ++ k)
     {
-      const CTMfloat * texMap = in.GetFloatArray(CTMenum(CTM_TEX_MAP_1 + k));
-      const char * name = in.GetTexMapString(CTMenum(CTM_TEX_MAP_1 + k), CTM_NAME);
-      const char * fileName = in.GetTexMapString(CTMenum(CTM_TEX_MAP_1 + k), CTM_FILE_NAME);
-      out.AddTexMap(texMap, name, fileName);
+      const CTMfloat * uvMap = in.GetFloatArray(CTMenum(CTM_UV_MAP_1 + k));
+      const char * name = in.GetUVMapString(CTMenum(CTM_UV_MAP_1 + k), CTM_NAME);
+      const char * fileName = in.GetUVMapString(CTMenum(CTM_UV_MAP_1 + k), CTM_FILE_NAME);
+      out.AddUVMap(uvMap, name, fileName);
     }
 
     int attrCount = in.GetInteger(CTM_ATTRIB_MAP_COUNT);

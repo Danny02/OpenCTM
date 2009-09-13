@@ -1,7 +1,7 @@
 LIBRARY openctm.dll
 EXPORTS
     ctmAddAttribMap = ctmAddAttribMap@12 @1
-    ctmAddTexMap = ctmAddTexMap@16 @2
+    ctmAddUVMap = ctmAddUVMap@16 @2
     ctmAttribPrecision = ctmAttribPrecision@12 @3
     ctmCompressionLevel = ctmCompressionLevel@8 @4
     ctmCompressionMethod = ctmCompressionMethod@8 @5
@@ -16,10 +16,10 @@ EXPORTS
     ctmGetInteger = ctmGetInteger@8 @14
     ctmGetIntegerArray = ctmGetIntegerArray@8 @15
     ctmGetNamedAttribMap = ctmGetNamedAttribMap@8 @16
-    ctmGetNamedTexMap = ctmGetNamedTexMap@8 @17
+    ctmGetNamedUVMap = ctmGetNamedUVMap@8 @17
     ctmGetString = ctmGetString@8 @18
-    ctmGetTexMapFloat = ctmGetTexMapFloat@12 @19
-    ctmGetTexMapString = ctmGetTexMapString@12 @20
+    ctmGetUVMapFloat = ctmGetUVMapFloat@12 @19
+    ctmGetUVMapString = ctmGetUVMapString@12 @20
     ctmErrorString = ctmErrorString@4 @21
     ctmLoad = ctmLoad@8 @22
     ctmLoadCustom = ctmLoadCustom@12 @23
@@ -27,6 +27,6 @@ EXPORTS
     ctmNormalPrecision = ctmNormalPrecision@8 @25
     ctmSave = ctmSave@8 @26
     ctmSaveCustom = ctmSaveCustom@12 @27
-    ctmTexCoordPrecision = ctmTexCoordPrecision@12 @28
+    ctmUVCoordPrecision = ctmUVCoordPrecision@12 @28
     ctmVertexPrecision = ctmVertexPrecision@8 @29
     ctmVertexPrecisionRel = ctmVertexPrecisionRel@8 @30

@@ -219,30 +219,30 @@ typedef enum {
   CTM_VERTEX_COUNT      = 0x0301, ///< Number of vertices in the mesh (integer).
   CTM_TRIANGLE_COUNT    = 0x0302, ///< Number of triangles in the mesh (integer).
   CTM_HAS_NORMALS       = 0x0303, ///< CTM_TRUE if the mesh has normals (integer).
-  CTM_TEX_MAP_COUNT     = 0x0304, ///< Number of texture coordinate sets (integer).
+  CTM_UV_MAP_COUNT      = 0x0304, ///< Number of UV coordinate sets (integer).
   CTM_ATTRIB_MAP_COUNT  = 0x0305, ///< Number of custom attribute sets (integer).
   CTM_VERTEX_PRECISION  = 0x0306, ///< Vertex precision - for MG2 (float).
   CTM_NORMAL_PRECISION  = 0x0307, ///< Normal precision - for MG2 (float).
   CTM_COMPRESSION_METHOD = 0x0308, ///< Compression method (integer).
   CTM_FILE_COMMENT      = 0x0309, ///< File comment (string).
 
-  // Texture/attribute map queries
-  CTM_NAME              = 0x0501, ///< Unique name (texture/attrib map string).
-  CTM_FILE_NAME         = 0x0502, ///< File name reference (texture map string).
-  CTM_PRECISION         = 0x0503, ///< Value precision (texture/attrib map float).
+  // UV/attribute map queries
+  CTM_NAME              = 0x0501, ///< Unique name (UV/attrib map string).
+  CTM_FILE_NAME         = 0x0502, ///< File name reference (UV map string).
+  CTM_PRECISION         = 0x0503, ///< Value precision (UV/attrib map float).
 
   // Array queries
   CTM_INDICES           = 0x0601, ///< Triangle indices (integer array).
   CTM_VERTICES          = 0x0602, ///< Vertex point coordinates (float array).
   CTM_NORMALS           = 0x0603, ///< Per vertex normals (float array).
-  CTM_TEX_MAP_1         = 0x0700, ///< Per vertex texture map 1 (float array).
-  CTM_TEX_MAP_2         = 0x0701, ///< Per vertex texture map 2 (float array).
-  CTM_TEX_MAP_3         = 0x0702, ///< Per vertex texture map 3 (float array).
-  CTM_TEX_MAP_4         = 0x0703, ///< Per vertex texture map 4 (float array).
-  CTM_TEX_MAP_5         = 0x0704, ///< Per vertex texture map 5 (float array).
-  CTM_TEX_MAP_6         = 0x0705, ///< Per vertex texture map 6 (float array).
-  CTM_TEX_MAP_7         = 0x0706, ///< Per vertex texture map 7 (float array).
-  CTM_TEX_MAP_8         = 0x0707, ///< Per vertex texture map 8 (float array).
+  CTM_UV_MAP_1          = 0x0700, ///< Per vertex UV map 1 (float array).
+  CTM_UV_MAP_2          = 0x0701, ///< Per vertex UV map 2 (float array).
+  CTM_UV_MAP_3          = 0x0702, ///< Per vertex UV map 3 (float array).
+  CTM_UV_MAP_4          = 0x0703, ///< Per vertex UV map 4 (float array).
+  CTM_UV_MAP_5          = 0x0704, ///< Per vertex UV map 5 (float array).
+  CTM_UV_MAP_6          = 0x0705, ///< Per vertex UV map 6 (float array).
+  CTM_UV_MAP_7          = 0x0706, ///< Per vertex UV map 7 (float array).
+  CTM_UV_MAP_8          = 0x0707, ///< Per vertex UV map 8 (float array).
   CTM_ATTRIB_MAP_1      = 0x0800, ///< Per vertex attribute map 1 (float array).
   CTM_ATTRIB_MAP_2      = 0x0801, ///< Per vertex attribute map 2 (float array).
   CTM_ATTRIB_MAP_3      = 0x0802, ///< Per vertex attribute map 3 (float array).
@@ -259,7 +259,8 @@ typedef enum {
 /// @param[in] aUserData The custom user data that was passed to the
 ///            ctmLoadCustom() function.
 /// @return The number of bytes actually read (if this is less than aCount, it
-///         indicates that an error occured or the end of file was reached).
+///         indicates that an error occured or the end of file was reached
+///         before all bytes were read).
 typedef CTMuint (CTMCALL * CTMreadfn)(void * aBuf, CTMuint aCount, void * aUserData);
 
 /// Stream write() function pointer.
@@ -355,42 +356,42 @@ CTMEXPORT const CTMuint * CTMCALL ctmGetIntegerArray(CTMcontext aContext,
 CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
   CTMenum aProperty);
 
-/// Get a reference to the named texture map.
+/// Get a reference to the named UV map.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aName The name of the texture map that should be returned.
-/// @return A reference to a texture map. If the texture map was found,
-///          a value of CTM_TEX_MAP_1 or higher is returned, otherwise CTM_NONE
-///          is returned.
-CTMEXPORT CTMenum CTMCALL ctmGetNamedTexMap(CTMcontext aContext,
+/// @param[in] aName The name of the UV map that should be returned.
+/// @return A reference to a UV map. If the UV map was found, a value of
+///         CTM_UV_MAP_1 or higher is returned, otherwise CTM_NONE is
+///         returned.
+CTMEXPORT CTMenum CTMCALL ctmGetNamedUVMap(CTMcontext aContext,
   const char * aName);
 
-/// Get information about a texture map.
+/// Get information about a UV map.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aTexMap Which texture map to query (CTM_TEX_MAP_1 or higher).
-/// @param[in] aProperty Which texture map property to return.
-/// @return A string value, representing the texture map property given
+/// @param[in] aUVMap Which UV map to query (CTM_UV_MAP_1 or higher).
+/// @param[in] aProperty Which UV map property to return.
+/// @return A string value, representing the UV map property given
 ///         by \c aProperty.
-/// @note The string is only valid as long as the texture map within the OpenCTM
+/// @note The string is only valid as long as the UV map within the OpenCTM
 ///       context is valid. Trying to access an invalid string will result in
 ///       undefined behaviour. Therefor it is recommended that the string is
 ///       copied to a new variable if it is to be used other than directly after
-///       the call to ctmGetTexMapString().
+///       the call to ctmGetUVMapString().
 /// @see CTMenum
-CTMEXPORT const char * CTMCALL ctmGetTexMapString(CTMcontext aContext,
-  CTMenum aTexMap, CTMenum aProperty);
+CTMEXPORT const char * CTMCALL ctmGetUVMapString(CTMcontext aContext,
+  CTMenum aUVMap, CTMenum aProperty);
 
-/// Get information about a texture map.
+/// Get information about a UV map.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aTexMap Which texture map to query (CTM_TEX_MAP_1 or higher).
-/// @param[in] aProperty Which texture map property to return.
-/// @return A floating point value, representing the texture map property given
+/// @param[in] aUVMap Which UV map to query (CTM_UV_MAP_1 or higher).
+/// @param[in] aProperty Which UV map property to return.
+/// @return A floating point value, representing the UV map property given
 ///         by \c aProperty.
 /// @see CTMenum
-CTMEXPORT CTMfloat CTMCALL ctmGetTexMapFloat(CTMcontext aContext,
-  CTMenum aTexMap, CTMenum aProperty);
+CTMEXPORT CTMfloat CTMCALL ctmGetUVMapFloat(CTMcontext aContext,
+  CTMenum aUVMap, CTMenum aProperty);
 
 /// Get a reference to the named vertex attribute map.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -509,18 +510,18 @@ CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
 CTMEXPORT void CTMCALL ctmNormalPrecision(CTMcontext aContext,
   CTMfloat aPrecision);
 
-/// Set the texture coordinate precision for the specified texture map (only
-/// used by the MG2 compression method).
+/// Set the coordinate precision for the specified UV map (only used by the
+/// MG2 compression method).
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aTexMap A texture map specifier for a defined texture map
-///            (CTM_TEX_MAP_1, ...).
+/// @param[in] aUVMap A UV map specifier for a defined UV map
+///            (CTM_UV_MAP_1, ...).
 /// @param[in] aPrecision Fixed point precision. For instance, if this value is
-///            0.001, all texture coordinates will be rounded to three decimals.
-///            The default texture coordinate precision is 2^-12 ~= 0.00024.
-/// @see ctmAddTexMap().
-CTMEXPORT void CTMCALL ctmTexCoordPrecision(CTMcontext aContext,
-  CTMenum aTexMap, CTMfloat aPrecision);
+///            0.001, all UV coordinates will be rounded to three decimals.
+///            The default UV coordinate precision is 2^-12 ~= 0.00024.
+/// @see ctmAddUVMap().
+CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
+  CTMenum aUVMap, CTMfloat aPrecision);
 
 /// Set the attribute value precision for the specified attribute map (only
 /// used by the MG2 compression method).
@@ -557,29 +558,30 @@ CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
 /// @param[in] aNormals An array of per-vertex normals (or NULL if there are
 ///            no normals). Each nromal is made up by three consecutive floats,
 ///            and there must be \c aVertexCount normals.
-/// @see ctmAddTexMap(), ctmAddAttribMap(), ctmSave(), ctmSaveCustom().
+/// @see ctmAddUVMap(), ctmAddAttribMap(), ctmSave(), ctmSaveCustom().
 CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
   const CTMfloat * aVertices, CTMuint aVertexCount, const CTMuint * aIndices,
   CTMuint aTriangleCount, const CTMfloat * aNormals);
 
-/// Define a texture map. There can be several texture maps in a mesh.
+/// Define a UV map. There can be several UV maps in a mesh. A UV map is
+/// typically used for 2D texture mapping.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aTexCoords An array of texture coordinates. Each texture
-///            coordinate is made up by two consecutive floats, and there must
-///            be as many coordinates as there are vertices in the mesh.
-/// @param[in] aName A unique name for this texture map (zero terminated UTF-8
+/// @param[in] aUVCoords An array of UV coordinates. Each UV coordinate is made
+///            up by two consecutive floats, and there must be as many
+///            coordinates as there are vertices in the mesh.
+/// @param[in] aName A unique name for this UV map (zero terminated UTF-8
 ///            string).
-/// @param[in] aFileName A reference to a texture image file (zero terminated
+/// @param[in] aFileName A reference to a image file (zero terminated
 ///            UTF-8 string). If no file name reference exists, pass NULL.
-/// @return A texture map index (CTM_TEX_MAP_1 and higher). If the function
+/// @return A UV map index (CTM_UV_MAP_1 and higher). If the function
 ///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
 ///         to determine the cause of the error).
 /// @note A triangle mesh must have been defined before calling this function,
 ///       since the number of vertices is defined by the triangle mesh.
 /// @see ctmDefineMesh().
-CTMEXPORT CTMenum CTMCALL ctmAddTexMap(CTMcontext aContext,
-  const CTMfloat * aTexCoords, const char * aName, const char * aFileName);
+CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext,
+  const CTMfloat * aUVCoords, const char * aName, const char * aFileName);
 
 /// Define a custom vertex attribute map. Custom vertex attributes can be used
 /// for defining special per-vertex attributes, such as color, weight, ambient

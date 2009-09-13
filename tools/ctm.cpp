@@ -81,16 +81,16 @@ void Import_CTM(const char * aFileName, Mesh &aMesh)
   }
 
   // Extract texture coordinates
-  if(ctm.GetInteger(CTM_TEX_MAP_COUNT) > 0)
+  if(ctm.GetInteger(CTM_UV_MAP_COUNT) > 0)
   {
     aMesh.mTexCoords.resize(numVertices);
-    const CTMfloat * texCoords = ctm.GetFloatArray(CTM_TEX_MAP_1);
+    const CTMfloat * texCoords = ctm.GetFloatArray(CTM_UV_MAP_1);
     for(CTMuint i = 0; i < numVertices; ++ i)
     {
       aMesh.mTexCoords[i].u = texCoords[i * 2];
       aMesh.mTexCoords[i].v = texCoords[i * 2 + 1];
     }
-    const char * str = ctm.GetTexMapString(CTM_TEX_MAP_1, CTM_FILE_NAME);
+    const char * str = ctm.GetUVMapString(CTM_UV_MAP_1, CTM_FILE_NAME);
     if(str)
       aMesh.mTexFileName = string(str);
     else
@@ -133,8 +133,8 @@ void Export_CTM(const char * aFileName, Mesh &aMesh, Options &aOptions)
     const char * fileName = NULL;
     if(aMesh.mTexFileName.size() > 0)
       fileName = aMesh.mTexFileName.c_str();
-    CTMenum map = ctm.AddTexMap(&aMesh.mTexCoords[0].u, "Diffuse color", fileName);
-    ctm.TexCoordPrecision(map, aOptions.mTexMapPrecision);
+    CTMenum map = ctm.AddUVMap(&aMesh.mTexCoords[0].u, "Diffuse color", fileName);
+    ctm.UVCoordPrecision(map, aOptions.mTexMapPrecision);
   }
 
   // Define vertex colors

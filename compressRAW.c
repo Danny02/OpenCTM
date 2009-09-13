@@ -74,12 +74,12 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
       _ctmStreamWriteFLOAT(self, self->mNormals[i]);
   }
 
-  // Write texture maps
-  map = self->mTexMaps;
+  // Write UV maps
+  map = self->mUVMaps;
   while(map)
   {
 #ifdef __DEBUG_
-    printf("Texture coordinates (%s): %d bytes\n", map->mName ? map->mName : "no name", (CTMuint)(self->mVertexCount * 2 * sizeof(CTMfloat)));
+    printf("UV coordinates (%s): %d bytes\n", map->mName ? map->mName : "no name", (CTMuint)(self->mVertexCount * 2 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
@@ -146,8 +146,8 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
       self->mNormals[i] = _ctmStreamReadFLOAT(self);
   }
 
-  // Read texture maps
-  map = self->mTexMaps;
+  // Read UV maps
+  map = self->mUVMaps;
   while(map)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))

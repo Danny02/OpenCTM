@@ -140,26 +140,26 @@ class CTMimporter {
       return res;
     }
 
-    /// Wrapper for ctmGetNamedTexMap()
-    CTMenum GetNamedTexMap(const char * aName)
+    /// Wrapper for ctmGetNamedUVMap()
+    CTMenum GetNamedUVMap(const char * aName)
     {
-      CTMenum res = ctmGetNamedTexMap(mContext, aName);
+      CTMenum res = ctmGetNamedUVMap(mContext, aName);
       CheckError();
       return res;
     }
 
-    /// Wrapper for ctmGetTexMapString()
-    const char * GetTexMapString(CTMenum aTexMap, CTMenum aProperty)
+    /// Wrapper for ctmGetUVMapString()
+    const char * GetUVMapString(CTMenum aUVMap, CTMenum aProperty)
     {
-      const char * res = ctmGetTexMapString(mContext, aTexMap, aProperty);
+      const char * res = ctmGetUVMapString(mContext, aUVMap, aProperty);
       CheckError();
       return res;
     }
 
-    /// Wrapper for ctmGetTexMapFloat()
-    CTMfloat GetTexMapFloat(CTMenum aTexMap, CTMenum aProperty)
+    /// Wrapper for ctmGetUVMapFloat()
+    CTMfloat GetUVMapFloat(CTMenum aUVMap, CTMenum aProperty)
     {
-      CTMfloat res = ctmGetTexMapFloat(mContext, aTexMap, aProperty);
+      CTMfloat res = ctmGetUVMapFloat(mContext, aUVMap, aProperty);
       CheckError();
       return res;
     }
@@ -299,10 +299,10 @@ class CTMexporter {
       CheckError();
     }
 
-    /// Wrapper for ctmTexCoordPrecision()
-    void TexCoordPrecision(CTMenum aTexMap, CTMfloat aPrecision)
+    /// Wrapper for ctmUVCoordPrecision()
+    void UVCoordPrecision(CTMenum aUVMap, CTMfloat aPrecision)
     {
-      ctmTexCoordPrecision(mContext, aTexMap, aPrecision);
+      ctmUVCoordPrecision(mContext, aUVMap, aPrecision);
       CheckError();
     }
 
@@ -330,11 +330,11 @@ class CTMexporter {
       CheckError();
     }
 
-    /// Wrapper for ctmAddTexMap()
-    CTMenum AddTexMap(const CTMfloat * aTexCoords, const char * aName,
+    /// Wrapper for ctmAddUVMap()
+    CTMenum AddUVMap(const CTMfloat * aUVCoords, const char * aName,
       const char * aFileName)
     {
-      CTMenum res = ctmAddTexMap(mContext, aTexCoords, aName, aFileName);
+      CTMenum res = ctmAddUVMap(mContext, aUVCoords, aName, aFileName);
       CheckError();
       return res;
     }

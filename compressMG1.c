@@ -200,12 +200,12 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
       return CTM_FALSE;
   }
 
-  // Write texture maps
-  map = self->mTexMaps;
+  // Write UV maps
+  map = self->mUVMaps;
   while(map)
   {
 #ifdef __DEBUG_
-    printf("Texture coordinates (%s): ", map->mName ? map->mName : "no name");
+    printf("UV coordinates (%s): ", map->mName ? map->mName : "no name");
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
@@ -289,8 +289,8 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
       return CTM_FALSE;
   }
 
-  // Read texture maps
-  map = self->mTexMaps;
+  // Read UV maps
+  map = self->mUVMaps;
   while(map)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
