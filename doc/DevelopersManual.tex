@@ -92,7 +92,7 @@ At a glance, the OpenCTM mesh has the following properties:
 
 \begin{itemize}
     \item A vertex is a set of attributes that uniquely identify the vertex.
-          This includes: vertex coordinate, normal, texture coordinate(s) and
+          This includes: vertex coordinate, normal, UV coordinate(s) and
           custom vertex attribute(s) (such as color, weight, etc).
     \item A triangle is described by three vertex indices.
     \item In the OpenCTM API, these mesh data are treated as arrays (an integer
@@ -115,13 +115,13 @@ data) and table \ref{tab:MeshTri} (triangle data).
 \textbf{Index} & 0 & 1 & 2 & 3 & 4 & \textellipsis & N\\ \hline
 \textbf{Vertex} & $v_0$ & $v_1$ & $v_2$ & $v_3$ & $v_4$ & \textellipsis & $v_N$\\ \hline
 \textbf{Normal} & $n_0$ & $n_1$ & $n_2$ & $n_3$ & $n_4$ & \textellipsis & $n_N$\\ \hline
-\textbf{TexCoord1} & $t1_0$ & $t1_1$ & $t1_2$ & $t1_3$ & $t1_4$ & \textellipsis & $t1_N$\\ \hline
-\textbf{TexCoord2} & $t2_0$ & $t2_1$ & $t2_2$ & $t2_3$ & $t2_4$ & \textellipsis & $t2_N$\\ \hline
+\textbf{UVCoord1} & $t1_0$ & $t1_1$ & $t1_2$ & $t1_3$ & $t1_4$ & \textellipsis & $t1_N$\\ \hline
+\textbf{UVCoord2} & $t2_0$ & $t2_1$ & $t2_2$ & $t2_3$ & $t2_4$ & \textellipsis & $t2_N$\\ \hline
 \textbf{Attrib1} & $a1_0$ & $a1_1$ & $a1_2$ & $a1_3$ & $a1_4$ & \textellipsis & $a1_N$\\ \hline
 \textbf{Attrib2} & $a2_0$ & $a2_1$ & $a2_2$ & $a2_3$ & $a2_4$ & \textellipsis & $a2_N$\\ \hline
 \end{tabular}
 \caption{Mesh vertex data structure in OpenCTM, for a mesh with normals,
-two texture coordinates per vertex, and two custom attributes per vertex.}
+two UV coordinates per vertex, and two custom attributes per vertex.}
 \label{tab:MeshVert}
 \end{table}
 
@@ -179,25 +179,25 @@ $x_0$ & $y_0$ & $z_0$ & $x_1$ & $y_1$ & $z_1$ & \textellipsis & $x_N$ & $y_N$ & 
 of the $k$:th normal.
 
 
-\subsection{Texture coordinates}
+\subsection{UV coordinates}
 
-A mesh may have several texture maps, where each texture map is described by:
+A mesh may have several UV maps, where each UV map is described by:
 
 \begin{itemize}
-    \item A texture coordinate array.
-    \item A unique texture map name.
+    \item A UV coordinate array.
+    \item A unique UV map name.
     \item An file name reference (optional).
 \end{itemize}
 
-Each texture coordinate is described by two floating point values: $u$ and $v$.
-A texture coordinate array looks like this:
+Each UV coordinate is described by two floating point values: $u$ and $v$.
+A UV coordinate array looks like this:
 
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|}\hline
 $u_0$ & $v_0$ & $u_1$ & $v_1$ & $u_2$ & $v_2$ & \textellipsis & $u_N$ & $v_N$\\ \hline
 \end{tabular}
 
 \textellipsis where $u_k$ and $v_k$ are the $u$ and $v$ components
-of the $k$:th texture coordinate.
+of the $k$:th UV coordinate.
 
 
 \subsection{Custom vertex attributes}
@@ -452,7 +452,7 @@ attributes. The different attribute precisions that can be controlled are:
 \textbf{Attribute} & \textbf{API function}\\ \hline
 Vertex coordinate & ctmVertexPrecision() / ctmVertexPrecisionRel()\\ \hline
 Normal & ctmNormalPrecision()\\ \hline
-Texture coordinates & ctmTexCoordPrecision()\\ \hline
+UV coordinates & ctmUVCoordPrecision()\\ \hline
 Custom attributes & ctmAttribPrecision()\\ \hline
 \end{tabular}
 
@@ -517,25 +517,28 @@ and the normal magnitude is rounded to 2 decimals:
 The default normal precision is $2^{-8} \approx 0.0039$.
 
 
-\subsection{Texture coordinate precision}
-Texture coordinate precision is specified on a per texture map basis, and
-gives the absolute precision in texture coordinate space.
+\subsection{UV coordinate precision}
+UV coordinate precision is specified on a per UV map basis, and
+gives the absolute precision in UV coordinate space.
 
-The effects of different precisions depend on many different things, for
-instance the resolution of the texture (a 4096x4096 texture may require
-better precision than a 256x256 texture) and the resolution of the mesh.
+The effects of different precisions depend on many different things. For
+instance if the UV map is used for mapping a 2D texture onto the triangle
+mesh, the resolution of the texture can influence the required UV
+coordinate precision (e.g. a 4096x4096 texture may require better
+precision than a 256x256 texture). The resolution of the mesh may also
+affect the required UV coordinate precision.
 
-To specify a resolution of 0.001 for the texture map $texMap$, use:
+To specify a resolution of 0.001 for the UV map $uvMap$, use:
 
 \begin{lstlisting}
-  ctmTexCoordPrecision(context, texMap, 0.001);
+  ctmUVCoordPrecision(context, uvMap, 0.001);
 \end{lstlisting}
 
-The default texture coordinate precision is $2^{-12} \approx 0.00024$.
+The default UV coordinate precision is $2^{-12} \approx 0.00024$.
 
 
 \subsection{Custom attribute precision}
-As with texture coordinates, the precision for custom vertex attributes are
+As with UV coordinates, the precision for custom vertex attributes are
 specified on a per attribute basis.
 
 The precision of a custom attribute depends entirely on the type of

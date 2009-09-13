@@ -91,7 +91,7 @@ The file must start with a header, which looks as follows:
  & & 0x0032474d - Use the MG2 compression method.\\ \hline
 12 & Integer & Vertex count.\\ \hline
 16 & Integer & Triangle count.\\ \hline
-20 & Integer & Texture map count.\\ \hline
+20 & Integer & UV map count.\\ \hline
 24 & Integer & Attribute map count.\\ \hline
 28 & Integer & Boolean flags, or:ed together:\\
  & & 0x00000001 - The file contains per-vertex normals.\\ \hline
@@ -109,7 +109,7 @@ dictated by the length of the file header.
 The format of the body data is specific for each compression method, which is
 defined by the "Compression method" field in the header.
 
-The body data contains the vertex, index, normal, texture map and attribute map
+The body data contains the vertex, index, normal, UV map and attribute map
 data, usually in a compressed form.
 
 Please read the source code for details on the specific body data formats
