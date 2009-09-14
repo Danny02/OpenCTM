@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name of the distribution
-distname=OpenCTM-0.7
+distname=OpenCTM-0.8
 
 # Clean the source directories
 echo Cleaning up...
@@ -19,6 +19,8 @@ cd doc
 doxygen
 pdflatex DevelopersManual.tex
 pdflatex DevelopersManual.tex
+pdflatex FormatSpecification.tex
+pdflatex FormatSpecification.tex
 cd ..
 
 # Set up a temporary directory
@@ -45,7 +47,7 @@ cp tools/glew/GL/* $tmpdir/tools/glew/GL/
 
 mkdir $tmpdir/doc
 cp doc/DevelopersManual.pdf $tmpdir/doc/
-cp doc/format.txt $tmpdir/doc/
+cp doc/FormatSpecification.pdf $tmpdir/doc/
 mkdir $tmpdir/doc/APIReference
 cp doc/APIReference/* $tmpdir/doc/APIReference/
 
