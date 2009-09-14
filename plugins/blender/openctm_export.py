@@ -18,10 +18,10 @@ import os
 
 
 __author__ = "Marcus Geelnard"
-__version__ = "0.3"
+__version__ = "0.4"
 __bpydoc__ = """\
 This script exports OpenCTM files from Blender. It supports normals,
-colours, and texture coordinates per vertex. Only one mesh can be exported
+colours, and UV coordinates per vertex. Only one mesh can be exported
 at a time.
 """
 
@@ -35,6 +35,9 @@ at a time.
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
+#
+# v0.4, 2009-09-14
+#    - Updated to OpenCTM API version 0.8 (texture maps are now called UV maps)
 #
 # v0.3, 2009-08-09
 #    - Changed vertex color attribute name to "Color"
@@ -256,9 +259,9 @@ def file_callback(filename):
 		ctmDefineMesh.argtypes = [c_void_p, POINTER(c_float), c_int, POINTER(c_int), c_int, POINTER(c_float)]
 		ctmSave = libHDL.ctmSave
 		ctmSave.argtypes = [c_void_p, c_char_p]
-		ctmAddTexMap = libHDL.ctmAddTexMap
-		ctmAddTexMap.argtypes = [c_void_p, POINTER(c_float), c_char_p, c_char_p]
-		ctmAddTexMap.restype = c_int
+		ctmAddUVMap = libHDL.ctmAddUVMap
+		ctmAddUVMap.argtypes = [c_void_p, POINTER(c_float), c_char_p, c_char_p]
+		ctmAddUVMap.restype = c_int
 		ctmAddAttribMap = libHDL.ctmAddAttribMap
 		ctmAddAttribMap.argtypes = [c_void_p, POINTER(c_float), c_char_p]
 		ctmAddAttribMap.restype = c_int
@@ -268,8 +271,8 @@ def file_callback(filename):
 		ctmVertexPrecisionRel.argtypes = [c_void_p, c_float]
 		ctmNormalPrecision = libHDL.ctmNormalPrecision
 		ctmNormalPrecision.argtypes = [c_void_p, c_float]
-		ctmTexCoordPrecision = libHDL.ctmTexCoordPrecision
-		ctmTexCoordPrecision.argtypes = [c_void_p, c_int, c_float]
+		ctmUVCoordPrecision = libHDL.ctmUVCoordPrecision
+		ctmUVCoordPrecision.argtypes = [c_void_p, c_int, c_float]
 		ctmAttribPrecision = libHDL.ctmAttribPrecision
 		ctmAttribPrecision.argtypes = [c_void_p, c_int, c_float]
 
@@ -282,11 +285,11 @@ def file_callback(filename):
 			# Define the mesh
 			ctmDefineMesh(ctm, pvertices, c_int(vertexCount), pindices, c_int(triangleCount), pnormals)
 
-			# Add texture coordinates?
+			# Add UV coordinates?
 			if EXPORT_UV:
-				tm = ctmAddTexMap(ctm, ptexCoords, c_char_p(), c_char_p())
+				tm = ctmAddUVMap(ctm, ptexCoords, c_char_p(), c_char_p())
 				if EXPORT_MG2:
-					ctmTexCoordPrecision(ctm, tm, EXPORT_UVPREC)
+					ctmUVCoordPrecision(ctm, tm, EXPORT_UVPREC)
 
 			# Add colors?
 			if EXPORT_COLORS:

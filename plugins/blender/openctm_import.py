@@ -19,10 +19,10 @@ import os
 
 
 __author__ = "Marcus Geelnard"
-__version__ = "0.3"
+__version__ = "0.4"
 __bpydoc__ = """\
 This script imports OpenCTM files into Blender. It supports normals,
-colours, and texture coordinates per vertex.
+colours, and UV coordinates per vertex.
 """
 
 # Copyright (C) 2009: Marcus Geelnard
@@ -35,6 +35,9 @@ colours, and texture coordinates per vertex.
 # The script uses the OpenCTM shared library (.so, .dll, etc). If no
 # such library can be found, the script will exit with an error
 # message.
+#
+# v0.4, 2009-09-14
+#    - Updated to OpenCTM API version 0.8 (texture maps are now called UV maps)
 #
 # v0.3, 2009-08-09
 #    - Changed vertex color attribute name to "Color"
@@ -108,7 +111,7 @@ def file_callback(filename):
 			vertexCount = ctmGetInteger(ctm, 0x0301)   # CTM_VERTEX_COUNT
 			triangleCount = ctmGetInteger(ctm, 0x0302) # CTM_TRIANGLE_COUNT
 			hasNormals = ctmGetInteger(ctm, 0x0303)    # CTM_HAS_NORMALS
-			texMapCount = ctmGetInteger(ctm, 0x0304)   # CTM_TEX_MAP_COUNT
+			texMapCount = ctmGetInteger(ctm, 0x0304)   # CTM_UV_MAP_COUNT
 
 			# Get indices
 			pindices = ctmGetIntegerArray(ctm, 0x0601) # CTM_INDICES
@@ -124,7 +127,7 @@ def file_callback(filename):
 
 			# Get texture coordinates
 			if texMapCount > 0:
-				ptexCoords = ctmGetFloatArray(ctm, 0x0700) # CTM_TEX_MAP_1
+				ptexCoords = ctmGetFloatArray(ctm, 0x0700) # CTM_UV_MAP_1
 			else:
 				ptexCoords = None
 
