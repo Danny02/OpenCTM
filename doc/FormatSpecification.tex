@@ -68,8 +68,8 @@ The structure of a OpenCTM file is as follows:
 Each part of the file is described in the following sections.
 
 \section{Data formats}
-All integer fields are stored in little endian format (least significant byte
-first).
+All integer fields are stored in 32-bit little endian format (least significant
+byte first).
 
 All floating point fields are stored in 32-bit binary IEEE 754 format (little
 endian).
@@ -112,7 +112,25 @@ defined by the "Compression method" field in the header.
 The body data contains the vertex, index, normal, UV map and attribute map
 data, usually in a compressed form.
 
-Please read the source code for details on the specific body data formats
-(compressRAW.c, compressMG1.c and compressMG2.c).
+
+\subsection{RAW}
+To be written...
+
+Please read the source code file compressRAW.c for more details on the body
+format when the RAW compression method is used.
+
+
+\subsection{MG1}
+To be written...
+
+Please read the source code file compressMG1.c for more details on the body
+format when the MG1 compression method is used.
+
+
+\subsection{MG2}
+To be written...
+
+Please read the source code file compressMG2.c for more details on the body
+format when the MG2 compression method is used.
 
 \end{document}
