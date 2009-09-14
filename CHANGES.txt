@@ -1,0 +1,18 @@
+v0.8 (beta) - 2009.09.14
+------------------------
+- Introduced a new API function for controlling the compression level
+  (ctmCompressionLevel), and set the default compression level to 5 (rather
+  than 9, which would eat a lot of memory, usally without much difference).
+
+- Changed the name "texture map" in the API to "UV map" (and all
+  corresponding constant and function names). This is more in line with
+  the nomenclature of most 3D authoring software, and avoids the confusion
+  with the term texture mapping in 3D hardware (which is not limited to
+  2D UV mapping coordinates).
+
+- A few updates to the documentation.
+
+
+v0.7 (beta) - 2009.08.29
+------------------------
+- This was the first public release of OpenCTM.
