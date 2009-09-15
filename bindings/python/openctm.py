@@ -97,10 +97,10 @@ if os.name == 'nt':
 else:
 	libName = find_library('openctm')
 	if not libName:
-		return
+		raise Exception('Could not find the OpenCTM shared library.')
 	ctmlib = CDLL(libName)
 if not ctmlib:
-	return
+	raise Exception('Could not open the OpenCTM shared library.')
 
 # Functions
 ctmNewContext = ctmlib.ctmNewContext
