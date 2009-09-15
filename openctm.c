@@ -33,6 +33,14 @@
 #include "internal.h"
 
 
+// The C99 macro isfinite() is not supported on all platforms (specifically,
+// MS Visual Studio does not support C99)
+#if !defined(isfinite) && defined(_MSC_VER)
+  #include <float.h>
+  #define isfinite(x) _finite(x)
+#endif
+
+
 //-----------------------------------------------------------------------------
 // _ctmFreeMapList() - Free a float map list.
 //-----------------------------------------------------------------------------
@@ -92,6 +100,84 @@ static void _ctmClearMesh(_CTMcontext * self)
   _ctmFreeMapList(self, self->mAttribMaps);
   self->mAttribMaps = (_CTMfloatmap *) 0;
   self->mAttribMapCount = 0;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmCheckMeshIntegrity() - Check if a mesh is valid (i.e. is non-empty, and
+// contains valid data).
+//-----------------------------------------------------------------------------
+
+static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
+{
+  CTMuint i;
+  _CTMfloatmap * map;
+
+  // Check that we have all the mandatory data
+  if(!self->mVertices || !self->mIndices || (self->mVertexCount < 1) ||
+     (self->mTriangleCount < 1))
+  {
+    return CTM_FALSE;
+  }
+
+  // Check that all indices are within range
+  for(i = 0; i < (self->mTriangleCount * 3); ++ i)
+  {
+    if(self->mIndices[i] >= self->mVertexCount)
+    {
+      return CTM_FALSE;
+    }
+  }
+
+  // Check that all vertices are finite (non-NaN, non-inf)
+  for(i = 0; i < self->mVertexCount * 3; ++ i)
+  {
+    if(!isfinite(self->mVertices[i]))
+    {
+      return CTM_FALSE;
+    }
+  }
+
+  // Check that all normals are finite (non-NaN, non-inf)
+  if(self->mNormals)
+  {
+    for(i = 0; i < self->mVertexCount * 3; ++ i)
+    {
+      if(!isfinite(self->mNormals[i]))
+      {
+        return CTM_FALSE;
+      }
+    }
+  }
+
+  // Check that all UV maps are finite (non-NaN, non-inf)
+  map = self->mUVMaps;
+  while(map)
+  {
+    for(i = 0; i < self->mVertexCount * 2; ++ i)
+    {
+      if(!isfinite(map->mValues[i]))
+      {
+        return CTM_FALSE;
+      }
+    }
+    map = map->mNext;
+  }
+
+  // Check that all attribute maps are finite (non-NaN, non-inf)
+  map = self->mAttribMaps;
+  while(map)
+  {
+    for(i = 0; i < self->mVertexCount * 4; ++ i)
+    {
+      if(!isfinite(map->mValues[i]))
+      {
+        return CTM_FALSE;
+      }
+    }
+    map = map->mNext;
+  }
+
+  return CTM_TRUE;
 }
 
 //-----------------------------------------------------------------------------
@@ -1205,6 +1291,13 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
     default:
       self->mError = CTM_INTERNAL_ERROR;
   }
+
+  // Check mesh integrity
+  if(!_ctmCheckMeshIntegrity(self))
+  {
+    self->mError = CTM_INVALID_MESH;
+    return;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1254,7 +1347,7 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
   void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMuint flags, i;
+  CTMuint flags;
   if(!self) return;
 
   // You are only allowed to save data in export mode
@@ -1265,21 +1358,10 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
   }
 
   // Check mesh integrity
-  if(!self->mVertices || !self->mIndices || (self->mVertexCount < 1) ||
-     (self->mTriangleCount < 1))
+  if(!_ctmCheckMeshIntegrity(self))
   {
     self->mError = CTM_INVALID_MESH;
     return;
-  }
-
-  // Check that all indices are within range
-  for(i = 0; i < (self->mTriangleCount * 3); ++ i)
-  {
-    if(self->mIndices[i] >= self->mVertexCount)
-    {
-      self->mError = CTM_INVALID_MESH;
-      return;
-    }
   }
 
   // Initialize stream
