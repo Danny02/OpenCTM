@@ -1,3 +1,9 @@
+??? (next release)
+------------------------
+- Improved the internal mesh integrity checking, to minimize the risk of invalid
+  data processing.
+
+
 v0.8 (beta) - 2009.09.14
 ------------------------
 - Introduced a new API function for controlling the compression level
