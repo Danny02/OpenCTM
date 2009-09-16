@@ -32,7 +32,6 @@
 #include <vector>
 #include <list>
 #include <map>
-#define TIXML_USE_STL
 #include <tinyxml.h>
 #include "dae.h"
 
