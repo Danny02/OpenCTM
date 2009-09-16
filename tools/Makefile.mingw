@@ -29,21 +29,24 @@ OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
+TINYXMLDIR = tinyxml
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR) -DGLEW_STATIC
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR) -DGLEW_STATIC
 RC = windres
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
 	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
+	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw clean
+	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
 
-ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o ctmconv-res.o -lopenctm
+ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o ctmconv-res.o $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o ctmconv-res.o -lopenctm -ltinyxml
 
-ctmviewer.exe: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.a
-	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ljpeg -lfreeglut -lopengl32 -lglu32
+ctmviewer.exe: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.a
+	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ltinyxml -ljpeg -lfreeglut -lopengl32 -lglu32
 
 ctmbench.exe: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.a
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
@@ -61,6 +64,7 @@ ctm.o: ctm.cpp ctm.h mesh.h convoptions.h
 ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
 3ds.o: 3ds.cpp 3ds.h mesh.h
+dae.o: dae.cpp dae.h mesh.h
 
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@
@@ -85,3 +89,6 @@ glew.o: $(GLEWDIR)/glew.c
 
 rply.o: $(RPLYDIR)/rply.c
 	gcc -c -O2 -W -I$(RPLYDIR) -o $@ $<
+
+$(TINYXMLDIR)/libtinyxml.a:
+	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw

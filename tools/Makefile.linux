@@ -29,20 +29,23 @@ OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
+TINYXMLDIR = tinyxml
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(GLEWDIR)
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR)
 
 all: ctmconv ctmviewer ctmbench
 
 clean:
 	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
+	cd $(JPEGDIR) && $(MAKE) -f makefile.linux clean
+	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux clean
 
-ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o $(OPENCTMDIR)/libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o -Wl,-rpath,. -lopenctm
+ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o -Wl,-rpath,. -lopenctm -ltinyxml
 
-ctmviewer: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(OPENCTMDIR)/libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o -Wl,-rpath,. -lopenctm -ljpeg -lglut
+ctmviewer: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o glew.o -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut
 
 ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -Wl,-rpath,. -lopenctm
@@ -60,6 +63,7 @@ ctm.o: ctm.cpp ctm.h mesh.h convoptions.h
 ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
 3ds.o: 3ds.cpp 3ds.h mesh.h
+dae.o: dae.cpp dae.h mesh.h
 
 phong_vert.h: phong.vert bin2c
 	./bin2c phong.vert phongVertSrc > $@
@@ -78,3 +82,6 @@ glew.o: $(GLEWDIR)/glew.c
 
 rply.o: $(RPLYDIR)/rply.c
 	gcc -c -O2 -W -I$(RPLYDIR) -o $@ $<
+
+$(TINYXMLDIR)/libtinyxml.a:
+	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux

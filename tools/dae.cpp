@@ -28,28 +28,31 @@
 
 #include <stdexcept>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <map>
+#define TIXML_USE_STL
 #include <tinyxml.h>
 #include "dae.h"
 
 using namespace std;
 
-enum Axis {
+enum Axis
+{
   X,Y,Z,S,T
 };
 
-class Source {
+class Source
+{
 public:
-  Source() : stride(0), count(0),offset(0) {
-    
+  Source() : stride(0), count(0), offset(0)
+  {
   }
   
-  Source(const Source& copy ) : stride(copy.stride), count(copy.count), offset(copy.offset), array(copy.array), params(copy.params) {
-    
+  Source(const Source& copy) : stride(copy.stride), count(copy.count), offset(copy.offset), array(copy.array), params(copy.params)
+  {
   }
-  
   
   vector<float> array;
   size_t stride, count, offset;
@@ -57,7 +60,8 @@ public:
   //vector<Axis> axisOrder;
 };
 
-enum Semantic {
+enum Semantic
+{
   VERTEX,
   NORMAL,
   TEXCOORD,
@@ -65,13 +69,15 @@ enum Semantic {
   UNKNOWN
 };
 
-struct Input {
+struct Input
+{
   string source;
   Semantic semantic;
   size_t offset;
 };
 
-Semantic ToSemantic(const string& semantic) {
+Semantic ToSemantic(const string& semantic)
+{
   if (semantic == "VERTEX")
     return VERTEX;
   else if (semantic == "NORMAL")
@@ -84,7 +90,8 @@ Semantic ToSemantic(const string& semantic) {
     return UNKNOWN;
 }
 
-void HandleP(TiXmlElement* p , vector<size_t>& array) {
+void HandleP(TiXmlElement* p , vector<size_t>& array)
+{
   istringstream strStream (p->GetText());
   char val[100];
   size_t value = 0;
@@ -167,14 +174,11 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
     TiXmlElement* elem = hDoc.FirstChildElement().Element();
     TiXmlHandle hRoot(elem);
     
-    TiXmlHandle geometry = hRoot.FirstChild( "library_geometries" ).FirstChild("geometry");
-    elem = geometry.ToElement();
-    
     map<string, Source > sources;
-    
     size_t indicesOffset = 0, vertexOffset = 0, texcoordOffset = 0, normalOffset = 0;
     
-    for(elem; elem; elem=elem->NextSiblingElement())
+    TiXmlHandle geometry = hRoot.FirstChild( "library_geometries" ).FirstChild("geometry");
+    for(elem = geometry.ToElement(); elem; elem=elem->NextSiblingElement())
     {
       TiXmlHandle geometry(elem);
       
@@ -184,8 +188,9 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
       {
         TiXmlHandle mesh(meshElem);
         
-        TiXmlElement* sourceElem = mesh.FirstChild("source").ToElement();
-        for(sourceElem; sourceElem; sourceElem = sourceElem->NextSiblingElement())
+        TiXmlElement* sourceElem;
+        for(sourceElem = mesh.FirstChild("source").ToElement(); sourceElem;
+            sourceElem = sourceElem->NextSiblingElement())
         {
           if(string(sourceElem->Value()) != "source")
             continue;
@@ -207,7 +212,7 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
           while(!strStream.eof())
           {
             strStream >> val;
-            value = atof(val);
+            value = float(atof(val));
             sources[id].array.push_back(value);
           }
         }
@@ -215,12 +220,13 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
         TiXmlElement* verticesElem = mesh.FirstChild("vertices").ToElement();
         map<string, vector<Input> > vertices;
         if (verticesElem) {
-          TiXmlElement* inputElem = verticesElem->FirstChild("input")->ToElement();
           string id = verticesElem->Attribute("id");
           vertices.insert(make_pair(id, vector<Input>()));
-          for( inputElem; inputElem; inputElem = inputElem->NextSiblingElement())
+          TiXmlElement* inputElem;
+          for(inputElem = verticesElem->FirstChild("input")->ToElement();
+              inputElem; inputElem = inputElem->NextSiblingElement())
           {
-            if (string(inputElem->Value()) != "input")
+            if(string(inputElem->Value()) != "input")
               continue;
             
             vertices[id].push_back(Input());
@@ -233,11 +239,12 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
         if(trianglesElem)
         {
           TiXmlHandle triangles(trianglesElem);
-          TiXmlElement* inputElem = triangles.FirstChild( "input" ).ToElement();
           vector<Input> inputs;
           bool hasVerts = false, hasNormals = false, hasTexcoords = false;
           string vertSource = "", normalSource = "", texcoordSource = ""; 
-          for( inputElem; inputElem; inputElem = inputElem->NextSiblingElement())
+          TiXmlElement* inputElem;
+          for(inputElem = triangles.FirstChild( "input" ).ToElement();
+              inputElem; inputElem = inputElem->NextSiblingElement())
           {
             if(string(inputElem->Value()) != "input")
               continue;
@@ -259,6 +266,8 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
               case TEXCOORD:
                 hasTexcoords = true;
                 texcoordSource = inputs.back().source;
+                break;
+              default:
                 break;
             }
           }
@@ -285,6 +294,8 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
                   break;
                 case TEXCOORD:
                   texcoordIndex = pArray[i + j->offset];
+                  break;
+                default:
                   break;
               }
             }

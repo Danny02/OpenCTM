@@ -29,21 +29,24 @@ OPENCTMDIR = ..
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
+TINYXMLDIR = tinyxml
 
 CPP = cl
-CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(GLEWDIR) /DGLEW_STATIC
+CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(TINYXMLDIR) /I$(GLEWDIR) /DGLEW_STATIC
 RC = rc
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
 	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.obj ctmviewer.obj ctmbench.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj bin2c.exe phong_frag.h phong_vert.h ctmconv.res ctmviewer.res
+	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc clean
+	cd $(TINYXMLDIR) && $(MAKE) /fMakefile.msvc clean
 
-ctmconv.exe: ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+ctmconv.exe: ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj dae.obj mesh.obj rply.obj ctmconv.res $(TINYXMLDIR)\tinyxml.lib  $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj dae.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) openctm.lib tinyxml.lib
 
-ctmviewer.exe: ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(OPENCTMDIR)\openctm.lib
-	$(CPP) /nologo /Fe$@ ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(JPEGDIR) openctm.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
+ctmviewer.exe: ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj dae.obj mesh.obj rply.obj glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(TINYXMLDIR)\tinyxml.lib $(OPENCTMDIR)\openctm.lib
+	$(CPP) /nologo /Fe$@ ctmviewer.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj dae.obj mesh.obj rply.obj glew.obj ctmviewer.res /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) /LIBPATH:$(JPEGDIR) openctm.lib tinyxml.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
 
 ctmbench.exe: ctmbench.obj systimer.obj $(OPENCTMDIR)\openctm.lib
 	$(CPP) /nologo /Fe$@ ctmbench.obj systimer.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
@@ -61,6 +64,7 @@ ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h
 ply.obj: ply.cpp ply.h mesh.h
 stl.obj: stl.cpp stl.h mesh.h
 3ds.obj: 3ds.cpp 3ds.h mesh.h
+dae.obj: dae.cpp dae.h mesh.h
 
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@
@@ -85,3 +89,6 @@ glew.obj: $(GLEWDIR)\glew.c
 
 rply.obj: $(RPLYDIR)\rply.c
 	cl /nologo /c /Ox /W3 /I$(RPLYDIR) /D_CRT_SECURE_NO_WARNINGS /Fo$@ $(RPLYDIR)\rply.c
+
+$(TINYXMLDIR)\tinyxml.lib:
+	cd $(TINYXMLDIR) && $(MAKE) /fMakefile.msvc
