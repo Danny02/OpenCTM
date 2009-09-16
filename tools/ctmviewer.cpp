@@ -44,6 +44,7 @@
 #include "ply.h"
 #include "stl.h"
 #include "3ds.h"
+#include "dae.h"
 
 using namespace std;
 
@@ -689,6 +690,8 @@ int main(int argc, char **argv)
       Import_STL(argv[1], mesh);
     else if(fileExt == string(".3DS"))
       Import_3DS(argv[1], mesh);
+    else if(fileExt == string(".DAE"))
+      Import_DAE(argv[1], mesh);
     else if(fileExt == string(".CTM"))
       Import_CTM(argv[1], mesh);
     else
