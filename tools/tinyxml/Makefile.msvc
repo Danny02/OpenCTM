@@ -5,7 +5,7 @@
 # Compiler configuration
 CPP = cl
 AR = lib /nologo
-CPPFLAGS = /nologo /O2 /Gs /W3 /EHsc /DTIXML_USE_STL /D_CRT_SECURE_NO_WARNINGS
+CPPFLAGS = /nologo /O2 /Gs /W3 /EHsc /D_CRT_SECURE_NO_WARNINGS
 
 # Target files
 STATICLIB = tinyxml.lib

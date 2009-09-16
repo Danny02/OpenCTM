@@ -5,7 +5,7 @@
 # Compiler configuration
 CPP = g++
 AR = ar rcs
-CPPFLAGS = -Wall -Wno-unknown-pragmas -Wno-format -O3 -DTIXML_USE_STL
+CPPFLAGS = -Wall -Wno-unknown-pragmas -Wno-format -O3
 
 # Target files
 STATICLIB = libtinyxml.a
