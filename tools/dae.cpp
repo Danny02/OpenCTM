@@ -49,7 +49,7 @@ public:
   {
   }
   
-  Source(const Source& copy) : stride(copy.stride), count(copy.count), offset(copy.offset), array(copy.array), params(copy.params)
+  Source(const Source& copy) : array(copy.array), stride(copy.stride), count(copy.count), offset(copy.offset), params(copy.params)
   {
   }
   
@@ -338,6 +338,9 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
             }
             
           }
+			
+		  //TiXmlElement* polylistElem = mesh.FirstChild("polylist").ToElement();
+			
           size_t indicesOff = indicesOffset, vertexOff = vertexOffset, normalOff = normalOffset, texcoordOff = texcoordOffset;
           indicesOffset += indexVector.size();
           vertexOffset += vertVector.size();
