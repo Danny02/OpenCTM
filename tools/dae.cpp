@@ -56,7 +56,20 @@ public:
   vector<float> array;
   size_t stride, count, offset;
   vector<string> params;
-  //vector<Axis> axisOrder;
+
+};
+
+class Indexes {
+public:
+	Indexes(size_t _vertIndex = 0, size_t _normalIndex = 0, size_t _texcoordIndex = 0) : vertIndex(_vertIndex), normalIndex(_normalIndex), texcoordIndex(_texcoordIndex) {
+		
+	}
+	
+	Indexes(const Indexes& copy) : vertIndex(copy.vertIndex), normalIndex(copy.normalIndex), texcoordIndex(copy.texcoordIndex) {
+		
+	}
+	
+	size_t vertIndex, normalIndex, texcoordIndex;
 };
 
 enum Semantic
@@ -89,7 +102,7 @@ Semantic ToSemantic(const string& semantic)
     return UNKNOWN;
 }
 
-void HandleP(TiXmlElement* p , vector<size_t>& array)
+void ReadIndexArray(TiXmlElement* p , vector<size_t>& array)
 {
   istringstream strStream (p->GetText());
   char val[100];
@@ -99,6 +112,37 @@ void HandleP(TiXmlElement* p , vector<size_t>& array)
     value = atoi(val);
     array.push_back(value);
   }
+}
+
+void ReadInputs(TiXmlElement* rootElem,bool& hasVerts,bool& hasNormals,bool& hasTexcoords, string& vertSource,string& normalSource,string& texcoordSource, vector<Input>& inputs) {
+	TiXmlHandle root(rootElem);
+	for(TiXmlElement* inputElem = root.FirstChild( "input" ).ToElement();inputElem; inputElem = inputElem->NextSiblingElement())
+	{
+		if(string(inputElem->Value()) != "input")
+			continue;
+		//TiXmlHandle input(inputElem);
+		inputs.push_back(Input());
+		inputs.back().source = string(inputElem->Attribute("source")).substr(1);
+		inputs.back().offset = atoi(inputElem->Attribute("offset"));
+		inputs.back().semantic = ToSemantic(inputElem->Attribute("semantic"));
+		switch(inputs.back().semantic)
+		{
+			case VERTEX:
+                hasVerts = true;
+                vertSource = inputs.back().source;
+                break;
+			case NORMAL:
+                hasNormals = true;
+                normalSource = inputs.back().source;
+                break;
+			case TEXCOORD:
+                hasTexcoords = true;
+                texcoordSource = inputs.back().source;
+                break;
+			default:
+                break;
+		}
+	}
 }
 
 Source& GetSource(map<string, Source >& sources, map<string, vector<Input> >& vertices,const string& source)
@@ -205,7 +249,9 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
           
           sources[id].stride = atoi(accessorElem->Attribute("stride"));
           sources[id].count = atoi(accessorElem->Attribute("count"));
-          sources[id].offset = atoi(accessorElem->Attribute("offset"));
+		  if (accessorElem->Attribute("offset"))
+			  sources[id].offset = atoi(accessorElem->Attribute("offset"));
+			
           char val[100];
           float value = 0;
           while(!strStream.eof())
@@ -241,6 +287,7 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
           vector<Input> inputs;
           bool hasVerts = false, hasNormals = false, hasTexcoords = false;
           string vertSource = "", normalSource = "", texcoordSource = ""; 
+			/*
           TiXmlElement* inputElem;
           for(inputElem = triangles.FirstChild( "input" ).ToElement();
               inputElem; inputElem = inputElem->NextSiblingElement())
@@ -270,11 +317,13 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
                 break;
             }
           }
+			*/
+		  ReadInputs(trianglesElem, hasVerts, hasNormals, hasTexcoords, vertSource, normalSource, texcoordSource, inputs);
           
           vector<size_t> pArray;
           TiXmlElement* p = triangles.FirstChild( "p" ).ToElement();
           
-          HandleP(p,pArray);
+          ReadIndexArray(p,pArray);
           
           vector<size_t> indexVector;
           vector<Vector3> vertVector, normalVector;
@@ -339,7 +388,47 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
             
           }
 			
-		  //TiXmlElement* polylistElem = mesh.FirstChild("polylist").ToElement();
+		  TiXmlElement* polylistElem = mesh.FirstChild("polylist").ToElement();
+			
+		  if (polylistElem) {
+			  TiXmlHandle polylist(polylistElem);
+			  vector<size_t> vcountArray, pArray;
+			  TiXmlElement* vcountElem = polylist.FirstChild("vcount").ToElement();
+			  ReadIndexArray(vcountElem, vcountArray);
+			  TiXmlElement* pElem = polylist.FirstChild("p").ToElement();
+			  ReadIndexArray(pElem, pArray);
+			  vector<Input> inputs;
+			  bool hasVerts = false, hasNormals = false, hasTexcoords = false;
+			  string vertSource = "", normalSource = "", texcoordSource = ""; 
+			  
+			  ReadInputs(polylistElem, hasVerts, hasNormals, hasTexcoords, vertSource, normalSource, texcoordSource, inputs);
+			  size_t offset = 0;
+			  for (size_t i = 0; i < vcountArray.size(); ++i) {
+				  vector<Indexes> convexPolygon;
+				  for (size_t j = 0; j < vcountArray[i]; ++j) {
+					  convexPolygon.push_back(Indexes());
+					  for (vector<Input>::const_iterator j = inputs.begin(); j != inputs.end(); ++j) {
+						  switch (j->semantic) {
+							  case VERTEX:
+								  convexPolygon.back().vertIndex = pArray[offset + j->offset];
+								  break;
+							  case NORMAL:
+								  convexPolygon.back().normalIndex = pArray[offset + j->offset];
+								  break;
+							  case TEXCOORD:
+								  convexPolygon.back().texcoordIndex = pArray[offset + j->offset];
+								  break;
+							  default:
+								  break;
+						  }
+					  }
+				  }
+				  offset += vcountArray[i];
+			  }
+			  
+			  
+			  
+		  }
 			
           size_t indicesOff = indicesOffset, vertexOff = vertexOffset, normalOff = normalOffset, texcoordOff = texcoordOffset;
           indicesOffset += indexVector.size();
