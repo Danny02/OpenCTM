@@ -118,25 +118,58 @@ ctmErrorString = ctmlib.ctmErrorString
 ctmErrorString.argtypes = [CTMenum]
 ctmErrorString.restype = c_char_p
 
-ctmFileComment = ctmlib.ctmFileComment
-ctmFileComment.argtypes = [CTMcontext, c_char_p]
+ctmGetInteger = ctmlib.ctmGetInteger
+ctmGetInteger.argtypes = [CTMcontext, CTMenum]
+ctmGetInteger.restype = CTMint
 
-ctmDefineMesh = ctmlib.ctmDefineMesh
-ctmDefineMesh.argtypes = [CTMcontext, POINTER(CTMfloat), CTMuint, POINTER(CTMuint), CTMuint, POINTER(CTMfloat)]
+ctmGetFloat = ctmlib.ctmGetFloat
+ctmGetFloat.argtypes = [CTMcontext, CTMenum]
+ctmGetFloat.restype = CTMfloat
 
-ctmSave = ctmlib.ctmSave
-ctmSave.argtypes = [CTMcontext, c_char_p]
+ctmGetIntegerArray = ctmlib.ctmGetIntegerArray
+ctmGetIntegerArray.argtypes = [CTMcontext, CTMenum]
+ctmGetIntegerArray.restype = POINTER(CTMuint)
 
-ctmAddUVMap = ctmlib.ctmAddUVMap
-ctmAddUVMap.argtypes = [CTMcontext, POINTER(CTMfloat), c_char_p, c_char_p]
-ctmAddUVMap.restype = CTMenum
+ctmGetFloatArray = ctmlib.ctmGetFloatArray
+ctmGetFloatArray.argtypes = [CTMcontext, CTMenum]
+ctmGetFloatArray.restype = POINTER(CTMfloat)
 
-ctmAddAttribMap = ctmlib.ctmAddAttribMap
-ctmAddAttribMap.argtypes = [CTMcontext, POINTER(CTMfloat), c_char_p]
-ctmAddAttribMap.restype = CTMenum
+ctmGetNamedUVMap = ctmlib.ctmGetNamedUVMap
+ctmGetNamedUVMap.argtypes = [CTMcontext, c_char_p]
+ctmGetNamedUVMap.restype = CTMenum
+
+ctmGetUVMapString = ctmlib.ctmGetUVMapString
+ctmGetUVMapString.argtypes = [CTMcontext, CTMenum, CTMenum]
+ctmGetUVMapString.restype = c_char_p
+
+ctmGetUVMapFloat = ctmlib.ctmGetUVMapFloat
+ctmGetUVMapFloat.argtypes = [CTMcontext, CTMenum, CTMenum]
+ctmGetUVMapFloat.restype = CTMfloat
+
+ctmGetNamedAttribMap = ctmlib.ctmGetNamedAttribMap
+ctmGetNamedAttribMap.argtypes = [CTMcontext, c_char_p]
+ctmGetNamedAttribMap.restype = CTMenum
+
+ctmGetAttribMapString = ctmlib.ctmGetAttribMapString
+ctmGetAttribMapString.argtypes = [CTMcontext, CTMenum, CTMenum]
+ctmGetAttribMapString.restype = c_char_p
+
+ctmGetAttribMapFloat = ctmlib.ctmGetAttribMapFloat
+ctmGetAttribMapFloat.argtypes = [CTMcontext, CTMenum, CTMenum]
+ctmGetAttribMapFloat.restype = CTMfloat
+
+ctmGetString = ctmlib.ctmGetString
+ctmGetString.argtypes = [CTMcontext, CTMenum]
+ctmGetString.restype = c_char_p
 
 ctmCompressionMethod = ctmlib.ctmCompressionMethod
 ctmCompressionMethod.argtypes = [CTMcontext, CTMenum]
+
+ctmCompressionLevel = ctmlib.ctmCompressionLevel
+ctmCompressionLevel.argtypes = [CTMcontext, CTMuint]
+
+ctmVertexPrecision = ctmlib.ctmVertexPrecision
+ctmVertexPrecision.argtypes = [CTMcontext, CTMfloat]
 
 ctmVertexPrecisionRel = ctmlib.ctmVertexPrecisionRel
 ctmVertexPrecisionRel.argtypes = [CTMcontext, CTMfloat]
@@ -150,25 +183,22 @@ ctmUVCoordPrecision.argtypes = [CTMcontext, CTMenum, CTMfloat]
 ctmAttribPrecision = ctmlib.ctmAttribPrecision
 ctmAttribPrecision.argtypes = [CTMcontext, CTMenum, CTMfloat]
 
+ctmFileComment = ctmlib.ctmFileComment
+ctmFileComment.argtypes = [CTMcontext, c_char_p]
+
+ctmDefineMesh = ctmlib.ctmDefineMesh
+ctmDefineMesh.argtypes = [CTMcontext, POINTER(CTMfloat), CTMuint, POINTER(CTMuint), CTMuint, POINTER(CTMfloat)]
+
+ctmAddUVMap = ctmlib.ctmAddUVMap
+ctmAddUVMap.argtypes = [CTMcontext, POINTER(CTMfloat), c_char_p, c_char_p]
+ctmAddUVMap.restype = CTMenum
+
+ctmAddAttribMap = ctmlib.ctmAddAttribMap
+ctmAddAttribMap.argtypes = [CTMcontext, POINTER(CTMfloat), c_char_p]
+ctmAddAttribMap.restype = CTMenum
+
 ctmLoad = ctmlib.ctmLoad
 ctmLoad.argtypes = [CTMcontext, c_char_p]
 
-ctmGetInteger = ctmlib.ctmGetInteger
-ctmGetInteger.argtypes = [CTMcontext, CTMenum]
-ctmGetInteger.restype = CTMint
-
-ctmGetString = ctmlib.ctmGetString
-ctmGetString.argtypes = [CTMcontext, CTMenum]
-ctmGetString.restype = c_char_p
-
-ctmGetIntegerArray = ctmlib.ctmGetIntegerArray
-ctmGetIntegerArray.argtypes = [CTMcontext, CTMenum]
-ctmGetIntegerArray.restype = POINTER(CTMuint)
-
-ctmGetFloatArray = ctmlib.ctmGetFloatArray
-ctmGetFloatArray.argtypes = [CTMcontext, CTMenum]
-ctmGetFloatArray.restype = POINTER(CTMfloat)
-
-ctmGetNamedAttribMap = ctmlib.ctmGetNamedAttribMap
-ctmGetNamedAttribMap.argtypes = [CTMcontext, c_char_p]
-ctmGetNamedAttribMap.restype = CTMenum
+ctmSave = ctmlib.ctmSave
+ctmSave.argtypes = [CTMcontext, c_char_p]
