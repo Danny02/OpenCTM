@@ -462,5 +462,76 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
 /// Export a DAE file to a file.
 void Export_DAE(const char * aFileName, Mesh &aMesh)
 {
-  throw runtime_error("Could not open input file.");
+  TiXmlDocument xmlDoc;
+  TiXmlElement * elem;
+
+  // Set XML declaration
+  xmlDoc.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", ""));
+ 
+  // Create root node
+  TiXmlElement * root = new TiXmlElement("COLLADA");
+  xmlDoc.LinkEndChild(root);
+  root->SetAttribute("xmlns", "http://www.collada.org/2005/11/COLLADASchema");
+  root->SetAttribute("version", "1.4.1");
+
+  // Create traceability nodes
+  TiXmlElement * asset = new TiXmlElement("asset");
+  root->LinkEndChild(asset);
+  TiXmlElement * contributor = new TiXmlElement("contributor");
+  asset->LinkEndChild(contributor);
+  TiXmlElement * authoring_tool = new TiXmlElement("authoring_tool");
+  contributor->LinkEndChild(authoring_tool);
+  authoring_tool->LinkEndChild(new TiXmlText("ctmconv"));
+  TiXmlElement * comments = new TiXmlElement("comments");
+  contributor->LinkEndChild(comments);
+  comments->LinkEndChild(new TiXmlText(aMesh.mComment.c_str()));
+  TiXmlElement * up_axis = new TiXmlElement("up_axis");
+  asset->LinkEndChild(up_axis);
+  up_axis->LinkEndChild(new TiXmlText("Z_UP"));
+
+  // Create the geometry nodes
+  TiXmlElement * library_geometries = new TiXmlElement("library_geometries");
+  root->LinkEndChild(library_geometries);
+  TiXmlElement * geometry = new TiXmlElement("geometry");
+  library_geometries->LinkEndChild(geometry);
+  geometry->SetAttribute("id", "Mesh-1");
+  geometry->SetAttribute("name", "Mesh-1");
+  TiXmlElement * mesh = new TiXmlElement("mesh");
+  geometry->LinkEndChild(mesh);
+
+  // Vertices (positions)
+  TiXmlElement * source_position = new TiXmlElement("source");
+  mesh->LinkEndChild(source_position);
+  source_position->SetAttribute("id", "Mesh-1-positions");
+  source_position->SetAttribute("name", "position");
+  TiXmlElement * positions_array = new TiXmlElement("float_array");
+  source_position->LinkEndChild(positions_array);
+  positions_array->SetAttribute("id", "Mesh-1-positions-array");
+  positions_array->SetAttribute("count", int(aMesh.mVertices.size()));
+  // TODO: Dump vertex positions to a string...
+  TiXmlElement * positions_technique = new TiXmlElement("technique_common");
+  source_position->LinkEndChild(positions_technique);
+  TiXmlElement * positions_technique_accessor = new TiXmlElement("accessor");
+  positions_technique->LinkEndChild(positions_technique_accessor);
+  positions_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size() / 3));
+  positions_technique_accessor->SetAttribute("offset", 0);
+  positions_technique_accessor->SetAttribute("source", "#Mesh-1-positions-array");
+  positions_technique_accessor->SetAttribute("stride", 3);
+  elem = new TiXmlElement("param");
+  positions_technique_accessor->LinkEndChild(elem);
+  elem->SetAttribute("name", "X");
+  elem->SetAttribute("type", "float");
+  elem = new TiXmlElement("param");
+  positions_technique_accessor->LinkEndChild(elem);
+  elem->SetAttribute("name", "Y");
+  elem->SetAttribute("type", "float");
+  elem = new TiXmlElement("param");
+  positions_technique_accessor->LinkEndChild(elem);
+  elem->SetAttribute("name", "Z");
+  elem->SetAttribute("type", "float");
+
+  // Save the XML document to a file
+  xmlDoc.SaveFile(aFileName);
+  if(xmlDoc.Error())
+    throw runtime_error(string(xmlDoc.ErrorDesc()));
 }
