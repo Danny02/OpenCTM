@@ -507,13 +507,13 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   TiXmlElement * positions_array = new TiXmlElement("float_array");
   source_position->LinkEndChild(positions_array);
   positions_array->SetAttribute("id", "Mesh-1-positions-array");
-  positions_array->SetAttribute("count", int(aMesh.mVertices.size()));
+  positions_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
   // TODO: Dump vertex positions to a string...
   TiXmlElement * positions_technique = new TiXmlElement("technique_common");
   source_position->LinkEndChild(positions_technique);
   TiXmlElement * positions_technique_accessor = new TiXmlElement("accessor");
   positions_technique->LinkEndChild(positions_technique_accessor);
-  positions_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size() / 3));
+  positions_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size()));
   positions_technique_accessor->SetAttribute("offset", 0);
   positions_technique_accessor->SetAttribute("source", "#Mesh-1-positions-array");
   positions_technique_accessor->SetAttribute("stride", 3);
@@ -529,6 +529,40 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   positions_technique_accessor->LinkEndChild(elem);
   elem->SetAttribute("name", "Z");
   elem->SetAttribute("type", "float");
+
+  // Normals
+  if(aMesh.mNormals.size() == aMesh.mVertices.size())
+  {
+    TiXmlElement * source_normal = new TiXmlElement("source");
+    mesh->LinkEndChild(source_normal);
+    source_normal->SetAttribute("id", "Mesh-1-normals");
+    source_normal->SetAttribute("name", "normal");
+    TiXmlElement * normals_array = new TiXmlElement("float_array");
+    source_normal->LinkEndChild(normals_array);
+    normals_array->SetAttribute("id", "Mesh-1-normals-array");
+    normals_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
+    // TODO: Dump normals to a string...
+    TiXmlElement * normals_technique = new TiXmlElement("technique_common");
+    source_normal->LinkEndChild(normals_technique);
+    TiXmlElement * normals_technique_accessor = new TiXmlElement("accessor");
+    normals_technique->LinkEndChild(normals_technique_accessor);
+    normals_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size()));
+    normals_technique_accessor->SetAttribute("offset", 0);
+    normals_technique_accessor->SetAttribute("source", "#Mesh-1-normals-array");
+    normals_technique_accessor->SetAttribute("stride", 3);
+    elem = new TiXmlElement("param");
+    normals_technique_accessor->LinkEndChild(elem);
+    elem->SetAttribute("name", "X");
+    elem->SetAttribute("type", "float");
+    elem = new TiXmlElement("param");
+    normals_technique_accessor->LinkEndChild(elem);
+    elem->SetAttribute("name", "Y");
+    elem->SetAttribute("type", "float");
+    elem = new TiXmlElement("param");
+    normals_technique_accessor->LinkEndChild(elem);
+    elem->SetAttribute("name", "Z");
+    elem->SetAttribute("type", "float");
+  }
 
   // Save the XML document to a file
   xmlDoc.SaveFile(aFileName);
