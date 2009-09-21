@@ -31,11 +31,11 @@ from ctypes.util import find_library
 import os
 
 # Types
-CTMfloat = c_float;
-CTMint = c_int32;
-CTMuint = c_uint32;
-CTMcontext = c_void_p;
-CTMenum = c_uint32;
+CTMfloat = c_float
+CTMint = c_int32
+CTMuint = c_uint32
+CTMcontext = c_void_p
+CTMenum = c_uint32
 
 # Constants
 CTM_API_VERSION = 0x00000008
