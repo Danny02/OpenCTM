@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name of the distribution
-distname=OpenCTM-0.8
+distname=OpenCTM-0.9
 
 # Clean the source directories
 echo Cleaning up...
@@ -58,6 +58,8 @@ cp plugins/blender/* $tmpdir/plugins/blender/
 mkdir $tmpdir/bindings
 mkdir $tmpdir/bindings/delphi
 cp bindings/delphi/* $tmpdir/bindings/delphi/
+mkdir $tmpdir/bindings/python
+cp bindings/python/* $tmpdir/bindings/python/
 
 # Create archives
 olddir=`pwd`

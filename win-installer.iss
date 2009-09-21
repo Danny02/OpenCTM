@@ -5,14 +5,14 @@
 
 [Setup]
 AppName=OpenCTM
-AppVerName=OpenCTM 0.8 (beta)
-VersionInfoVersion=0.8.0.0
+AppVerName=OpenCTM 0.9 (beta)
+VersionInfoVersion=0.9.0.0
 AppPublisher=Marcus Geelnard
 AppPublisherURL=http://openctm.sourceforge.net/
 AppSupportURL=http://openctm.sourceforge.net/
 AppUpdatesURL=http://openctm.sourceforge.net/
-DefaultDirName={pf}\OpenCTM 0.8
-DefaultGroupName=OpenCTM 0.8 (beta)
+DefaultDirName={pf}\OpenCTM 0.9
+DefaultGroupName=OpenCTM 0.9 (beta)
 LicenseFile=LICENSE.txt
 OutputDir=.
 OutputBaseFilename=OpenCTM-0.8-beta-setup
@@ -43,6 +43,8 @@ Source: "openctm.h"; DestDir: "{app}\Developer files"
 Source: "openctmpp.h"; DestDir: "{app}\Developer files"
 Source: "openctm.lib"; DestDir: "{app}\Developer files"
 Source: "bindings\delphi\OpenCTM.pas"; DestDir: "{app}\Developer files"
+Source: "bindings\python\openctm.py"; DestDir: "{app}\Developer files"
+Source: "bindings\python\ctminfo.py"; DestDir: "{app}\Developer files"
 Source: "plugins\blender\*"; DestDir: "{app}\Plugins\Blender"
 
 [Icons]
