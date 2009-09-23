@@ -459,6 +459,26 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
     throw runtime_error("Could not open input file.");
 }
 
+/// Dump a float array to an XML text node.
+static void FloatArrayToXML(TiXmlElement * aNode, float * aArray,
+  unsigned int aCount)
+{
+  stringstream ss;
+  for(unsigned int i = 0; i < aCount; ++ i)
+    ss << aArray[i] << " ";
+  aNode->LinkEndChild(new TiXmlText(ss.str().c_str()));
+}
+
+/// Dump an integer array to an XML text node.
+static void IntArrayToXML(TiXmlElement * aNode, int * aArray,
+  unsigned int aCount)
+{
+  stringstream ss;
+  for(unsigned int i = 0; i < aCount; ++ i)
+    ss << aArray[i] << " ";
+  aNode->LinkEndChild(new TiXmlText(ss.str().c_str()));
+}
+
 /// Export a DAE file to a file.
 void Export_DAE(const char * aFileName, Mesh &aMesh)
 {
@@ -508,7 +528,7 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   source_position->LinkEndChild(positions_array);
   positions_array->SetAttribute("id", "Mesh-1-positions-array");
   positions_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
-  // TODO: Dump vertex positions to a string...
+  FloatArrayToXML(positions_array, &aMesh.mVertices[0].x, aMesh.mVertices.size() * 3);
   TiXmlElement * positions_technique = new TiXmlElement("technique_common");
   source_position->LinkEndChild(positions_technique);
   TiXmlElement * positions_technique_accessor = new TiXmlElement("accessor");
@@ -541,7 +561,7 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
     source_normal->LinkEndChild(normals_array);
     normals_array->SetAttribute("id", "Mesh-1-normals-array");
     normals_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
-    // TODO: Dump normals to a string...
+    FloatArrayToXML(normals_array, &aMesh.mNormals[0].x, aMesh.mNormals.size() * 3);
     TiXmlElement * normals_technique = new TiXmlElement("technique_common");
     source_normal->LinkEndChild(normals_technique);
     TiXmlElement * normals_technique_accessor = new TiXmlElement("accessor");
@@ -563,6 +583,16 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
     elem->SetAttribute("name", "Z");
     elem->SetAttribute("type", "float");
   }
+
+  // Triangles
+/*
+                <triangles count="4212" material="blinn3SG">
+                    <input offset="0" semantic="VERTEX" source="#LOD3spShape-lib-vertices"/>
+                    <input offset="1" semantic="NORMAL" source="#LOD3spShape-lib-normals"/>
+                    <input offset="2" semantic="TEXCOORD" source="#LOD3spShape-lib-map1" set="0"/>
+                    <p>89 0 23 243</p>
+                </triangles>
+*/
 
   // Save the XML document to a file
   xmlDoc.SaveFile(aFileName);
