@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # Product:     OpenCTM
 # File:        openctm.py
-# Description: Python API bindings.
+# Description: Python API bindings (tested with Python 2.5.2 and Python 3.0)
 #------------------------------------------------------------------------------
 # Copyright (c) 2009 Marcus Geelnard
 #
@@ -25,10 +25,10 @@
 #     distribution.
 #------------------------------------------------------------------------------
 
+import os
 import ctypes
 from ctypes import *
 from ctypes.util import find_library
-import os
 
 # Types
 CTMfloat = c_float
@@ -93,112 +93,112 @@ CTM_ATTRIB_MAP_8 = 0x0807
 
 # Load the OpenCTM shared library
 if os.name == 'nt':
-	ctmlib = WinDLL('openctm.dll')
+    _lib = WinDLL('openctm.dll')
 else:
-	libName = find_library('openctm')
-	if not libName:
-		raise Exception('Could not find the OpenCTM shared library.')
-	ctmlib = CDLL(libName)
-if not ctmlib:
-	raise Exception('Could not open the OpenCTM shared library.')
+    _libName = find_library('openctm')
+    if not _libName:
+        raise Exception('Could not find the OpenCTM shared library.')
+    _lib = CDLL(_libName)
+if not _lib:
+    raise Exception('Could not open the OpenCTM shared library.')
 
 # Functions
-ctmNewContext = ctmlib.ctmNewContext
+ctmNewContext = _lib.ctmNewContext
 ctmNewContext.argtypes = [CTMenum]
 ctmNewContext.restype = CTMcontext
 
-ctmFreeContext = ctmlib.ctmFreeContext
+ctmFreeContext = _lib.ctmFreeContext
 ctmFreeContext.argtypes = [CTMcontext]
 
-ctmGetError = ctmlib.ctmGetError
+ctmGetError = _lib.ctmGetError
 ctmGetError.argtypes = [CTMcontext]
 ctmGetError.restype = CTMenum
 
-ctmErrorString = ctmlib.ctmErrorString
+ctmErrorString = _lib.ctmErrorString
 ctmErrorString.argtypes = [CTMenum]
 ctmErrorString.restype = c_char_p
 
-ctmGetInteger = ctmlib.ctmGetInteger
+ctmGetInteger = _lib.ctmGetInteger
 ctmGetInteger.argtypes = [CTMcontext, CTMenum]
 ctmGetInteger.restype = CTMint
 
-ctmGetFloat = ctmlib.ctmGetFloat
+ctmGetFloat = _lib.ctmGetFloat
 ctmGetFloat.argtypes = [CTMcontext, CTMenum]
 ctmGetFloat.restype = CTMfloat
 
-ctmGetIntegerArray = ctmlib.ctmGetIntegerArray
+ctmGetIntegerArray = _lib.ctmGetIntegerArray
 ctmGetIntegerArray.argtypes = [CTMcontext, CTMenum]
 ctmGetIntegerArray.restype = POINTER(CTMuint)
 
-ctmGetFloatArray = ctmlib.ctmGetFloatArray
+ctmGetFloatArray = _lib.ctmGetFloatArray
 ctmGetFloatArray.argtypes = [CTMcontext, CTMenum]
 ctmGetFloatArray.restype = POINTER(CTMfloat)
 
-ctmGetNamedUVMap = ctmlib.ctmGetNamedUVMap
+ctmGetNamedUVMap = _lib.ctmGetNamedUVMap
 ctmGetNamedUVMap.argtypes = [CTMcontext, c_char_p]
 ctmGetNamedUVMap.restype = CTMenum
 
-ctmGetUVMapString = ctmlib.ctmGetUVMapString
+ctmGetUVMapString = _lib.ctmGetUVMapString
 ctmGetUVMapString.argtypes = [CTMcontext, CTMenum, CTMenum]
 ctmGetUVMapString.restype = c_char_p
 
-ctmGetUVMapFloat = ctmlib.ctmGetUVMapFloat
+ctmGetUVMapFloat = _lib.ctmGetUVMapFloat
 ctmGetUVMapFloat.argtypes = [CTMcontext, CTMenum, CTMenum]
 ctmGetUVMapFloat.restype = CTMfloat
 
-ctmGetNamedAttribMap = ctmlib.ctmGetNamedAttribMap
+ctmGetNamedAttribMap = _lib.ctmGetNamedAttribMap
 ctmGetNamedAttribMap.argtypes = [CTMcontext, c_char_p]
 ctmGetNamedAttribMap.restype = CTMenum
 
-ctmGetAttribMapString = ctmlib.ctmGetAttribMapString
+ctmGetAttribMapString = _lib.ctmGetAttribMapString
 ctmGetAttribMapString.argtypes = [CTMcontext, CTMenum, CTMenum]
 ctmGetAttribMapString.restype = c_char_p
 
-ctmGetAttribMapFloat = ctmlib.ctmGetAttribMapFloat
+ctmGetAttribMapFloat = _lib.ctmGetAttribMapFloat
 ctmGetAttribMapFloat.argtypes = [CTMcontext, CTMenum, CTMenum]
 ctmGetAttribMapFloat.restype = CTMfloat
 
-ctmGetString = ctmlib.ctmGetString
+ctmGetString = _lib.ctmGetString
 ctmGetString.argtypes = [CTMcontext, CTMenum]
 ctmGetString.restype = c_char_p
 
-ctmCompressionMethod = ctmlib.ctmCompressionMethod
+ctmCompressionMethod = _lib.ctmCompressionMethod
 ctmCompressionMethod.argtypes = [CTMcontext, CTMenum]
 
-ctmCompressionLevel = ctmlib.ctmCompressionLevel
+ctmCompressionLevel = _lib.ctmCompressionLevel
 ctmCompressionLevel.argtypes = [CTMcontext, CTMuint]
 
-ctmVertexPrecision = ctmlib.ctmVertexPrecision
+ctmVertexPrecision = _lib.ctmVertexPrecision
 ctmVertexPrecision.argtypes = [CTMcontext, CTMfloat]
 
-ctmVertexPrecisionRel = ctmlib.ctmVertexPrecisionRel
+ctmVertexPrecisionRel = _lib.ctmVertexPrecisionRel
 ctmVertexPrecisionRel.argtypes = [CTMcontext, CTMfloat]
 
-ctmNormalPrecision = ctmlib.ctmNormalPrecision
+ctmNormalPrecision = _lib.ctmNormalPrecision
 ctmNormalPrecision.argtypes = [CTMcontext, CTMfloat]
 
-ctmUVCoordPrecision = ctmlib.ctmUVCoordPrecision
+ctmUVCoordPrecision = _lib.ctmUVCoordPrecision
 ctmUVCoordPrecision.argtypes = [CTMcontext, CTMenum, CTMfloat]
 
-ctmAttribPrecision = ctmlib.ctmAttribPrecision
+ctmAttribPrecision = _lib.ctmAttribPrecision
 ctmAttribPrecision.argtypes = [CTMcontext, CTMenum, CTMfloat]
 
-ctmFileComment = ctmlib.ctmFileComment
+ctmFileComment = _lib.ctmFileComment
 ctmFileComment.argtypes = [CTMcontext, c_char_p]
 
-ctmDefineMesh = ctmlib.ctmDefineMesh
+ctmDefineMesh = _lib.ctmDefineMesh
 ctmDefineMesh.argtypes = [CTMcontext, POINTER(CTMfloat), CTMuint, POINTER(CTMuint), CTMuint, POINTER(CTMfloat)]
 
-ctmAddUVMap = ctmlib.ctmAddUVMap
+ctmAddUVMap = _lib.ctmAddUVMap
 ctmAddUVMap.argtypes = [CTMcontext, POINTER(CTMfloat), c_char_p, c_char_p]
 ctmAddUVMap.restype = CTMenum
 
-ctmAddAttribMap = ctmlib.ctmAddAttribMap
+ctmAddAttribMap = _lib.ctmAddAttribMap
 ctmAddAttribMap.argtypes = [CTMcontext, POINTER(CTMfloat), c_char_p]
 ctmAddAttribMap.restype = CTMenum
 
-ctmLoad = ctmlib.ctmLoad
+ctmLoad = _lib.ctmLoad
 ctmLoad.argtypes = [CTMcontext, c_char_p]
 
-ctmSave = ctmlib.ctmSave
+ctmSave = _lib.ctmSave
 ctmSave.argtypes = [CTMcontext, c_char_p]
