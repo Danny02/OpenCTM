@@ -615,7 +615,6 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   vertices_input->SetAttribute("semantic", "POSITION");
   vertices_input->SetAttribute("source", "#Mesh-1-positions");
 
-
   // Triangles
   TiXmlElement * triangles = new TiXmlElement("triangles");
   mesh->LinkEndChild(triangles);
@@ -655,6 +654,26 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
         ss << aMesh.mIndices[i] << " ";
     elem->LinkEndChild(new TiXmlText(ss.str().c_str()));
   }
+
+  // Scene
+  TiXmlElement * library_visual_scenes = new TiXmlElement("library_visual_scenes");
+  root->LinkEndChild(library_visual_scenes);
+  TiXmlElement * visual_scene = new TiXmlElement("visual_scene");
+  library_visual_scenes->LinkEndChild(visual_scene);
+  visual_scene->SetAttribute("id", "Scene-1");
+  visual_scene->SetAttribute("name", "Scene-1");
+  TiXmlElement * visual_scene_node = new TiXmlElement("node");
+  visual_scene->LinkEndChild(visual_scene_node);
+  visual_scene_node->SetAttribute("id", "Object-1");
+  visual_scene_node->SetAttribute("name", "Object-1");
+  TiXmlElement * instance_geometry = new TiXmlElement("instance_geometry");
+  visual_scene_node->LinkEndChild(instance_geometry);
+  instance_geometry->SetAttribute("url", "#Mesh-1");
+  TiXmlElement * scene = new TiXmlElement("scene");
+  root->LinkEndChild(scene);
+  TiXmlElement * instance_visual_scene = new TiXmlElement("instance_visual_scene");
+  scene->LinkEndChild(instance_visual_scene);
+  instance_visual_scene->SetAttribute("url", "#Scene-1");
 
   // Save the XML document to a file
   xmlDoc.SaveFile(aFileName);
