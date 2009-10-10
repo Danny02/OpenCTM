@@ -32,7 +32,7 @@ RPLYDIR = rply
 TINYXMLDIR = tinyxml
 
 CPP = cl
-CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(TINYXMLDIR) /I$(GLEWDIR) /DGLEW_STATIC
+CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(TINYXMLDIR) /I$(GLEWDIR) /DGLEW_STATIC /D_CRT_SECURE_NO_WARNINGS
 RC = rc
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
