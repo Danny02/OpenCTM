@@ -469,16 +469,6 @@ static void FloatArrayToXML(TiXmlElement * aNode, float * aArray,
   aNode->LinkEndChild(new TiXmlText(ss.str().c_str()));
 }
 
-/// Dump an integer array to an XML text node.
-static void IntArrayToXML(TiXmlElement * aNode, int * aArray,
-  unsigned int aCount)
-{
-  stringstream ss;
-  for(unsigned int i = 0; i < aCount; ++ i)
-    ss << aArray[i] << " ";
-  aNode->LinkEndChild(new TiXmlText(ss.str().c_str()));
-}
-
 /// Export a DAE file to a file.
 void Export_DAE(const char * aFileName, Mesh &aMesh)
 {
@@ -551,7 +541,8 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   elem->SetAttribute("type", "float");
 
   // Normals
-  if(aMesh.mNormals.size() == aMesh.mVertices.size())
+  bool hasNormals = (aMesh.mNormals.size() == aMesh.mVertices.size());
+  if(hasNormals)
   {
     TiXmlElement * source_normal = new TiXmlElement("source");
     mesh->LinkEndChild(source_normal);
@@ -584,15 +575,86 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
     elem->SetAttribute("type", "float");
   }
 
+  // UV map
+  bool hasTexCoords = (aMesh.mTexCoords.size() == aMesh.mVertices.size());
+  if(hasTexCoords)
+  {
+    TiXmlElement * source_map1 = new TiXmlElement("source");
+    mesh->LinkEndChild(source_map1);
+    source_map1->SetAttribute("id", "Mesh-1-map1");
+    source_map1->SetAttribute("name", "map1");
+    TiXmlElement * map1_array = new TiXmlElement("float_array");
+    source_map1->LinkEndChild(map1_array);
+    map1_array->SetAttribute("id", "Mesh-1-map1-array");
+    map1_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
+    FloatArrayToXML(map1_array, &aMesh.mTexCoords[0].u, aMesh.mTexCoords.size() * 2);
+    TiXmlElement * map1_technique = new TiXmlElement("technique_common");
+    source_map1->LinkEndChild(map1_technique);
+    TiXmlElement * map1_technique_accessor = new TiXmlElement("accessor");
+    map1_technique->LinkEndChild(map1_technique_accessor);
+    map1_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size()));
+    map1_technique_accessor->SetAttribute("offset", 0);
+    map1_technique_accessor->SetAttribute("source", "#Mesh-1-map1-array");
+    map1_technique_accessor->SetAttribute("stride", 2);
+    elem = new TiXmlElement("param");
+    map1_technique_accessor->LinkEndChild(elem);
+    elem->SetAttribute("name", "S");
+    elem->SetAttribute("type", "float");
+    elem = new TiXmlElement("param");
+    map1_technique_accessor->LinkEndChild(elem);
+    elem->SetAttribute("name", "T");
+    elem->SetAttribute("type", "float");
+  }
+
+  // Vertices
+  TiXmlElement * vertices = new TiXmlElement("vertices");
+  mesh->LinkEndChild(vertices);
+  vertices->SetAttribute("id", "Mesh-1-vertices");
+  TiXmlElement * vertices_input = new TiXmlElement("input");
+  vertices->LinkEndChild(vertices_input);
+  vertices_input->SetAttribute("semantic", "POSITION");
+  vertices_input->SetAttribute("source", "#Mesh-1-positions");
+
+
   // Triangles
-/*
-                <triangles count="4212" material="blinn3SG">
-                    <input offset="0" semantic="VERTEX" source="#LOD3spShape-lib-vertices"/>
-                    <input offset="1" semantic="NORMAL" source="#LOD3spShape-lib-normals"/>
-                    <input offset="2" semantic="TEXCOORD" source="#LOD3spShape-lib-map1" set="0"/>
-                    <p>89 0 23 243</p>
-                </triangles>
-*/
+  TiXmlElement * triangles = new TiXmlElement("triangles");
+  mesh->LinkEndChild(triangles);
+  triangles->SetAttribute("count", int(aMesh.mIndices.size() / 3));
+  int triangleInputCount = 0;
+  elem = new TiXmlElement("input");
+  triangles->LinkEndChild(elem);
+  elem->SetAttribute("offset", triangleInputCount);
+  elem->SetAttribute("semantic", "VERTEX");
+  elem->SetAttribute("source", "#Mesh-1-vertices");
+  ++ triangleInputCount;
+  if(hasNormals)
+  {
+    elem = new TiXmlElement("input");
+    triangles->LinkEndChild(elem);
+    elem->SetAttribute("offset", triangleInputCount);
+    elem->SetAttribute("semantic", "NORMAL");
+    elem->SetAttribute("source", "#Mesh-1-normals");
+    ++ triangleInputCount;
+  }
+  if(hasTexCoords)
+  {
+    elem = new TiXmlElement("input");
+    triangles->LinkEndChild(elem);
+    elem->SetAttribute("offset", triangleInputCount);
+    elem->SetAttribute("semantic", "TEXCOORD");
+    elem->SetAttribute("source", "#Mesh-1-map1");
+    elem->SetAttribute("set", 0);
+    ++ triangleInputCount;
+  }
+  {
+    elem = new TiXmlElement("p");
+    triangles->LinkEndChild(elem);
+    stringstream ss;
+    for(unsigned int i = 0; i < aMesh.mIndices.size(); ++ i)
+      for(int j = 0; j < triangleInputCount; ++ j)
+        ss << aMesh.mIndices[i] << " ";
+    elem->LinkEndChild(new TiXmlText(ss.str().c_str()));
+  }
 
   // Save the XML document to a file
   xmlDoc.SaveFile(aFileName);
