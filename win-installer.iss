@@ -15,7 +15,7 @@ DefaultDirName={pf}\OpenCTM 0.9
 DefaultGroupName=OpenCTM 0.9 (beta)
 LicenseFile=LICENSE.txt
 OutputDir=.
-OutputBaseFilename=OpenCTM-0.8-beta-setup
+OutputBaseFilename=OpenCTM-0.9-beta-setup
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
@@ -27,6 +27,7 @@ Name: associatectm; Description: "&Associate OpenCTM (.ctm) files with the OpenC
 Name: associatestl; Description: "&Associate Stereolithography (.stl) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associateply; Description: "&Associate Stanford PLY (.ply) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associate3ds; Description: "&Associate 3DStudio (.3ds) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
+Name: associatedae; Description: "&Associate COLLADA (.dae) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: modifypath; Description: "&Add application directory to your system path"; GroupDescription: "Modify system paths:"
 
 [Files]
@@ -61,20 +62,25 @@ Root: HKCR; Subkey: "OpenCTM_file"; ValueType: string; ValueName: ""; ValueData:
 Root: HKCR; Subkey: "OpenCTM_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatectm
 Root: HKCR; Subkey: "OpenCTM_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatectm
 
-Root: HKCR; Subkey: ".ply"; ValueType: string; ValueName: ""; ValueData: "PLY_file"; Flags: uninsdeletevalue; Tasks: associatectm
-Root: HKCR; Subkey: "PLY_file"; ValueType: string; ValueName: ""; ValueData: "Stanford PLY file"; Flags: uninsdeletekey; Tasks: associatectm
-Root: HKCR; Subkey: "PLY_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatectm
-Root: HKCR; Subkey: "PLY_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatectm
+Root: HKCR; Subkey: ".ply"; ValueType: string; ValueName: ""; ValueData: "PLY_file"; Flags: uninsdeletevalue; Tasks: associateply
+Root: HKCR; Subkey: "PLY_file"; ValueType: string; ValueName: ""; ValueData: "Stanford PLY file"; Flags: uninsdeletekey; Tasks: associateply
+Root: HKCR; Subkey: "PLY_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associateply
+Root: HKCR; Subkey: "PLY_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associateply
 
-Root: HKCR; Subkey: ".stl"; ValueType: string; ValueName: ""; ValueData: "STL_file"; Flags: uninsdeletevalue; Tasks: associatectm
-Root: HKCR; Subkey: "STL_file"; ValueType: string; ValueName: ""; ValueData: "Stereolithography 3D mesh file"; Flags: uninsdeletekey; Tasks: associatectm
-Root: HKCR; Subkey: "STL_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatectm
-Root: HKCR; Subkey: "STL_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatectm
+Root: HKCR; Subkey: ".stl"; ValueType: string; ValueName: ""; ValueData: "STL_file"; Flags: uninsdeletevalue; Tasks: associatestl
+Root: HKCR; Subkey: "STL_file"; ValueType: string; ValueName: ""; ValueData: "Stereolithography 3D mesh file"; Flags: uninsdeletekey; Tasks: associatestl
+Root: HKCR; Subkey: "STL_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatestl
+Root: HKCR; Subkey: "STL_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatestl
 
-Root: HKCR; Subkey: ".3ds"; ValueType: string; ValueName: ""; ValueData: "3DS_file"; Flags: uninsdeletevalue; Tasks: associatectm
-Root: HKCR; Subkey: "3DS_file"; ValueType: string; ValueName: ""; ValueData: "3DStudio file"; Flags: uninsdeletekey; Tasks: associatectm
-Root: HKCR; Subkey: "3DS_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatectm
-Root: HKCR; Subkey: "3DS_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatectm
+Root: HKCR; Subkey: ".3ds"; ValueType: string; ValueName: ""; ValueData: "3DS_file"; Flags: uninsdeletevalue; Tasks: associate3ds
+Root: HKCR; Subkey: "3DS_file"; ValueType: string; ValueName: ""; ValueData: "3DStudio file"; Flags: uninsdeletekey; Tasks: associate3ds
+Root: HKCR; Subkey: "3DS_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associate3ds
+Root: HKCR; Subkey: "3DS_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associate3ds
+
+Root: HKCR; Subkey: ".dae"; ValueType: string; ValueName: ""; ValueData: "DAE_file"; Flags: uninsdeletevalue; Tasks: associatedae
+Root: HKCR; Subkey: "DAE_file"; ValueType: string; ValueName: ""; ValueData: "COLLADA file"; Flags: uninsdeletekey; Tasks: associatedae
+Root: HKCR; Subkey: "DAE_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatedae
+Root: HKCR; Subkey: "DAE_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatedae
 
 [Code]
 
