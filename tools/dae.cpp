@@ -35,6 +35,14 @@
 #include <tinyxml.h>
 #include "dae.h"
 
+#if !defined(WIN32) && defined(_WIN32)
+#define WIN32
+#endif
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+
 using namespace std;
 
 enum Axis
@@ -469,11 +477,33 @@ static void FloatArrayToXML(TiXmlElement * aNode, float * aArray,
   aNode->LinkEndChild(new TiXmlText(ss.str().c_str()));
 }
 
+/// Generate an ISO 8601 format date string.
+static string MakeISO8601DateTime(void)
+{
+  char buf[500];
+#ifdef WIN32
+  SYSTEMTIME tm;
+  GetSystemTime(&tm);
+  sprintf(buf, "%i-%02i-%02iT%02i:%02i:%02i.%03iZ", tm.wYear,
+          tm.wMonth, tm.wDay, tm.wHour, tm.wMinute, tm.wSecond,
+          tm.wMilliseconds);
+#else
+  time_t t;
+  time(&t);
+  struct tm tm;
+  localtime_r(&t, &tm);
+  sprintf(buf, "%i-%02i-%02iT%02i:%02i:%02i", tm.tm_year + 1900,
+          tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+#endif
+  return string(buf);
+}
+
 /// Export a DAE file to a file.
 void Export_DAE(const char * aFileName, Mesh &aMesh)
 {
   TiXmlDocument xmlDoc;
   TiXmlElement * elem;
+  string dateTime = MakeISO8601DateTime();
 
   // Set XML declaration
   xmlDoc.LinkEndChild(new TiXmlDeclaration("1.0", "utf-8", ""));
@@ -495,9 +525,12 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   TiXmlElement * comments = new TiXmlElement("comments");
   contributor->LinkEndChild(comments);
   comments->LinkEndChild(new TiXmlText(aMesh.mComment.c_str()));
-  TiXmlElement * up_axis = new TiXmlElement("up_axis");
-  asset->LinkEndChild(up_axis);
-  up_axis->LinkEndChild(new TiXmlText("Z_UP"));
+  elem = new TiXmlElement("created");
+  asset->LinkEndChild(elem);
+  elem->LinkEndChild(new TiXmlText(dateTime.c_str()));
+  elem = new TiXmlElement("modified");
+  asset->LinkEndChild(elem);
+  elem->LinkEndChild(new TiXmlText(dateTime.c_str()));
 
   // Create the geometry nodes
   TiXmlElement * library_geometries = new TiXmlElement("library_geometries");
