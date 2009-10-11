@@ -53,19 +53,8 @@ Copyright \copyright \ 2009 Marcus Geelnard
 
 %-------------------------------------------------------------------------------
 
-\chapter{Introduction}
+\chapter{Overview}
 This document describes version 5 of the OpenCTM file format.
-
-
-%-------------------------------------------------------------------------------
-
-\chapter{File format specification}
-The structure of a OpenCTM file is as follows:
-
-[Header]\newline 
-[Body data]
-
-Each part of the file is described in the following sections.
 
 \section{Data formats}
 All integer fields are stored in 32-bit little endian format (least significant
@@ -77,8 +66,18 @@ endian).
 All strings are stored as a 32-bit integer string length (number of bytes)
 followed by a UTF-8 format string (there is no zero termination and no BOM).
 
+\section{File structure}
+The structure of an OpenCTM file is as follows:
 
-\section{Header}
+[Header]\newline
+[Body data]
+
+Each part of the file is described in the following chapters.
+
+
+%-------------------------------------------------------------------------------
+
+\chapter{Header}
 The file must start with a header, which looks as follows:
 
 \begin{tabular}{|l|l|l|}\hline
@@ -102,7 +101,9 @@ The length of the file header is varibale, since it contains fields of variable
 length.
 
 
-\section{Body data}
+%-------------------------------------------------------------------------------
+
+\chapter{Body data}
 The body data follows immediately after the file header. Its file offset is
 dictated by the length of the file header.
 
@@ -113,21 +114,96 @@ The body data contains the vertex, index, normal, UV map and attribute map
 data, usually in a compressed form.
 
 
-\subsection{RAW}
+\section{RAW}
+The layout of the body data for the RAW compression method is:
+
+[Indices]\newline
+[Vertices]\newline
+[Normals]\newline
+[UV Map 0]\newline
+[UV Map 1]\newline
+...\newline
+[UV Map N]\newline
+[Attribute Map 0]\newline
+[Attribute Map 1]\newline
+...\newline
+[Attribute Map M]
+
+\subsection{Indices}
+The indices are stored as an integer identifier, 0x58444e49 ("INDX"), followed
+by all the triangle indices. Each index is an unsigned integer value. There are
+three indices per triangle, and the number of triangles is given by the
+"Triangle count" field in the header:
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x58444e49, or "INDX" when read as ASCII).\\ \hline
+4 & Integer & Vertex index for the 1st corner of the 1st triangle.\\ \hline
+8 & Integer & Vertex index for the 2nd corner of the 1st triangle.\\ \hline
+12 & Integer & Vertex index for the 3rd corner of the 1st triangle.\\ \hline
+16 & Integer & Vertex index for the 1st corner of the 2nd triangle.\\ \hline
+... & & \\ \hline
+\end{tabular}
+
+The length of the indices section is $4(1+3N)$ bytes, where $N$ is the triangle
+count.
+
+\subsection{Vertices}
+The vertices are stored as an integer identifier, 0x54524556 ("VERT"), followed
+by all the vertex coordinates. Each vertex coordinate is stored as three
+floating point values ($x,y,z$), and the number of vertices is given by the
+"Vertex count" field in the header:
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x54524556, or "VERT" when read as ASCII).\\ \hline
+4 & Float & $x$ coordinate of the 1st vertex.\\ \hline
+8 & Float & $y$ coordinate of the 1st vertex.\\ \hline
+12 & Float & $z$ coordinate of the 1st vertex.\\ \hline
+16 & Float & $x$ coordinate of the 2nd vertex.\\ \hline
+... & & \\ \hline
+\end{tabular}
+
+The length of the vertices section is $4(1+3N)$ bytes, where $N$ is the vertex
+count.
+
+\subsection{Normals}
+The normals section is optional, and only present if the per-vertex normals
+flag is set in the header.
+
+The normals are stored as an integer identifier, 0x4d524f4e ("NORM"), followed
+by all the normal coordinates. Each normal is stored as three floating point
+values ($x,y,z$), and the number of normals is given by the "Vertex count" field
+in the header:
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x4d524f4e, or "NORM" when read as ASCII).\\ \hline
+4 & Float & $x$ coordinate of the 1st normal.\\ \hline
+8 & Float & $y$ coordinate of the 1st normal.\\ \hline
+12 & Float & $z$ coordinate of the 1st normal.\\ \hline
+16 & Float & $x$ coordinate of the 2nd normal.\\ \hline
+... & & \\ \hline
+\end{tabular}
+
+The length of the normals section is $4(1+3N)$ bytes, where $N$ is the vertex
+count.
+
+\subsection{UV map}
 To be written...
 
-Please read the source code file compressRAW.c for more details on the body
-format when the RAW compression method is used.
+\subsection{Attribute map}
+To be written...
 
 
-\subsection{MG1}
+\section{MG1}
 To be written...
 
 Please read the source code file compressMG1.c for more details on the body
 format when the MG1 compression method is used.
 
 
-\subsection{MG2}
+\section{MG2}
 To be written...
 
 Please read the source code file compressMG2.c for more details on the body
