@@ -84,7 +84,7 @@ The file must start with a header, which looks as follows:
 \textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
 0 & Integer & Magic identifier (0x4d54434f, or "OCTM" when read as ASCII).\\ \hline
 4 & Integer & File format version (0x00000005 = version 5).\\ \hline
-8 & Integer & Compression method, which can be one of the following:\\
+8 & Integer & Compression method, which must be one of the following:\\
  & & 0x00574152 - Use the RAW compression method.\\
  & & 0x0031474d - Use the MG1 compression method.\\
  & & 0x0032474d - Use the MG2 compression method.\\ \hline
@@ -94,11 +94,11 @@ The file must start with a header, which looks as follows:
 24 & Integer & Attribute map count.\\ \hline
 28 & Integer & Boolean flags, or:ed together:\\
  & & 0x00000001 - The file contains per-vertex normals.\\ \hline
-32 & String & File comment.\\ \hline
+32 & String & File comment ($p$ bytes long string).\\ \hline
 \end{tabular}
 
-The length of the file header is varibale, since it contains fields of variable
-length.
+The length of the file header is $36+p$ bytes, where $p$ is the length of the
+comment string.
 
 
 %-------------------------------------------------------------------------------
@@ -190,10 +190,53 @@ The length of the normals section is $4(1+3N)$ bytes, where $N$ is the vertex
 count.
 
 \subsection{UV map}
-To be written...
+There can be zero or more UV maps. The number of UV maps is given by the
+UV map count in the header.
+
+Each UV map starts with an integer identifier, 0x43584554 ("TEXC"), followed
+by two strings (the UV map name and the UV map file name reference), and
+finally all the UV coordinates. Each UV coordinate is stored as two floating point
+values ($u,v$), and the number of UV coordinates is given by the "Vertex count"
+field in the header:
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x43584554, or "TEXC" when read as ASCII).\\ \hline
+4 & String & Unique UV map name ($p$ bytes long string).\\ \hline
+$8+p$ & String & UV map file name reference ($q$ bytes long string).\\ \hline
+$12+p+q$ & Float & $u$ coordinate of the 1st UV coordinate.\\ \hline
+$16+p+q$ & Float & $v$ coordinate of the 1st UV coordinate.\\ \hline
+$20+p+q$ & Float & $u$ coordinate of the 2nd UV coordinate.\\ \hline
+... & & \\ \hline
+\end{tabular}
+
+The length of a UV map section is $4(3+2N)+p+q$ bytes, where $N$ is the vertex
+count, $p$ is the name string length, and $q$ is the file name reference string
+length.
 
 \subsection{Attribute map}
-To be written...
+There can be zero or more attribute maps. The number of attribute maps is given by the
+attribute map count in the header.
+
+Each attribute map starts with an integer identifier, 0x52545441 ("ATTR"), followed
+by the attribute map name string, and finally all the attribute values. Each attribute
+value is stored as four floating point values ($a,b,c,d$), and the number of
+attribute values is given by the "Vertex count" field in the header:
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x52545441, or "ATTR" when read as ASCII).\\ \hline
+4 & String & Unique attribute map name ($p$ bytes long string).\\ \hline
+$8+p$ & Float & $a$ component of the 1st attribute value.\\ \hline
+$12+p$ & Float & $b$ component of the 1st attribute value.\\ \hline
+$16+p$ & Float & $c$ component of the 1st attribute value.\\ \hline
+$20+p$ & Float & $d$ component of the 1st attribute value.\\ \hline
+$24+p$ & Float & $a$ component of the 2nd attribute value.\\ \hline
+... & & \\ \hline
+\end{tabular}
+
+The length of an attribute map section is $4(2+4N)+p$ bytes, where $N$ is the vertex
+count, and $p$ is the name string length.
 
 
 \section{MG1}
