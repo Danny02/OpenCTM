@@ -90,7 +90,7 @@ triangle count uniquely defines the number of bytes required for the
 uncompressed triangle indices array).
 
 \subsection{Element interleaving}
-Packed data may or may not use element level interleaving, meaning that the
+Some packed data arrays use element level interleaving, meaning that the
 data values are rearranged at the element level. For instance, in a data array
 with three elements per value (stride = 3), $x$, $y$ and $z$, the elements are
 rearranged as follows:
@@ -118,7 +118,7 @@ When decompressing an array that uses byte interleaving, the process is
 reversed.
 
 \subsection{Signed magnitude representation}
-Packed integer arrays may or may not use signed magnitude representation.
+Some packed integer arrays use signed magnitude representation.
 
 A signed magnitude value, $x'$, is converted to a two's complement value,
 $x$, with the following method:
@@ -176,14 +176,14 @@ The layout of the body data for the RAW compression method is:
 [Indices]\newline
 [Vertices]\newline
 [Normals]\newline
-[UV Map 0]\newline
-[UV Map 1]\newline
+[UV map 0]\newline
+[UV map 1]\newline
 ...\newline
-[UV Map N]\newline
-[Attribute Map 0]\newline
-[Attribute Map 1]\newline
+[UV map N]\newline
+[Attribute map 0]\newline
+[Attribute map 1]\newline
 ...\newline
-[Attribute Map M]
+[Attribute map M]
 
 \subsection{Indices}
 The indices are stored as an integer identifier, 0x58444e49 ("INDX"), followed
@@ -245,7 +245,7 @@ in the header:
 The length of the normals section is $4(1+3N)$ bytes, where $N$ is the vertex
 count.
 
-\subsection{UV map}
+\subsection{UV maps}
 There can be zero or more UV maps. The number of UV maps is given by the
 UV map count in the header.
 
@@ -270,7 +270,7 @@ The length of a UV map section is $4(3+2N)+p+q$ bytes, where $N$ is the vertex
 count, $p$ is the name string length, and $q$ is the file name reference string
 length.
 
-\subsection{Attribute map}
+\subsection{Attribute maps}
 There can be zero or more attribute maps. The number of attribute maps is given by the
 attribute map count in the header.
 
@@ -296,16 +296,78 @@ count, and $p$ is the name string length.
 
 
 \section{MG1}
-To be written...
+The layout of the body data for the MG1 compression method is:
+
+[Indices]\newline
+[Vertices]\newline
+[Normals]\newline
+[UV map 0]\newline
+[UV map 1]\newline
+...\newline
+[UV map N]\newline
+[Attribute map 0]\newline
+[Attribute map 1]\newline
+...\newline
+[Attribute map M]
 
 Please read the source code file compressMG1.c for more details on the body
 format when the MG1 compression method is used.
 
+\subsection{Indices}
+To be written...
+
+\subsection{Vertices}
+To be written...
+
+\subsection{Normals}
+To be written...
+
+\subsection{UV maps}
+To be written...
+
+\subsection{Attribute maps}
+To be written...
+
 
 \section{MG2}
-To be written...
+The layout of the body data for the MG2 compression method is:
+
+[MG2 header]\newline
+[Vertices]\newline
+[Grid indices]\newline
+[Indices]\newline
+[Normals]\newline
+[UV map 0]\newline
+[UV map 1]\newline
+...\newline
+[UV map N]\newline
+[Attribute map 0]\newline
+[Attribute map 1]\newline
+...\newline
+[Attribute map M]
 
 Please read the source code file compressMG2.c for more details on the body
 format when the MG2 compression method is used.
+
+\subsection{MG2 header}
+To be written...
+
+\subsection{Vertices}
+To be written...
+
+\subsection{Grid indices}
+To be written...
+
+\subsection{Indices}
+To be written...
+
+\subsection{Normals}
+To be written...
+
+\subsection{UV maps}
+To be written...
+
+\subsection{Attribute maps}
+To be written...
 
 \end{document}
