@@ -330,7 +330,7 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 ///         if \c aProperty does not indicate an integer array, the function
 ///         returns NULL.
 /// @note The array is only valid as long as the OpenCTM context is valid, or
-///       until the corresponding array changes within the OpenCTM contxt
+///       until the corresponding array changes within the OpenCTM context.
 ///       Trying to access an invalid array will result in undefined
 ///       behaviour. Therefor it is recommended that the array is copied to
 ///       a new variable if it is to be used other than directly after the call
@@ -347,7 +347,7 @@ CTMEXPORT const CTMuint * CTMCALL ctmGetIntegerArray(CTMcontext aContext,
 ///         if \c aProperty does not indicate a float array, the function
 ///         returns NULL.
 /// @note The array is only valid as long as the OpenCTM context is valid, or
-///       until the corresponding array changes within the OpenCTM contxt
+///       until the corresponding array changes within the OpenCTM context.
 ///       Trying to access an invalid array will result in undefined
 ///       behaviour. Therefor it is recommended that the array is copied to
 ///       a new variable if it is to be used other than directly after the call
@@ -439,7 +439,7 @@ CTMEXPORT CTMfloat CTMCALL ctmGetAttribMapFloat(CTMcontext aContext,
 /// @return A string value, representing the OpenCTM context property given
 ///         by \c aProperty.
 /// @note The string is only valid as long as the OpenCTM context is valid, or
-///       until the corresponding string changes within the OpenCTM contxt
+///       until the corresponding string changes within the OpenCTM context
 ///       (e.g. calling ctmFileComment() invalidates the CTM_FILE_COMMENT
 ///       string). Trying to access an invalid string will result in undefined
 ///       behaviour. Therefor it is recommended that the string is copied to
