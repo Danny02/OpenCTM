@@ -21,6 +21,11 @@
 \author{Marcus Geelnard}
 \title{OpenCTM Format Specification}
 
+% PDF specific document properties
+\hypersetup{pdftitle={OpenCTM Format Specification}}
+\hypersetup{pdfauthor={Marcus Geelnard}}
+\hypersetup{pdfkeywords={OpenCTM,format,specification}}
+
 % Document contents
 \begin{document}
 
@@ -75,6 +80,7 @@ All strings are stored as a 32-bit integer string length (number of bytes)
 followed by a UTF-8 format string (there is no zero termination and no BOM).
 
 \section{Packed data}
+\label{tab:PackedData}
 Some portions of the file are be packed by the lossless LZMA entropy coder,
 and are encoded as follows:
 
@@ -317,10 +323,19 @@ format when the MG1 compression method is used.
 To be written...
 
 \subsection{Vertices}
-To be written...
+The vertices are stored as an integer identifier, 0x54524556 ("VERT"), followed
+by a packed float array with element interleaving (see \ref{tab:PackedData}).
+
+The unpacked vertex array is stored as in the RAW format ($x, y, z$).
 
 \subsection{Normals}
-To be written...
+The normals section is optional, and only present if the per-vertex normals
+flag is set in the header.
+
+The normals are stored as an integer identifier, 0x4d524f4e ("NORM"), followed
+by a packed float array with element interleaving (see \ref{tab:PackedData}).
+
+The unpacked normal array is stored as in the RAW format ($x, y, z$).
 
 \subsection{UV maps}
 To be written...
