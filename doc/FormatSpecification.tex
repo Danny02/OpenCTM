@@ -365,7 +365,25 @@ Please read the source code file compressMG2.c for more details on the body
 format when the MG2 compression method is used.
 
 \subsection{MG2 header}
-To be written...
+The MG2 header contains information about how to interpret the mesh data. The
+header looks as follows:
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x4832474d, or "MG2H" when read as ASCII).\\ \hline
+4 & Float & Vertex precision.\\ \hline
+8 & Float & Normal precision.\\ \hline
+12 & Float & X coordinate of the lower bound of the mesh bounding box.\\ \hline
+16 & Float & Y coordinate of the lower bound of the mesh bounding box.\\ \hline
+20 & Float & Z coordinate of the lower bound of the mesh bounding box.\\ \hline
+24 & Float & X coordinate of the higher bound of the mesh bounding box.\\ \hline
+28 & Float & Y coordinate of the higher bound of the mesh bounding box.\\ \hline
+32 & Float & Z coordinate of the higher bound of the mesh bounding box.\\ \hline
+36 & Integer & Number of grid divisions along the X axis (min 1).\\ \hline
+40 & Integer & Number of grid divisions along the Y axis (min 1).\\ \hline
+44 & Integer & Number of grid divisions along the Z axis (min 1).\\ \hline
+\end{tabular}
+
 
 \subsection{Vertices}
 To be written...
