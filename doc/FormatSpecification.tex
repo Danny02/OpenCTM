@@ -420,8 +420,30 @@ The layout of the body data for the MG2 compression method is:
 ...\newline
 [Attribute map M]
 
-Please read the source code file compressMG2.c for more details on the body
-format when the MG2 compression method is used.
+\subsection{MG2 vertex coordinate coding}
+In the MG2 compression method, all the vertices are divided into a 3D grid,
+which can be described by an axis aligned bounding box (minimum fit to the
+vertices), and the division factors along the $x$, $y$ and $z$ axes, as shown
+in figure \ref{fig:Grid}.
+
+\begin{figure}
+\includegraphics[width=10.0cm]{grid.pdf}
+\caption{3D space subdivision grid. $LB$ and $HB$ are the lower and higher bounds
+of the axis aligned bounding box. $div_x$, $div_y$ and $div_z$ are the number
+of divisions along each of the axes.}
+\label{fig:Grid}
+\end{figure}
+
+The vertices are all coded relative to the grid origin of the grid box to which
+they belong, and all vertices are associated with a grid box with a unique
+grid index.
+
+The grid index, $gi$, is encoded as:
+
+$gi = g_x + div_x(g_y + div_y \times g_z)$
+
+...where $g_x$, $g_y$ and $g_z$ are the $x$, $y$ and $z$ positions of the grid
+box, within the grid.
 
 \subsection{MG2 header}
 The MG2 header contains information about how to interpret the mesh data. The
