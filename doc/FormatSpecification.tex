@@ -320,7 +320,30 @@ Please read the source code file compressMG1.c for more details on the body
 format when the MG1 compression method is used.
 
 \subsection{Indices}
-To be written...
+The triangle indices are stored as an integer identifier, 0x58444e49 ("INDX"),
+followed by a packed integer array with element interleaving (see
+\ref{tab:PackedData}).
+
+The unpacked indices array contains delta-encoded indices:
+
+$i'_1, j'_1, k'_1, i'_2, j'_2, k'_2, ...$
+
+...that translate into the original triangle indices with the following method:
+
+$i_m = i'_m + i'_{m-1}$
+
+$j_m = \left\{\begin{array}{ll}
+j'_m + j'_{m-1}  & i'_m = i'_{m-1} \\
+j'_m + i'_m & i'_m \neq i'_{m-1}
+\end{array} \right.$
+
+$k_m = k'_m + i'_m$
+
+...where $i_m, j_m$ and $k_m$ are the 1:st, 2:nd and 3:rd vertex index of the
+m:th triangle, respectively.
+
+Please note that the indices should be sorted in such a manner that $i'_m, j'_m$
+and $k'_m$ are always positive.
 
 \subsection{Vertices}
 The vertices are stored as an integer identifier, 0x54524556 ("VERT"), followed
