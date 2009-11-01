@@ -324,7 +324,7 @@ To be written...
 
 \subsection{Vertices}
 The vertices are stored as an integer identifier, 0x54524556 ("VERT"), followed
-by a packed float array with element interleaving (see \ref{tab:PackedData}).
+by a packed float array without element interleaving (see \ref{tab:PackedData}).
 
 The unpacked vertex array is stored as in the RAW format ($x, y, z$).
 
@@ -338,10 +338,49 @@ by a packed float array with element interleaving (see \ref{tab:PackedData}).
 The unpacked normal array is stored as in the RAW format ($x, y, z$).
 
 \subsection{UV maps}
-To be written...
+There can be zero or more UV maps. The number of UV maps is given by the
+UV map count in the header.
+
+Each UV map starts with an integer identifier, 0x43584554 ("TEXC"), followed
+by two strings (the UV map name and the UV map file name reference), and
+finally the packed UV coordinate data.
+
+The UV coordinate data is a packed float array with element interleaving
+(see \ref{tab:PackedData}).
+
+The unpacked UV coordinate array is stored as in the RAW format ($u, v$).
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x43584554, or "TEXC" when read as ASCII).\\ \hline
+4 & String & Unique UV map name ($p$ bytes long string).\\ \hline
+$8+p$ & String & UV map file name reference ($q$ bytes long string).\\ \hline
+$12+p+q$ & - & Packed UV coordinate data.\\ \hline
+\end{tabular}
+
+...where $p$ is the name string length, and $q$ is the file name reference string
+length.
 
 \subsection{Attribute maps}
-To be written...
+There can be zero or more attribute maps. The number of attribute maps is given by the
+attribute map count in the header.
+
+Each attribute map starts with an integer identifier, 0x52545441 ("ATTR"), followed
+by the attribute map name string, and finally the packed attribute values.
+
+The attribute value data is a packed float array with element interleaving
+(see \ref{tab:PackedData}).
+
+The unpacked attribute value array is stored as in the RAW format ($a, b, c, d$).
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x52545441, or "ATTR" when read as ASCII).\\ \hline
+4 & String & Unique attribute map name ($p$ bytes long string).\\ \hline
+$8+p$ & - & Packed attribute value data.\\ \hline
+\end{tabular}
+
+...where $p$ is the name string length.
 
 
 \section{MG2}
