@@ -1,11 +1,13 @@
-??? (next release)
-------------------------
+v1.0 - ????.??.??
+-----------------
 - Added a COLLADA converter module to the ctmconv program.
 
 - Added Python bindings and a demo Python program.
 
 - Improved the internal mesh integrity checking, to minimize the risk of invalid
   data processing.
+
+- Improved the file format specification document.
 
 
 v0.8 (beta) - 2009.09.14

@@ -164,8 +164,8 @@ typedef unsigned int uint32_t;
 #endif
 
 
-/// OpenCTM API version (0.8).
-#define CTM_API_VERSION 0x00000008
+/// OpenCTM API version (1.0).
+#define CTM_API_VERSION 0x00000100
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
