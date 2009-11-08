@@ -340,7 +340,7 @@ i'_{k,1} & (k = 1)
 \end{cases}$
 
 $i_{k,2} = \begin{cases}
-i'_{k,2} + i'_{k-1,2}  & (k \geq 2, i'_{k,1} = i'_{k-1,1}) \\
+i'_{k,2} + i'_{k-1,2}  & (k \geq 2, i_{k,1} = i_{k-1,1}) \\
 i'_{k,2} + i'_{k,1} &  (\text{otherwise})
 \end{cases}$
 
@@ -443,6 +443,7 @@ The layout of the body data for the MG2 compression method is:
 [Attribute map M]
 
 \subsection{MG2 vertex coordinate coding}
+\label{sec:MG2VertexCoding}
 In the MG2 compression method, all the vertices are divided into a 3D grid,
 which can be described by an axis aligned bounding box (minimum fit to the
 vertices), and the division factors along the $x$, $y$ and $z$ axes, as shown
@@ -470,6 +471,15 @@ box, within the grid, and:
 
 $g_x \in [0, div_x), g_y \in [0, div_y), g_z \in [0, div_z)$
 
+The grid box origin (lower bound) of each grid box is defined by:
+
+$gridorigin_x(g_x) = LB_x + \frac{HB_x - LB_x}{div_x} g_x$
+
+$gridorigin_y(g_y) = LB_y + \frac{HB_y - LB_y}{div_y} g_y$
+
+$gridorigin_z(g_z) = LB_z + \frac{HB_z - LB_z}{div_z} g_z$
+
+
 \subsection{MG2 header}
 The MG2 header contains information about how to interpret the mesh data. The
 header looks as follows:
@@ -492,9 +502,43 @@ header looks as follows:
 
 
 \subsection{Vertices}
-To be written...
+The vertices are stored as an integer identifier, 0x54524556 ("VERT"), followed
+by the packed vertex coordinate data.
+
+The vertex coordinate data is a packed integer array with element interleaving
+(see \ref{sec:PackedData}).
+
+\begin{tabular}{|l|l|l|}\hline
+\textbf{Offset} &  \textbf{Type} & \textbf{Description}\\ \hline
+0 & Integer & Identifier (0x54524556, or "VERT" when read as ASCII).\\ \hline
+4 & - & Packed vertex coordinate data.\\ \hline
+\end{tabular}
+
+The unpacked vertex array has three elements per vertex:
+
+$x'_1, y'_1, z'_1, x'_2, y'_2, z'_2, ..., x'_N, y'_N, z'_N$
+
+The original vertex coordinate, ($x_k$, $y_k$, $z_k$), for vertex number $k$ is defined as:
+
+$dx_k = \begin{cases}
+x'_k + dx_{k-1} & (k \geq 2, gi_k = gi_{k-1})\\
+x'_k & (otherwise)
+\end{cases}$
+
+$x_k = s \times dx_k + gridorigin_x(gi_k)$
+
+$y_k = s \times y'_k + gridorigin_y(gi_k)$
+
+$z_k = s \times z'_k + gridorigin_z(gi_k)$
+
+...where $s$ is the vertex precision, $gi_k$ is the $k$:th grid index (see \ref{sec:GridIndices}),
+and $gridorigin(gi_k)$ is the origin (lower bound) of the grid box that is indicated by
+grid index $gi_k$, according to \ref{sec:MG2VertexCoding}.
+
+
 
 \subsection{Grid indices}
+\label{sec:GridIndices}
 The grid indices are stored as an integer identifier, 0x58444947 ("GIDX"), followed
 by a packed integer array (see \ref{sec:PackedData}).
 
