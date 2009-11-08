@@ -349,8 +349,8 @@ $i_{k,3} = i'_{k,3} + i'_{k,1}$
 ...where $i_{k,1}, i_{k,2}$ and $i_{k,3}$ are the 1:st, 2:nd and 3:rd vertex index of the
 $k$:th triangle, respectively.
 
-Please note that the indices should be sorted in such a manner that $i'_{k,1}, i'_{k,2}$
-and $i'_{k,3}$ are always positive.
+Please note that the indices should be sorted in such a manner that
+$i'_{k,1} \geq 0, i'_{k,2} \geq 0$ and $i'_{k,3} \geq 0 \; \forall \: k$.
 
 \subsection{Vertices}
 The vertices are stored as an integer identifier, 0x54524556 ("VERT"), followed
@@ -535,6 +535,8 @@ $z_k = s \times z'_k + gridorigin_z(gi_k)$
 and $gridorigin(gi_k)$ is the origin (lower bound) of the grid box that is indicated by
 grid index $gi_k$, according to \ref{sec:MG2VertexCoding}.
 
+Please note that the vertices should be sorted in such a manner that $x'_k \geq 0, y'_k \geq 0$
+and $z'_k \geq 0 \; \forall \: k$.
 
 
 \subsection{Grid indices}
@@ -558,6 +560,9 @@ $gi_k = \begin{cases}
 gi'_k + gi'_{k-1} & (k \geq 2)\\
 gi'_k & (k = 1)
 \end{cases}$
+
+Please note that the vertices should be sorted in such a manner that $gi'_k \geq 0 \: \forall \: k$.
+
 
 \subsection{Indices}
 The triangle indices are stored exactly as in the MG1 method (see \ref{sec:MG1Indices}).
