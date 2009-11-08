@@ -594,7 +594,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
       thetaScale = 0.0f;
     else if(intPhi <= 4)
       thetaScale = 2.0f / PI;
-	else
+    else
       thetaScale = ((CTMfloat) intPhi) / (2.0f * PI);
     aIntNormals[i * 3 + 1] = intPhi;
     aIntNormals[i * 3 + 2] = (CTMint) floorf((theta + PI) * thetaScale + 0.5f);
