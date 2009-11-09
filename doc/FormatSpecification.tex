@@ -335,16 +335,16 @@ $i'_{1,1}, i'_{1,2}, i'_{1,3}, i'_{2,1}, i'_{2,2}, i'_{2,3} ..., i'_{M,1}, i'_{M
 ...that translate into the original triangle indices with the following method:
 
 $i_{k,1} = \begin{cases}
-i'_{k,1} + i'_{k-1,1}  & (k \geq 2) \\
+i'_{k,1} + i_{k-1,1}  & (k \geq 2) \\
 i'_{k,1} & (k = 1)
 \end{cases}$
 
 $i_{k,2} = \begin{cases}
-i'_{k,2} + i'_{k-1,2}  & (k \geq 2, i_{k,1} = i_{k-1,1}) \\
-i'_{k,2} + i'_{k,1} &  (\text{otherwise})
+i'_{k,2} + i_{k-1,2}  & (k \geq 2, i_{k,1} = i_{k-1,1}) \\
+i'_{k,2} + i_{k,1} &  (\text{otherwise})
 \end{cases}$
 
-$i_{k,3} = i'_{k,3} + i'_{k,1}$
+$i_{k,3} = i'_{k,3} + i_{k,1}$
 
 ...where $i_{k,1}, i_{k,2}$ and $i_{k,3}$ are the 1:st, 2:nd and 3:rd vertex index of the
 $k$:th triangle, respectively.
@@ -557,7 +557,7 @@ $gi'_1, gi'_2, ..., gi'_N$
 The grid index for vertex number $k$ is defined as:
 
 $gi_k = \begin{cases}
-gi'_k + gi'_{k-1} & (k \geq 2)\\
+gi'_k + gi_{k-1} & (k \geq 2)\\
 gi'_k & (k = 1)
 \end{cases}$
 
@@ -615,12 +615,12 @@ $u'_1, v'_1, u'_2, v'_2, ..., u'_N, v'_N$
 The original UV coordinates are restored with the following method:
 
 $u_k = \begin{cases}
-s \times (u'_k + u'_{k-1}) & (k \geq 2)\\
+s \times (u'_k + u_{k-1}) & (k \geq 2)\\
 s \times u'_k & (k = 1)
 \end{cases}$
 
 $v_k = \begin{cases}
-s \times (v'_k + v'_{k-1}) & (k \geq 2)\\
+s \times (v'_k + v_{k-1}) & (k \geq 2)\\
 s \times v'_k & (k = 1)
 \end{cases}$
 
@@ -654,22 +654,22 @@ $a'_1, b'_1, c'_1, d'_1, a'_2, b'_2, c'_2, d'_2, ..., a'_N, b'_N, c'_N, d'_N$
 The original attributes are restored with the following method:
 
 $a_k = \begin{cases}
-s \times (a'_k + a'_{k-1}) & (k \geq 2)\\
+s \times (a'_k + a_{k-1}) & (k \geq 2)\\
 s \times a'_k & (k = 1)
 \end{cases}$
 
 $b_k = \begin{cases}
-s \times (b'_k + b'_{k-1}) & (k \geq 2)\\
+s \times (b'_k + b_{k-1}) & (k \geq 2)\\
 s \times b'_k & (k = 1)
 \end{cases}$
 
 $c_k = \begin{cases}
-s \times (c'_k + c'_{k-1}) & (k \geq 2)\\
+s \times (c'_k + c_{k-1}) & (k \geq 2)\\
 s \times c'_k & (k = 1)
 \end{cases}$
 
 $d_k = \begin{cases}
-s \times (d'_k + d'_{k-1}) & (k \geq 2)\\
+s \times (d'_k + d_{k-1}) & (k \geq 2)\\
 s \times d'_k & (k = 1)
 \end{cases}$
 
