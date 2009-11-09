@@ -44,6 +44,8 @@ mkdir $tmpdir/tools/glew
 cp tools/glew/* $tmpdir/tools/glew/
 mkdir $tmpdir/tools/glew/GL
 cp tools/glew/GL/* $tmpdir/tools/glew/GL/
+mkdir $tmpdir/tools/tinyxml
+cp tools/tinyxml/* $tmpdir/tools/tinyxml/
 
 mkdir $tmpdir/doc
 cp doc/DevelopersManual.pdf $tmpdir/doc/
