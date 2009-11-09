@@ -1,4 +1,4 @@
-v1.0 - ????.??.??
+v1.0 - 2009.11.09
 -----------------
 - Added a COLLADA converter module to the ctmconv program.
 
