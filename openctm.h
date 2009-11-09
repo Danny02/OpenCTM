@@ -556,7 +556,7 @@ CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
 /// @param[in] aTriangleCount The number of triangles in \c aIndices (there
 ///            must be exactly 3 x \c aTriangleCount indices in \c aIndices).
 /// @param[in] aNormals An array of per-vertex normals (or NULL if there are
-///            no normals). Each nromal is made up by three consecutive floats,
+///            no normals). Each normal is made up by three consecutive floats,
 ///            and there must be \c aVertexCount normals.
 /// @see ctmAddUVMap(), ctmAddAttribMap(), ctmSave(), ctmSaveCustom().
 CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
