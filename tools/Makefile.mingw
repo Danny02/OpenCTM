@@ -25,7 +25,7 @@
 #     distribution.
 ###############################################################################
 
-OPENCTMDIR = ../lib
+OPENCTMDIR = ..\lib
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
@@ -42,7 +42,7 @@ clean:
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
 
-openctm.dll: $(OPENCTMDIR)/openctm.dll
+openctm.dll: $(OPENCTMDIR)\openctm.dll
 	copy $< $@
 
 ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o ctmconv-res.o $(TINYXMLDIR)/libtinyxml.a openctm.dll

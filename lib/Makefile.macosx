@@ -30,7 +30,6 @@ CC = gcc
 CFLAGS = -O3 -W -Wall -c -fvisibility=hidden -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
 CFLAGS_LZMA = -O3 -W -Wall -c -fvisibility=hidden -DLZMA_PREFIX_CTM -std=c99 -pedantic
 RM = rm -f
-DOXYGEN = doxygen
 DEPEND = $(CPP) -MM
 
 DYNAMICLIB = libopenctm.dylib
@@ -59,18 +58,12 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
             $(LZMADIR)/LzmaEnc.c \
             $(LZMADIR)/LzmaLib.c
 
-.phony: all docs tools clean depend
+.phony: all clean depend
 
-all: $(DYNAMICLIB) tools
+all: $(DYNAMICLIB)
 
 clean:
 	$(RM) $(DYNAMICLIB) $(OBJS) $(LZMA_OBJS)
-
-docs:
-	cd doc && $(DOXYGEN) && cd ..
-
-tools: $(DYNAMICLIB)
-	cd tools && $(MAKE) -f Makefile.macosx && cd ..
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
 	gcc -dynamiclib -o $@ $(OBJS) $(LZMA_OBJS)

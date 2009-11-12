@@ -30,7 +30,6 @@ CC = gcc
 CFLAGS = -O3 -W -Wall -c -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
 CFLAGS_LZMA = -O3 -W -Wall -c -DLZMA_PREFIX_CTM -std=c99 -pedantic
 RM = del /Q
-DOXYGEN = doxygen
 DEPEND = $(CC) -MM
 RC = windres
 
@@ -61,24 +60,17 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
             $(LZMADIR)/LzmaEnc.c \
             $(LZMADIR)/LzmaLib.c
 
-.phony: all docs tools clean depend
+.phony: all clean depend
 
-all: $(DYNAMICLIB) tools
+all: $(DYNAMICLIB)
 
 clean:
 	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm-res.o
-
-docs:
-	cd doc && $(DOXYGEN) && cd ..
-
-tools: $(DYNAMICLIB)
-	cd tools && $(MAKE) -f Makefile.mingw && cd ..
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-mingw1.def openctm-mingw2.def openctm-res.o
 	dllwrap --def openctm-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS) openctm-res.o
 	strip $@
 	dlltool --kill-at --output-lib $(LINKLIB) --def openctm-mingw2.def
-	copy /Y $@ tools
 
 openctm-res.o: openctm.rc
 	$(RC) $< $@

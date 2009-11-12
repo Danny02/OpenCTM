@@ -42,8 +42,8 @@ clean:
 	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc clean
 	cd $(TINYXMLDIR) && $(MAKE) /fMakefile.msvc clean
 
-openctm.dll: $(OPENCTMDIR)/openctm.dll
-	copy $(OPENCTMDIR)/openctm.dll openctm.dll
+openctm.dll: $(OPENCTMDIR)\openctm.dll
+	copy $(OPENCTMDIR)\openctm.dll openctm.dll
 
 ctmconv.exe: ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj dae.obj mesh.obj rply.obj ctmconv.res $(TINYXMLDIR)\tinyxml.lib openctm.dll
 	$(CPP) /nologo /Fe$@ ctmconv.obj systimer.obj convoptions.obj ctm.obj ply.obj stl.obj 3ds.obj dae.obj mesh.obj rply.obj ctmconv.res /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) openctm.lib tinyxml.lib
