@@ -25,7 +25,7 @@
 #     distribution.
 ###############################################################################
 
-OPENCTMDIR = ..
+OPENCTMDIR = ../lib
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
@@ -41,13 +41,16 @@ clean:
 	cd $(JPEGDIR) && $(MAKE) -f makefile.linux clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux clean
 
-ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.so
+libopenctm.so: $(OPENCTMDIR)/libopenctm.so
+	cp $< $@
+
+ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o $(TINYXMLDIR)/libtinyxml.a libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o -Wl,-rpath,. -lopenctm -ltinyxml
 
-ctmviewer: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.so
+ctmviewer: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o glew.o rply.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o glew.o -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut
 
-ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.so
+ctmbench: ctmbench.o systimer.o libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -Wl,-rpath,. -lopenctm
 
 .cpp.o:
