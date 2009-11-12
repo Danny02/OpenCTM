@@ -67,7 +67,6 @@ clean:
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
 	gcc -dynamiclib -o $@ $(OBJS) $(LZMA_OBJS)
-	cp -f $(DYNAMICLIB) tools/
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
