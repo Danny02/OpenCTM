@@ -23,7 +23,7 @@ a few specific instructions:
 2.1 Windows, MinGW32
 --------------------
 
-mingw32-make -f Makefile.mingw -j2
+mingw32-make -f Makefile.mingw
 
 
 2.2 Windows, MS Visual Studio (Express) 2008
@@ -35,19 +35,19 @@ nmake /f Makefile.msvc
 2.3 Mac OS X
 ------------
 
-make -f Makefile.macosx -j2
+make -f Makefile.macosx
 
 
 2.4 Linux
 ---------
 
-make -f Makefile.linux -j2
+make -f Makefile.linux
 
 
 2.5 OpenSolaris
 ---------------
 
-gmake -f Makefile.linux -j2
+gmake -f Makefile.linux
 
 
 

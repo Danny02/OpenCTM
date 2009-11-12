@@ -25,7 +25,7 @@
 #     distribution.
 ###############################################################################
 
-OPENCTMDIR = ..
+OPENCTMDIR = ../lib
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
@@ -42,13 +42,16 @@ clean:
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
 
-ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o ctmconv-res.o $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.a
+openctm.dll: $(OPENCTMDIR)/openctm.dll
+	copy $< $@
+
+ctmconv.exe: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o ctmconv-res.o $(TINYXMLDIR)/libtinyxml.a openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o ctmconv-res.o -lopenctm -ltinyxml
 
-ctmviewer.exe: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.a
+ctmviewer.exe: ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o glew.o rply.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a openctm.dll
 	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o glew.o ctmviewer-res.o -lopenctm -ltinyxml -ljpeg -lfreeglut -lopengl32 -lglu32
 
-ctmbench.exe: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.a
+ctmbench.exe: ctmbench.o systimer.o openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
 
 .cpp.o:

@@ -1,3 +1,8 @@
+v1.0.1 - ????.??.??
+-------------------
+- Some directory structure and build system cleanups.
+
+
 v1.0 - 2009.11.09
 -----------------
 - Added a COLLADA converter module to the ctmconv program.

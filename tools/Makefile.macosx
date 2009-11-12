@@ -25,7 +25,7 @@
 #     distribution.
 ###############################################################################
 
-OPENCTMDIR = ..
+OPENCTMDIR = ../lib
 GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
@@ -40,6 +40,9 @@ clean:
 	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f makefile.macosx clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.macosx clean
+
+libopenctm.so: $(OPENCTMDIR)/libopenctm.so
+	cp $< $@
 
 ctmconv: ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o -lopenctm -ltinyxml
