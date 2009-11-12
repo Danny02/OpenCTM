@@ -1,8 +1,8 @@
 ###############################################################################
 # Product:     OpenCTM
 # File:        Makefile.linux
-# Description: Makefile for Linux systems (should work on most Un*x-like
-#              systems with gcc, e.g. OpenSolaris).
+# Description: Top level makefile for Linux systems (should work on most
+#              Un*x-like systems with gcc, e.g. OpenSolaris).
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
 #
@@ -26,64 +26,20 @@
 #     distribution.
 ###############################################################################
 
-LZMADIR = liblzma
-CC = gcc
-CFLAGS = -O3 -W -Wall -c -fPIC -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
-CFLAGS_LZMA = -O3 -W -Wall -c -fPIC -DLZMA_PREFIX_CTM -std=c99 -pedantic
-RM = rm -f
-DOXYGEN = doxygen
-DEPEND = $(CPP) -MM
+.phony: all openctm toolset documentation clean
 
-DYNAMICLIB = libopenctm.so
-
-OBJS = openctm.o \
-       stream.o \
-       compressRAW.o \
-       compressMG1.o \
-       compressMG2.o
-
-LZMA_OBJS = Alloc.o \
-            LzFind.o \
-            LzmaDec.o \
-            LzmaEnc.o \
-            LzmaLib.o
-
-SRCS = openctm.c \
-       stream.c \
-       compressRAW.c \
-       compressMG1.c \
-       compressMG2.c
-
-LZMA_SRCS = $(LZMADIR)/Alloc.c \
-            $(LZMADIR)/LzFind.c \
-            $(LZMADIR)/LzmaDec.c \
-            $(LZMADIR)/LzmaEnc.c \
-            $(LZMADIR)/LzmaLib.c
-
-.phony: all docs tools clean depend
-
-all: $(DYNAMICLIB) tools
+all: openctm toolset documentation
 
 clean:
-	$(RM) $(DYNAMICLIB) $(OBJS) $(LZMA_OBJS)
+	cd lib && $(MAKE) -f Makefile.linux clean && cd ..
+	cd tools && $(MAKE) -f Makefile.linux clean && cd ..
+	cd doc && $(MAKE) -f Makefile.linux clean && cd ..
 
-docs:
-	cd doc && $(DOXYGEN) && cd ..
+openctm:
+	cd lib && $(MAKE) -f Makefile.linux -j2 && cd ..
 
-tools: $(DYNAMICLIB)
-	cd tools && $(MAKE) -f Makefile.linux && cd ..
+toolset:
+	cd tools && $(MAKE) -f Makefile.linux -j2 && cd ..
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
-	gcc -shared -s -Wl,-soname,$@ -o $@ $(OBJS) $(LZMA_OBJS)
-	cp -f $@ tools/
-
-%.o: %.c
-	$(CC) $(CFLAGS) $<
-
-%.o: $(LZMADIR)/%.c
-	$(CC) $(CFLAGS_LZMA) $<
-
-depend:
-	$(DEPEND) $(SRCS) $(LZMA_SRCS) > make.depend
-
--include make.depend
+documentation:
+	cd doc && $(MAKE) -f Makefile.linux -j2 && cd ..
