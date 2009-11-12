@@ -38,7 +38,7 @@ RC = windres
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
+	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
 

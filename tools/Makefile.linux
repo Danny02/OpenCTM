@@ -37,7 +37,7 @@ CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXML
 all: ctmconv ctmviewer ctmbench
 
 clean:
-	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
+	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o ctm.o ply.o stl.o 3ds.o dae.o mesh.o rply.o glew.o bin2c phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f makefile.linux clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux clean
 
