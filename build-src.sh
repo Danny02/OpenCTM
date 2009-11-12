@@ -6,22 +6,10 @@ distname=OpenCTM-1.0
 # Clean the source directories
 echo Cleaning up...
 make -f Makefile.linux clean
-cd tools
-make -f Makefile.linux clean
-cd jpeg
-make -f Makefile.linux clean
-cd ../..
-rm -f doc/APIReference/*
 
 # Build all the necessary files
 echo Building documentation...
-cd doc
-doxygen
-pdflatex DevelopersManual.tex
-pdflatex DevelopersManual.tex
-pdflatex FormatSpecification.tex
-pdflatex FormatSpecification.tex
-cd ..
+make -f Makefile.linux documentation
 
 # Set up a temporary directory
 tmproot=/tmp/openctm-$USER-$$
@@ -31,9 +19,11 @@ mkdir $tmpdir
 
 # Copy files
 echo Copying files to $tmpdir...
-cp *.c *.h *.rc *.def Makefile* *.txt $tmpdir/
-mkdir $tmpdir/liblzma
-cp liblzma/* $tmpdir/liblzma/
+cp Makefile* *.txt $tmpdir/
+mkdir $tmpdir/lib
+cp lib/*.c lib/*.h lib/*.rc lib/*.def lib/Makefile* $tmpdir/lib/
+mkdir $tmpdir/lib/liblzma
+cp lib/liblzma/* $tmpdir/lib/liblzma/
 mkdir $tmpdir/tools
 cp tools/*.cpp tools/*.h tools/*.ico tools/*.vert tools/*.frag tools/*.rc tools/Makefile* $tmpdir/tools/
 mkdir $tmpdir/tools/jpeg
