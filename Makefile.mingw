@@ -1,10 +1,7 @@
 ###############################################################################
 # Product:     OpenCTM
-# File:        Makefile.linux
-# Description: Makefile for the documentation for Linux systems (should work on
-#              most Un*x-like systems, e.g. OpenSolaris).
-#              This build system requires Doxygen and a full LaTeX installation
-#              (try TeX Live, http://www.tug.org/texlive/).
+# File:        Makefile.mingw
+# Description: Top level makefile for Windows / MinGW32.
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
 #
@@ -28,20 +25,20 @@
 #     distribution.
 ###############################################################################
 
-.PHONY: all clean
+.phony: all openctm toolset documentation clean
 
-all: DevelopersManual.pdf FormatSpecification.pdf APIReference/index.html
+all: openctm toolset documentation
 
 clean:
-	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out
+	cd lib && $(MAKE) -f Makefile.mingw clean && cd ..
+	cd tools && $(MAKE) -f Makefile.mingw clean && cd ..
+	cd doc && $(MAKE) -f Makefile.win clean && cd ..
 
-DevelopersManual.pdf: DevelopersManual.tex
-	pdflatex DevelopersManual.tex
-	pdflatex DevelopersManual.tex
+openctm:
+	cd lib && $(MAKE) -f Makefile.mingw -j2 && cd ..
 
-FormatSpecification.pdf: FormatSpecification.tex
-	pdflatex FormatSpecification.tex
-	pdflatex FormatSpecification.tex
+toolset:
+	cd tools && $(MAKE) -f Makefile.mingw -j2 && cd ..
 
-APIReference/index.html: ../lib/openctm.h ../lib/openctmpp.h
-	doxygen
+documentation:
+	cd doc && $(MAKE) -f Makefile.win -j2 && cd ..

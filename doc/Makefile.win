@@ -1,8 +1,7 @@
 ###############################################################################
 # Product:     OpenCTM
-# File:        Makefile.linux
-# Description: Makefile for the documentation for Linux systems (should work on
-#              most Un*x-like systems, e.g. OpenSolaris).
+# File:        Makefile.win
+# Description: Makefile for the documentation for Windows.
 #              This build system requires Doxygen and a full LaTeX installation
 #              (try TeX Live, http://www.tug.org/texlive/).
 ###############################################################################
@@ -30,10 +29,10 @@
 
 .PHONY: all clean
 
-all: DevelopersManual.pdf FormatSpecification.pdf APIReference/index.html
+all: DevelopersManual.pdf FormatSpecification.pdf APIReference\index.html
 
 clean:
-	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out
+	del /Q APIReference\*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out
 
 DevelopersManual.pdf: DevelopersManual.tex
 	pdflatex DevelopersManual.tex
@@ -43,5 +42,5 @@ FormatSpecification.pdf: FormatSpecification.tex
 	pdflatex FormatSpecification.tex
 	pdflatex FormatSpecification.tex
 
-APIReference/index.html: ../lib/openctm.h ../lib/openctmpp.h
+APIReference\index.html: ..\lib/openctm.h ..\lib\openctmpp.h
 	doxygen

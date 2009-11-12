@@ -1,10 +1,9 @@
 ###############################################################################
 # Product:     OpenCTM
-# File:        Makefile.linux
-# Description: Makefile for the documentation for Linux systems (should work on
-#              most Un*x-like systems, e.g. OpenSolaris).
+# File:        Makefile.macosx
+# Description: Makefile for the documentation for Mac OS X.
 #              This build system requires Doxygen and a full LaTeX installation
-#              (try TeX Live, http://www.tug.org/texlive/).
+#              (try MacTeX, http://www.tug.org/mactex/).
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
 #
