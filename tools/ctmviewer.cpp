@@ -40,11 +40,7 @@
 #endif
 #include <jpeglib.h>
 #include "mesh.h"
-#include "ctm.h"
-#include "ply.h"
-#include "stl.h"
-#include "3ds.h"
-#include "dae.h"
+#include "meshio.h"
 
 using namespace std;
 
@@ -61,31 +57,6 @@ using namespace std;
 
 #include "phong_vert.h"
 #include "phong_frag.h"
-
-
-//-----------------------------------------------------------------------------
-// UpperCase()
-//-----------------------------------------------------------------------------
-string UpperCase(const string &aString)
-{
-  string result(aString);
-  for(unsigned int i = 0; i < result.size(); ++ i)
-    result[i] = toupper(result[i]);
-  return result;
-}
-
-//-----------------------------------------------------------------------------
-// ExtractFileExt()
-//-----------------------------------------------------------------------------
-string ExtractFileExt(const string &aString)
-{
-  string result = "";
-  size_t extPos = aString.rfind(".");
-  if(extPos != string::npos)
-    result = aString.substr(extPos);
-  return result;
-}
-
 
 
 // Global variables (this is a simple program, after all)
@@ -109,6 +80,7 @@ bool useShader = false;
 GLuint shaderProgram = 0;
 GLuint vertShader = 0;
 GLuint fragShader = 0;
+
 
 /// Set up the scene.
 void SetupScene()
@@ -683,19 +655,7 @@ int main(int argc, char **argv)
     // Load the file
     cout << "Loading " << argv[1] << "..." << flush;
     int t = glutGet(GLUT_ELAPSED_TIME);
-    string fileExt = UpperCase(ExtractFileExt(string(argv[1])));
-    if(fileExt == string(".PLY"))
-      Import_PLY(argv[1], mesh);
-    else if(fileExt == string(".STL"))
-      Import_STL(argv[1], mesh);
-    else if(fileExt == string(".3DS"))
-      Import_3DS(argv[1], mesh);
-    else if(fileExt == string(".DAE"))
-      Import_DAE(argv[1], mesh);
-    else if(fileExt == string(".CTM"))
-      Import_CTM(argv[1], mesh);
-    else
-      throw runtime_error("Unknown input file extension.");
+    ImportMesh(argv[1], mesh);
     t = glutGet(GLUT_ELAPSED_TIME) - t;
     cout << "done (" << t << " ms)" << endl;
 
