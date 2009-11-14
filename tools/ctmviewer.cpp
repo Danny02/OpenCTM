@@ -635,6 +635,14 @@ int main(int argc, char **argv)
   if((argc < 2) || (argc > 3))
   {
     cout << "Usage: ctmviewer file [texturefile]" << endl;
+
+    // Show supported formats
+    cout << endl << "Supported file formats:" << endl;
+    list<string> formatList;
+    SupportedFormats(formatList);
+    for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
+      cout << "  " << (*i) << endl;
+
     return 0;
   }
 

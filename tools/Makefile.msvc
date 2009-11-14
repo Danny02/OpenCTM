@@ -35,7 +35,7 @@ CPP = cl
 CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(TINYXMLDIR) /I$(GLEWDIR) /DGLEW_STATIC /D_CRT_SECURE_NO_WARNINGS
 RC = rc
 
-MESHOBJS = mesh.obj meshio.obj ctm.obj ply.obj rply.obj stl.obj 3ds.obj dae.obj
+MESHOBJS = mesh.obj meshio.obj ctm.obj ply.obj rply.obj stl.obj 3ds.obj dae.obj obj.obj
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
@@ -65,12 +65,13 @@ ctmbench.obj: ctmbench.cpp systimer.h
 systimer.obj: systimer.cpp systimer.h
 convoptions.obj: convoptions.cpp convoptions.h
 mesh.obj: mesh.cpp mesh.h convoptions.h
-meshio.obj: meshio.cpp convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h
+meshio.obj: meshio.cpp convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h
 ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h
 ply.obj: ply.cpp ply.h mesh.h
 stl.obj: stl.cpp stl.h mesh.h
 3ds.obj: 3ds.cpp 3ds.h mesh.h
 dae.obj: dae.cpp dae.h mesh.h
+obj.obj: obj.cpp obj.h mesh.h
 
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@

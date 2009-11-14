@@ -28,13 +28,19 @@
 #ifndef __MESHIO_H_
 #define __MESHIO_H_
 
-class Mesh;
-class Options;
+#include <list>
+#include "mesh.h"
+#include "convoptions.h"
+
 
 /// Import a mesh from a file.
 void ImportMesh(const char * aFileName, Mesh &aMesh);
 
 /// Export a mesh to a file.
 void ExportMesh(const char * aFileName, Mesh &aMesh, Options &aOptions);
+
+/// Return a list of supported formats.
+void SupportedFormats(std::list<std::string> &aList);
+
 
 #endif // __MESHIO_H_

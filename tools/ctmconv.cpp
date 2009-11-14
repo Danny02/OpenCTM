@@ -30,6 +30,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <list>
 #include <string>
 #include <cctype>
 #include "systimer.h"
@@ -151,6 +152,14 @@ int main(int argc, char ** argv)
     cout << "  --texfile arg   Set the texture file name reference for the texture" << endl;
     cout << "                  (default is to use the texture file name reference" << endl;
     cout << "                  from the input file, if any)." << endl;
+
+    // Show supported formats
+    cout << endl << "Supported file formats:" << endl;
+    list<string> formatList;
+    SupportedFormats(formatList);
+    for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
+      cout << "  " << (*i) << endl;
+
     return 0;
   }
 
@@ -165,6 +174,7 @@ int main(int argc, char ** argv)
 
     // Load input file
     cout << "Loading " << inFile << "... " << flush;
+    timer.Push();
     ImportMesh(inFile.c_str(), mesh);
     dt = timer.PopDelta();
     cout << 1000.0 * dt << " ms" << endl;

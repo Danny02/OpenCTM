@@ -27,13 +27,16 @@
 
 #include <stdexcept>
 #include <string>
+#include <list>
 #include "mesh.h"
+#include "meshio.h"
 #include "convoptions.h"
 #include "ctm.h"
 #include "ply.h"
 #include "stl.h"
 #include "3ds.h"
 #include "dae.h"
+#include "obj.h"
 
 using namespace std;
 
@@ -61,7 +64,9 @@ static string ExtractFileExt(const string &aString)
 void ImportMesh(const char * aFileName, Mesh &aMesh)
 {
   string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
-  if(fileExt == string(".PLY"))
+  if(fileExt == string(".CTM"))
+    Import_CTM(aFileName, aMesh);
+  else if(fileExt == string(".PLY"))
     Import_PLY(aFileName, aMesh);
   else if(fileExt == string(".STL"))
     Import_STL(aFileName, aMesh);
@@ -69,8 +74,8 @@ void ImportMesh(const char * aFileName, Mesh &aMesh)
     Import_3DS(aFileName, aMesh);
   else if(fileExt == string(".DAE"))
     Import_DAE(aFileName, aMesh);
-  else if(fileExt == string(".CTM"))
-    Import_CTM(aFileName, aMesh);
+  else if(fileExt == string(".OBJ"))
+    Import_OBJ(aFileName, aMesh);
   else
     throw runtime_error("Unknown input file extension.");
 }
@@ -79,7 +84,9 @@ void ImportMesh(const char * aFileName, Mesh &aMesh)
 void ExportMesh(const char * aFileName, Mesh &aMesh, Options &aOptions)
 {
   string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
-  if(fileExt == string(".PLY"))
+  if(fileExt == string(".CTM"))
+    Export_CTM(aFileName, aMesh, aOptions);
+  else if(fileExt == string(".PLY"))
     Export_PLY(aFileName, aMesh);
   else if(fileExt == string(".STL"))
     Export_STL(aFileName, aMesh);
@@ -87,8 +94,19 @@ void ExportMesh(const char * aFileName, Mesh &aMesh, Options &aOptions)
     Export_3DS(aFileName, aMesh);
   else if(fileExt == string(".DAE"))
     Export_DAE(aFileName, aMesh);
-  else if(fileExt == string(".CTM"))
-    Export_CTM(aFileName, aMesh, aOptions);
+  else if(fileExt == string(".OBJ"))
+    Export_OBJ(aFileName, aMesh);
   else
     throw runtime_error("Unknown output file extension.");
+}
+
+/// Return a list of supported formats.
+void SupportedFormats(list<string> &aList)
+{
+  aList.push_back(string("OpenCTM (.ctm)"));
+  aList.push_back(string("Stanford triangle format (.ply)"));
+  aList.push_back(string("Stereolithography (.stl)"));
+  aList.push_back(string("3D Studio (.3ds)"));
+  aList.push_back(string("COLLADA 1.4/1.5 (.dae)"));
+//  aList.push_back(string("Wavefront geometry file (.obj)"));
 }
