@@ -27,6 +27,7 @@
 
 #include <stdexcept>
 #include <fstream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include "obj.h"
@@ -67,12 +68,65 @@ void Export_OBJ(const char * aFileName, Mesh &aMesh)
   if(f.fail())
     throw runtime_error("Could not open output file.");
 
+  bool hasUVCoords = (aMesh.mTexCoords.size() == aMesh.mVertices.size());
+  bool hasNormals = (aMesh.mNormals.size() == aMesh.mVertices.size());
+
+  // Set floating point precision
+  f << setprecision(8);
+
   // Write comment
-  f << "# " << aMesh.mComment << endl;
+  if(aMesh.mComment.size() > 0)
+    f << "# " << aMesh.mComment << endl;
   f << "# Generator: ctmconv" << endl;
 
-  // ...
-  throw runtime_error("OBJ file export is not yet implemented.");
+  // Write vertices
+  for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
+    f << "v " << aMesh.mVertices[i].x << " " << aMesh.mVertices[i].y << " " << aMesh.mVertices[i].z << endl;
+
+  // Write UV coordinates
+  if(hasUVCoords)
+  {
+    for(unsigned int i = 0; i < aMesh.mTexCoords.size(); ++ i)
+      f << "vt " << aMesh.mTexCoords[i].u << " " << aMesh.mTexCoords[i].v << endl;
+  }
+
+  // Write normals
+  if(hasNormals)
+  {
+    for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
+      f << "vn " << aMesh.mNormals[i].x << " " << aMesh.mNormals[i].y << " " << aMesh.mNormals[i].z << endl;
+  }
+
+  // Write faces
+  unsigned int triCount = aMesh.mIndices.size() / 3;
+  f << "s 1" << endl; // Put all faces in the same smoothing group
+  for(unsigned int i = 0; i < triCount; ++ i)
+  {
+    unsigned int idx = aMesh.mIndices[i * 3] + 1;
+    f << "f " << idx << "/";
+    if(hasUVCoords)
+      f << idx;
+    f << "/";
+    if(hasNormals)
+      f << idx;
+
+    idx = aMesh.mIndices[i * 3 + 1] + 1;
+    f << " " << idx << "/";
+    if(hasUVCoords)
+      f << idx;
+    f << "/";
+    if(hasNormals)
+      f << idx;
+
+    idx = aMesh.mIndices[i * 3 + 2] + 1;
+    f << " " << idx << "/";
+    if(hasUVCoords)
+      f << idx;
+    f << "/";
+    if(hasNormals)
+      f << idx;
+    f << endl;
+  }
 
   // Close the output file
   f.close();
