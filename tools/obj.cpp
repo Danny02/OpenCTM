@@ -93,7 +93,7 @@ void Export_OBJ(const char * aFileName, Mesh &aMesh)
   // Write normals
   if(hasNormals)
   {
-    for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
+    for(unsigned int i = 0; i < aMesh.mNormals.size(); ++ i)
       f << "vn " << aMesh.mNormals[i].x << " " << aMesh.mNormals[i].y << " " << aMesh.mNormals[i].z << endl;
   }
 
