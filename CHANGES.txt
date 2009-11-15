@@ -1,9 +1,11 @@
-v1.0.1 - ????.??.??
+v1.0.1 - 2009.11.15
 -------------------
 - Notable reduction of the memory footprint by tuning of the LZMA compression
   parameters.
 
 - Added a Wavefront OBJ file importer/exporter.
+
+- Some improvements to ctmviewer and ctmconv.
 
 - Some directory structure and build system cleanups.
 
