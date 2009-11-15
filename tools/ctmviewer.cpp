@@ -637,11 +637,12 @@ int main(int argc, char **argv)
     cout << "Usage: ctmviewer file [texturefile]" << endl;
 
     // Show supported formats
-    cout << endl << "Supported file formats:" << endl;
+    cout << endl << "Supported file formats:" << endl << endl;
     list<string> formatList;
     SupportedFormats(formatList);
     for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
       cout << "  " << (*i) << endl;
+    cout << endl;
 
     return 0;
   }

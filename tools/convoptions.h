@@ -46,6 +46,7 @@ class Options {
 
     CTMfloat mScale;
     UpAxis mUpAxis;
+    bool mFlipTriangles;
 
     CTMenum mMethod;
     CTMuint mLevel;

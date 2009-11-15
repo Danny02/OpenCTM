@@ -47,7 +47,8 @@ using namespace std;
 static void PreProcessMesh(Mesh &aMesh, Options &aOptions)
 {
   // Nothing to do?
-  if((aOptions.mScale == 1.0f) && (aOptions.mUpAxis == uaZ))
+  if((aOptions.mScale == 1.0f) && (aOptions.mUpAxis == uaZ) &&
+     (!aOptions.mFlipTriangles))
     return;
 
   // Create 3x3 transformation matrices for the vertices and the normals
@@ -106,6 +107,18 @@ static void PreProcessMesh(Mesh &aMesh, Options &aOptions)
                         nY * aMesh.mNormals[i].y +
                         nZ * aMesh.mNormals[i].z;
 
+  // Flip trianlges?
+  if(aOptions.mFlipTriangles)
+  {
+    CTMuint triCount = aMesh.mIndices.size() / 3;
+    for(CTMuint i = 0; i < triCount; ++ i)
+    {
+      CTMuint tmp = aMesh.mIndices[i * 3];
+      aMesh.mIndices[i * 3] = aMesh.mIndices[i * 3 + 1];
+      aMesh.mIndices[i * 3 + 1] = tmp;
+    }
+  }
+
   double dt = timer.PopDelta();
   cout << 1000.0 * dt << " ms" << endl;
 }
@@ -137,6 +150,7 @@ int main(int argc, char ** argv)
     cout << "  --scale arg     Scale the mesh by a scalar factor." << endl;
     cout << "  --upaxis arg    Set up axis (X, Y, Z, -X, -Y, -Z). If != Z, the mesh will" << endl;
     cout << "                  be flipped." << endl;
+    cout << "  --flip          Flip triangle orientation." << endl;
     cout << endl << " OpenCTM output" << endl;
     cout << "  --method arg    Select compression method (RAW, MG1, MG2)" << endl;
     cout << "  --level arg     Set the compression level (0 - 9)" << endl;
@@ -154,11 +168,12 @@ int main(int argc, char ** argv)
     cout << "                  from the input file, if any)." << endl;
 
     // Show supported formats
-    cout << endl << "Supported file formats:" << endl;
+    cout << endl << "Supported file formats:" << endl << endl;
     list<string> formatList;
     SupportedFormats(formatList);
     for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
       cout << "  " << (*i) << endl;
+    cout << endl;
 
     return 0;
   }
