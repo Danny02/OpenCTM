@@ -60,7 +60,7 @@ using namespace std;
 
 
 // Global variables (this is a simple program, after all)
-string fileName("");
+string fileName(""), filePath("");
 long fileSize = 0;
 
 int width = 1, height = 1;
@@ -157,8 +157,14 @@ void InitTexture(const char * aFileName)
   // Load texture from a JPEG file
   if(aFileName)
   {
-    FILE * inFile;
-    if((inFile = fopen(aFileName, "rb")) != NULL)
+    FILE * inFile = fopen(aFileName, "rb");
+    if((inFile == NULL) && (filePath.size() > 0))
+    {
+      // Try the same path as the mesh file
+      string name = filePath + string(aFileName);
+      inFile = fopen(name.c_str(), "rb");
+    }
+    if(inFile != NULL)
     {
       cout << "Loading texture (" << aFileName << ")..." << endl;
       struct jpeg_decompress_struct cinfo;
@@ -649,13 +655,16 @@ int main(int argc, char **argv)
 
   try
   {
-    // Get the file name (excluding the path)
+    // Get the file name (excluding the path), and the path (excluding the file name)
     fileName = string(argv[1]);
     size_t lastSlash = fileName.rfind("/");
     if(lastSlash == string::npos)
       lastSlash = fileName.rfind("\\");
     if(lastSlash != string::npos)
+    {
+      filePath = fileName.substr(0, lastSlash + 1);
       fileName = fileName.substr(lastSlash + 1);
+    }
 
     // Get the file size
     ifstream f(argv[1], ios::in | ios::binary);
