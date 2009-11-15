@@ -108,5 +108,5 @@ void SupportedFormats(list<string> &aList)
   aList.push_back(string("Stereolithography (.stl)"));
   aList.push_back(string("3D Studio (.3ds)"));
   aList.push_back(string("COLLADA 1.4/1.5 (.dae)"));
-//  aList.push_back(string("Wavefront geometry file (.obj)"));
+  aList.push_back(string("Wavefront geometry file (.obj)"));
 }

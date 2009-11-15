@@ -1,5 +1,7 @@
 v1.0.1 - ????.??.??
 -------------------
+- Added a Wavefront OBJ file importer/exporter.
+
 - Some directory structure and build system cleanups.
 
 

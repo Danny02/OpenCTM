@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name of the distribution
-distname=OpenCTM-1.0
+distname=OpenCTM-1.0.1
 
 # Clean the source directories
 echo Cleaning up...

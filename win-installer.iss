@@ -5,17 +5,17 @@
 
 [Setup]
 AppName=OpenCTM
-AppVerName=OpenCTM 1.0
-VersionInfoVersion=1.0.0.0
+AppVerName=OpenCTM 1.0.1
+VersionInfoVersion=1.0.1.0
 AppPublisher=Marcus Geelnard
 AppPublisherURL=http://openctm.sourceforge.net/
 AppSupportURL=http://openctm.sourceforge.net/
 AppUpdatesURL=http://openctm.sourceforge.net/
-DefaultDirName={pf}\OpenCTM 1.0
-DefaultGroupName=OpenCTM 1.0
+DefaultDirName={pf}\OpenCTM 1.0.1
+DefaultGroupName=OpenCTM 1.0.1
 LicenseFile=LICENSE.txt
 OutputDir=.
-OutputBaseFilename=OpenCTM-1.0-setup
+OutputBaseFilename=OpenCTM-1.0.1-setup
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
@@ -28,6 +28,7 @@ Name: associatestl; Description: "&Associate Stereolithography (.stl) files with
 Name: associateply; Description: "&Associate Stanford PLY (.ply) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associate3ds; Description: "&Associate 3DStudio (.3ds) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associatedae; Description: "&Associate COLLADA (.dae) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
+Name: associateobj; Description: "&Associate Wavefront (.obj) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: modifypath; Description: "&Add application directory to your system path"; GroupDescription: "Modify system paths:"
 
 [Files]
@@ -81,6 +82,11 @@ Root: HKCR; Subkey: ".dae"; ValueType: string; ValueName: ""; ValueData: "DAE_fi
 Root: HKCR; Subkey: "DAE_file"; ValueType: string; ValueName: ""; ValueData: "COLLADA file"; Flags: uninsdeletekey; Tasks: associatedae
 Root: HKCR; Subkey: "DAE_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatedae
 Root: HKCR; Subkey: "DAE_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatedae
+
+Root: HKCR; Subkey: ".obj"; ValueType: string; ValueName: ""; ValueData: "OBJ_file"; Flags: uninsdeletevalue; Tasks: associatedae
+Root: HKCR; Subkey: "OBJ_file"; ValueType: string; ValueName: ""; ValueData: "Wavefront OBJ file"; Flags: uninsdeletekey; Tasks: associatedae
+Root: HKCR; Subkey: "OBJ_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatedae
+Root: HKCR; Subkey: "OBJ_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatedae
 
 [Code]
 
