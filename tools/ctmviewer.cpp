@@ -649,9 +649,16 @@ int main(int argc, char **argv)
 
   try
   {
-    // Get the file name and size
+    // Get the file name (excluding the path)
     fileName = string(argv[1]);
-    ifstream f(fileName.c_str(), ios::in | ios::binary);
+    size_t lastSlash = fileName.rfind("/");
+    if(lastSlash == string::npos)
+      lastSlash = fileName.rfind("\\");
+    if(lastSlash != string::npos)
+      fileName = fileName.substr(lastSlash + 1);
+
+    // Get the file size
+    ifstream f(argv[1], ios::in | ios::binary);
     if(f.fail())
       throw runtime_error("Unable to open the file.");
     f.seekg(0, ios_base::end);
@@ -684,7 +691,7 @@ int main(int argc, char **argv)
     // Create the glut window
     glutInitWindowSize(640, 480);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    string windowCaption = string("OpenCTM viewer - ") + string(argv[1]);
+    string windowCaption = string("OpenCTM viewer - ") + fileName;
     glutCreateWindow(windowCaption.c_str());
     glutReshapeFunc(WindowResize);
     glutDisplayFunc(WindowRedraw);
