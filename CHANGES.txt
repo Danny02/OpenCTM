@@ -1,5 +1,8 @@
 v1.0.1 - ????.??.??
 -------------------
+- Notable reduction of the memory footprint by tuning of the LZMA compression
+  parameters.
+
 - Added a Wavefront OBJ file importer/exporter.
 
 - Some directory structure and build system cleanups.

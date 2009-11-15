@@ -20,7 +20,8 @@ MY_STDAPI LzmaCompress(unsigned char *dest, size_t  *destLen, const unsigned cha
   int lp, /* 0 <= lp <= 4, default = 0  */
   int pb, /* 0 <= pb <= 4, default = 2  */
   int fb,  /* 5 <= fb <= 273, default = 32 */
-  int numThreads /* 1 or 2, default = 2 */
+  int numThreads, /* 1 or 2, default = 2 */
+  int algo /* 0 = fast, 1 = normal */
 )
 {
   CLzmaEncProps props;
@@ -32,6 +33,7 @@ MY_STDAPI LzmaCompress(unsigned char *dest, size_t  *destLen, const unsigned cha
   props.pb = pb;
   props.fb = fb;
   props.numThreads = numThreads;
+  props.algo = algo;
 
   return LzmaEncode(dest, destLen, src, srcLen, &props, outProps, outPropsSize, 0,
       NULL, &g_Alloc, &g_Alloc);

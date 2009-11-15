@@ -195,7 +195,7 @@ CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode)
   self->mMode = aMode;
   self->mError = CTM_NONE;
   self->mMethod = CTM_METHOD_MG1;
-  self->mCompressionLevel = 5;
+  self->mCompressionLevel = 1;
   self->mVertexPrecision = 1.0f / 1024.0f;
   self->mNormalPrecision = 1.0f / 256.0f;
 

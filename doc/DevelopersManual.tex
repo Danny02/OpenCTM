@@ -39,7 +39,7 @@
 \includegraphics[width=10.0cm]{logo.pdf}
 \vspace{0.4cm}
 
-{\large Software Library version 1.0}
+{\large Software Library version 1.0.1}
 
 \vspace{1.0cm}
 
@@ -439,13 +439,13 @@ You can select which LZMA compression level to use with the ctmCompressionLevel(
 function. The compression level can be in the range 0-9, where 0 is the fastest
 compression, and 9 is the best compression. The compression level also affects the
 amount of memory that is used during compression (anywhere from a few megabytes to
-several hundered megabytes).
+several hundred megabytes).
 
 \begin{lstlisting}
   ctmCompressionMethod(context, 4);
 \end{lstlisting}
 
-The default compression level is 5.
+The default compression level is 1.
 
 
 \section{Selecting fixed point precision}

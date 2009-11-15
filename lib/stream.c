@@ -253,7 +253,7 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
 int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
   CTMuint aCount, CTMuint aSize, CTMint aSignedInts)
 {
-  int lzmaRes;
+  int lzmaRes, lzmaAlgo;
   CTMuint i, k;
   CTMint value;
   size_t bufSize, outPropsSize;
@@ -302,6 +302,7 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
 
   // Call LZMA to compress
   outPropsSize = 5;
+  lzmaAlgo = (self->mCompressionLevel < 1 ? 0 : 1);
   lzmaRes = LzmaCompress(packed,
                          &bufSize,
                          (const unsigned char *) tmp,
@@ -309,7 +310,8 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
                          outProps,
                          &outPropsSize,
                          self->mCompressionLevel, // Level (0-9)
-                         0, -1, -1, -1, -1, -1    // Default values (set by level)
+                         0, -1, -1, -1, -1, -1,   // Default values (set by level)
+                         lzmaAlgo                 // Algorithm (0 = fast, 1 = normal)
                         );
 
   // Free temporary array
@@ -425,7 +427,7 @@ int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
 int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
   CTMuint aCount, CTMuint aSize)
 {
-  int lzmaRes;
+  int lzmaRes, lzmaAlgo;
   CTMuint i, k;
   union {
     CTMfloat f;
@@ -467,6 +469,7 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
 
   // Call LZMA to compress
   outPropsSize = 5;
+  lzmaAlgo = (self->mCompressionLevel < 1 ? 0 : 1);
   lzmaRes = LzmaCompress(packed,
                          &bufSize,
                          (const unsigned char *) tmp,
@@ -474,7 +477,8 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
                          outProps,
                          &outPropsSize,
                          self->mCompressionLevel, // Level (0-9)
-                         0, -1, -1, -1, -1, -1    // Default values (set by level)
+                         0, -1, -1, -1, -1, -1,   // Default values (set by level)
+                         lzmaAlgo                 // Algorithm (0 = fast, 1 = normal)
                         );
 
   // Free temporary array

@@ -103,11 +103,12 @@ MY_STDAPI LzmaCompress(unsigned char *dest, size_t *destLen, const unsigned char
   unsigned char *outProps, size_t *outPropsSize, /* *outPropsSize must be = 5 */
   int level,      /* 0 <= level <= 9, default = 5 */
   unsigned dictSize,  /* default = (1 << 24) */
-  int lc,        /* 0 <= lc <= 8, default = 3  */
-  int lp,        /* 0 <= lp <= 4, default = 0  */
-  int pb,        /* 0 <= pb <= 4, default = 2  */
-  int fb,        /* 5 <= fb <= 273, default = 32 */
-  int numThreads /* 1 or 2, default = 2 */
+  int lc,         /* 0 <= lc <= 8, default = 3  */
+  int lp,         /* 0 <= lp <= 4, default = 0  */
+  int pb,         /* 0 <= pb <= 4, default = 2  */
+  int fb,         /* 5 <= fb <= 273, default = 32 */
+  int numThreads, /* 1 or 2, default = 2 */
+  int algo        /* 0 = fast, 1 = normal, default = 0 for level < 5, 1 for level >= 5 */
   );
 
 /*

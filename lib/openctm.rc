@@ -1,7 +1,7 @@
 
 1 VERSIONINFO
-	FILEVERSION 1,0,0,0
-	PRODUCTVERSION 1,0,0,0
+	FILEVERSION 1,0,1,0
+	PRODUCTVERSION 1,0,1,0
 	FILEOS 0x4
 	FILETYPE 0x2
 	BEGIN
@@ -9,8 +9,8 @@
 		BEGIN
 			BLOCK "040904e4"
 			BEGIN
-				VALUE "ProductVersion", "1.0.0.0"
-				VALUE "FileVersion", "1.0.0.0"
+				VALUE "ProductVersion", "1.0.1.0"
+				VALUE "FileVersion", "1.0.1.0"
 				VALUE "FileDescription", "OpenCTM API shared library"
 				VALUE "ProductName", "OpenCTM"
 				VALUE "OriginalFilename", "openctm.dll"

@@ -40,7 +40,7 @@ Options::Options()
   mScale = 1.0f;
   mUpAxis = uaZ;
   mMethod = CTM_METHOD_MG2;
-  mLevel = 5;
+  mLevel = 1;
   mVertexPrecision = 0.0f;
   mVertexPrecisionRel = 0.01f;
   mNormalPrecision = 1.0f / 256.0f;
