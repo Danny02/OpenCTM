@@ -464,7 +464,7 @@ CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
 /// Set which LZMA compression level to use for the given OpenCTM context.
 /// The compression level can be between 0 (fastest) and 9 (best). The higher
 /// the compression level, the more memory is required for compression and
-/// decompression. The default compression level is 5.
+/// decompression. The default compression level is 1.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aLevel Which compression level to use (0 to 9).
