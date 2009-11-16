@@ -47,6 +47,10 @@ class Options {
     CTMfloat mScale;
     UpAxis mUpAxis;
     bool mFlipTriangles;
+    bool mCalcNormals;
+    bool mNoNormals;
+    bool mNoTexCoords;
+    bool mNoColors;
 
     CTMenum mMethod;
     CTMuint mLevel;

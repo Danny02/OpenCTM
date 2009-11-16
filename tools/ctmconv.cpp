@@ -48,7 +48,7 @@ static void PreProcessMesh(Mesh &aMesh, Options &aOptions)
 {
   // Nothing to do?
   if((aOptions.mScale == 1.0f) && (aOptions.mUpAxis == uaZ) &&
-     (!aOptions.mFlipTriangles))
+     (!aOptions.mFlipTriangles) && (!aOptions.mCalcNormals))
     return;
 
   // Create 3x3 transformation matrices for the vertices and the normals
@@ -119,6 +119,11 @@ static void PreProcessMesh(Mesh &aMesh, Options &aOptions)
     }
   }
 
+  // Calculate normals?
+  if((!aOptions.mNoNormals) && aOptions.mCalcNormals &&
+     (aMesh.mNormals.size() != aMesh.mVertices.size()))
+    aMesh.CalculateNormals();
+
   double dt = timer.PopDelta();
   cout << 1000.0 * dt << " ms" << endl;
 }
@@ -151,6 +156,11 @@ int main(int argc, char ** argv)
     cout << "  --upaxis arg    Set up axis (X, Y, Z, -X, -Y, -Z). If != Z, the mesh will" << endl;
     cout << "                  be flipped." << endl;
     cout << "  --flip          Flip triangle orientation." << endl;
+    cout << "  --calc-normals  If the source file does not contain any normals, calculate" << endl;
+    cout << "                  them." << endl;
+    cout << "  --no-normals    Do not export normals." << endl;
+    cout << "  --no-texcoords  Do not export texture coordinates." << endl;
+    cout << "  --no-colors     Do not export vertex colors." << endl;
     cout << endl << " OpenCTM output" << endl;
     cout << "  --method arg    Select compression method (RAW, MG1, MG2)" << endl;
     cout << "  --level arg     Set the compression level (0 - 9)" << endl;
@@ -196,6 +206,14 @@ int main(int argc, char ** argv)
 
     // Manipulate the mesh
     PreProcessMesh(mesh, opt);
+
+    // Remove mesh data?
+    if(opt.mNoNormals)
+      mesh.mNormals.clear();
+    if(opt.mNoTexCoords)
+      mesh.mTexCoords.clear();
+    if(opt.mNoColors)
+      mesh.mColors.clear();
 
     // Override comment?
     if(opt.mComment.size() > 0)

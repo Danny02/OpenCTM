@@ -40,6 +40,11 @@ Options::Options()
   mScale = 1.0f;
   mUpAxis = uaZ;
   mFlipTriangles = false;
+  mCalcNormals = false;
+  mNoNormals = false;
+  mNoTexCoords = false;
+  mNoColors = false;
+
   mMethod = CTM_METHOD_MG2;
   mLevel = 1;
   mVertexPrecision = 0.0f;
@@ -106,6 +111,22 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
     else if(cmd == string("--flip"))
     {
       mFlipTriangles = true;
+    }
+    else if(cmd == string("--calc-normals"))
+    {
+      mCalcNormals = true;
+    }
+    else if(cmd == string("--no-normals"))
+    {
+      mNoNormals = true;
+    }
+    else if(cmd == string("--no-texcoords"))
+    {
+      mNoTexCoords = true;
+    }
+    else if(cmd == string("--no-colors"))
+    {
+      mNoColors = true;
     }
     else if((cmd == string("--method")) && (i < (argc - 1)))
     {
