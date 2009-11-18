@@ -56,6 +56,7 @@ bool SysMessageBox::Show()
 {
 #ifdef WIN32
 
+  // Select message type
   DWORD dialogType;
   switch(mMessageType)
   {
@@ -70,15 +71,19 @@ bool SysMessageBox::Show()
       dialogType = MB_ICONERROR;
       break;
   }
+
+  // Show the message box
   MessageBoxA(NULL, mText.c_str(), mCaption.c_str(), MB_OK | dialogType);
+
   return true;
 
 #elif defined(USE_GTK)
 
   // Init GTK+
   if(!gtk_init_check(0, NULL))
-    return true;
+    return false;
 
+  // Select message type
   GtkMessageType dialogType;
   switch(mMessageType)
   {
@@ -103,7 +108,7 @@ bool SysMessageBox::Show()
     mText.c_str(), "title");
   gtk_window_set_title(GTK_WINDOW(dialog), mCaption.c_str());
 
-  // Execute dialog
+  // Show the dialog
   gint dlgResult = gtk_dialog_run(GTK_DIALOG(dialog));
 
   // Free the dialog widget (we're done with it)
@@ -134,7 +139,7 @@ bool SysOpenDialog::Show()
 #ifdef WIN32
 
   OPENFILENAME ofn;
-  char fileNameBuf[10000];
+  char fileNameBuf[1000];
 
   // Initialize the file dialog structure
   memset(&ofn, 0, sizeof(OPENFILENAME));
@@ -148,10 +153,10 @@ bool SysOpenDialog::Show()
   ofn.lpstrTitle = mCaption.c_str();
   ofn.Flags = 0;
 
-  // Show the save dialog
+  // Show the dialog
   bool result = GetOpenFileNameA(&ofn);
 
-  // Extract the resulting file names
+  // Extract the resulting file name
   if(result)
     mFileName = string(fileNameBuf);
   else
@@ -198,10 +203,10 @@ bool SysOpenDialog::Show()
     }
   }
 
-  // Execute dialog
+  // Show the dialog
   gint dlgResult = gtk_dialog_run(GTK_DIALOG(dialog));
 
-  // Collect file name
+  // Extract the resulting file name
   if(dlgResult == GTK_RESPONSE_ACCEPT)
   {
     char * fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
@@ -251,7 +256,7 @@ bool SysSaveDialog::Show()
   ofn.lpstrTitle = mCaption.c_str();
   ofn.Flags = 0;
 
-  // Show the save dialog
+  // Show the dialog
   bool result = GetSaveFileNameA(&ofn);
 
   // Extract the resulting file name
@@ -301,10 +306,10 @@ bool SysSaveDialog::Show()
     }
   }
 
-  // Execute dialog
+  // Show the dialog
   gint dlgResult = gtk_dialog_run(GTK_DIALOG(dialog));
 
-  // Collect file name
+  // Extract the resulting file name
   if(dlgResult == GTK_RESPONSE_ACCEPT)
   {
     char * fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
