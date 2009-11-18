@@ -61,7 +61,10 @@ using namespace std;
 #include "phong_frag.h"
 
 
+//-----------------------------------------------------------------------------
 // Global variables (this is a simple program, after all)
+//-----------------------------------------------------------------------------
+
 string fileName(""), filePath("");
 long fileSize = 0;
 
@@ -84,8 +87,12 @@ GLuint vertShader = 0;
 GLuint fragShader = 0;
 
 
+//-----------------------------------------------------------------------------
+// OpenGL related functions
+//-----------------------------------------------------------------------------
+
 /// Set up the camera.
-void SetupCamera()
+static void SetupCamera()
 {
   mesh.BoundingBox(aabbMin, aabbMax);
   cameraLookAt = (aabbMax + aabbMin) * 0.5f;
@@ -96,7 +103,7 @@ void SetupCamera()
 }
 
 /// Initialize the GLSL shader (requires OpenGL 2.0 or better).
-void InitShader()
+static void InitShader()
 {
   const GLchar * src[1];
 
@@ -137,7 +144,7 @@ void InitShader()
 }
 
 /// Initialize the texture.
-void InitTexture(const char * aFileName)
+static void InitTexture(const char * aFileName)
 {
   unsigned char * data = 0;
   int width = 256, height = 256, components = 1;
@@ -235,7 +242,7 @@ void InitTexture(const char * aFileName)
 }
 
 /// Set up the scene lighting.
-void SetupLighting()
+static void SetupLighting()
 {
   GLfloat pos[4], ambient[4], diffuse[4], specular[4];
 
@@ -273,7 +280,7 @@ void SetupLighting()
 }
 
 /// Set up the material.
-void SetupMaterial()
+static void SetupMaterial()
 {
   GLfloat specular[4], emission[4];
 
@@ -296,7 +303,7 @@ void SetupMaterial()
 }
 
 /// Draw a mesh
-void DrawMesh(Mesh &aMesh)
+static void DrawMesh(Mesh &aMesh)
 {
   // We always have vertices
   glVertexPointer(3, GL_FLOAT, 0, &aMesh.mVertices[0]);
@@ -336,7 +343,7 @@ void DrawMesh(Mesh &aMesh)
 }
 
 // Load a file to the mesh
-void LoadFile(const char * aFileName, const char * aOverrideTexture)
+static void LoadFile(const char * aFileName, const char * aOverrideTexture)
 {
   // Get the file name (excluding the path), and the path (excluding the file name)
   fileName = string(aFileName);
@@ -427,7 +434,7 @@ void LoadFile(const char * aFileName, const char * aOverrideTexture)
 
 // Draw a string using GLUT. The string is shown on top of an alpha-blended
 // quad.
-void DrawString(string &aString, int x, int y)
+static void DrawString(string &aString, int x, int y)
 {
   // Calculate the size of the string box
   int x0 = x, y0 = y;
@@ -490,7 +497,7 @@ void DrawString(string &aString, int x, int y)
 }
 
 // Draw some textual information to the screen
-void DrawInfoText()
+static void DrawInfoText()
 {
   // Setup the matrices for a width x height 2D screen
   glMatrixMode(GL_PROJECTION);
@@ -513,6 +520,92 @@ void DrawInfoText()
   string msg = s.str();
   DrawString(msg, 7, 6);
 }
+
+
+//-----------------------------------------------------------------------------
+// Actions (user activated functions)
+//-----------------------------------------------------------------------------
+
+/// Open another file
+static void ActionOpenFile()
+{
+  SysOpenDialog od;
+  od.mFilters.push_back(string("All supported 3D files|*.ctm;*.ply;*.stl;*.3ds;*.dae;*.obj"));
+  od.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
+  od.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
+  od.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
+  od.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
+  od.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
+  od.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
+  od.mFileName = fileName;
+  if(od.Show())
+  {
+    try
+    {
+      LoadFile(od.mFileName.c_str(), NULL);
+      glutPostRedisplay();
+    }
+    catch(exception &e)
+    {
+      SysMessageBox mb;
+      mb.mMessageType = SysMessageBox::mtError;
+      mb.mCaption = "Error";
+      mb.mText = string(e.what());
+      mb.Show();
+    }
+  }
+}
+
+/// Save the file
+static void ActionSaveFile()
+{
+  SysSaveDialog sd;
+  sd.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
+  sd.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
+  sd.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
+  sd.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
+  sd.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
+  sd.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
+  sd.mFileName = fileName;
+  if(sd.Show())
+  {
+    try
+    {
+      Options opt;
+      ExportMesh(sd.mFileName.c_str(), mesh, opt);
+    }
+    catch(exception &e)
+    {
+      SysMessageBox mb;
+      mb.mMessageType = SysMessageBox::mtError;
+      mb.mCaption = "Error";
+      mb.mText = string(e.what());
+      mb.Show();
+    }
+  }
+}
+
+/// Toggle wire frame view on/off
+static void ActionToggleWireframe()
+{
+  if(polyMode == GL_LINE)
+    polyMode = GL_FILL;
+  else
+    polyMode = GL_LINE;
+  glutPostRedisplay();
+}
+
+/// Exit program
+static void ActionExit()
+{
+  // Note: In freeglut you can do glutLeaveMainLoop(), which is more graceful
+  exit(0);
+}
+
+
+//-----------------------------------------------------------------------------
+// GLUT callback functions
+//-----------------------------------------------------------------------------
 
 /// Redraw function.
 void WindowRedraw(void)
@@ -697,77 +790,20 @@ static void MouseMove(int x, int y)
 /// Keyboard function
 void KeyDown(unsigned char key, int x, int y)
 {
-  if(key == 27)
-    // Note: In freeglut you can do glutLeaveMainLoop(), which is more graceful
-    exit(0);
-
-  if(key == 'w')
-  {
-    // Toggle wire frame view on/off
-    if(polyMode == GL_LINE)
-      polyMode = GL_FILL;
-    else
-      polyMode = GL_LINE;
-    glutPostRedisplay();
-  }
+  if(key == 'o')
+    ActionOpenFile();
   else if(key == 's')
-  {
-    // Save the file
-    SysSaveDialog sd;
-    sd.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
-    sd.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
-    sd.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
-    sd.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
-    sd.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
-    sd.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
-    sd.mFileName = fileName;
-    if(sd.Show())
-    {
-      try
-      {
-        Options opt;
-        ExportMesh(sd.mFileName.c_str(), mesh, opt);
-      }
-      catch(exception &e)
-      {
-        SysMessageBox mb;
-        mb.mMessageType = SysMessageBox::mtError;
-        mb.mCaption = "Error";
-        mb.mText = string(e.what());
-        mb.Show();
-      }
-    }
-  }
-  else if(key == 'o')
-  {
-    // Open another file
-    SysOpenDialog od;
-    od.mFilters.push_back(string("All supported 3D files|*.ctm;*.ply;*.stl;*.3ds;*.dae;*.obj"));
-    od.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
-    od.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
-    od.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
-    od.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
-    od.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
-    od.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
-    od.mFileName = fileName;
-    if(od.Show())
-    {
-      try
-      {
-        LoadFile(od.mFileName.c_str(), NULL);
-        glutPostRedisplay();
-      }
-      catch(exception &e)
-      {
-        SysMessageBox mb;
-        mb.mMessageType = SysMessageBox::mtError;
-        mb.mCaption = "Error";
-        mb.mText = string(e.what());
-        mb.Show();
-      }
-    }
-  }
+    ActionSaveFile();
+  else if(key == 'w')
+    ActionToggleWireframe();
+  else if(key == 27)
+    ActionExit();
 }
+
+
+//-----------------------------------------------------------------------------
+// Main application function
+//-----------------------------------------------------------------------------
 
 /// Program entry.
 int main(int argc, char **argv)
