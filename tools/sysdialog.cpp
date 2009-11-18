@@ -26,23 +26,32 @@
 //-----------------------------------------------------------------------------
 
 // What system are we on?
-#if !defined(WIN32) && defined(_WIN32)
-#define WIN32
+#if defined(WIN32) || defined(_WIN32)
+  #define USE_WIN32
+#elif defined(__APPLE__)
+  #define USE_MACOSX
+#else
+  #define USE_GTK
+#endif
+
+// Include system specific headers
+#if defined(USE_WIN32)
+  #include <windows.h>
+#elif defined(USE_GTK)
+  #include <gtk/gtk.h>
 #endif
 
 #include <cstring>
-
-#ifdef WIN32
-#include <windows.h>
-#elif defined(USE_GTK)
-#include <gtk/gtk.h>
-#endif
-
 #include <iostream>
-
 #include "sysdialog.h"
 
 using namespace std;
+
+/*
+TODO:
+ - Implement filters for Win32
+ - Mac OS X implementation (check COCOA NSRunAlertPanel, NSOpenPanel, NSSavePanel)
+*/
 
 
 /// Constructor.
@@ -54,7 +63,7 @@ SysMessageBox::SysMessageBox()
 /// Show the dialog.
 bool SysMessageBox::Show()
 {
-#ifdef WIN32
+#if defined(USE_WIN32)
 
   // Select message type
   DWORD dialogType;
@@ -136,7 +145,7 @@ SysOpenDialog::SysOpenDialog()
 /// Show the dialog.
 bool SysOpenDialog::Show()
 {
-#ifdef WIN32
+#if defined(USE_WIN32)
 
   OPENFILENAME ofn;
   char fileNameBuf[1000];
@@ -239,7 +248,7 @@ SysSaveDialog::SysSaveDialog()
 /// Show the dialog.
 bool SysSaveDialog::Show()
 {
-#ifdef WIN32
+#if defined(USE_WIN32)
 
   OPENFILENAME ofn;
   char fileNameBuf[1000];
