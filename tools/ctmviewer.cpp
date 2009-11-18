@@ -42,13 +42,7 @@
 #include <openctm.h>
 #include "mesh.h"
 #include "meshio.h"
-
-#if !defined(WIN32) && defined(_WIN32)
-  #define WIN32
-#endif
-#ifdef WIN32
-  #include <windows.h>
-#endif
+#include "sysdialog.h"
 
 using namespace std;
 
@@ -90,8 +84,8 @@ GLuint vertShader = 0;
 GLuint fragShader = 0;
 
 
-/// Set up the scene.
-void SetupScene()
+/// Set up the camera.
+void SetupCamera()
 {
   mesh.BoundingBox(aabbMin, aabbMax);
   cameraLookAt = (aabbMax + aabbMin) * 0.5f;
@@ -138,20 +132,6 @@ void InitShader()
   glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
   if(!status)
     throw runtime_error("Could not link shader program.");
-
-  glUseProgram(shaderProgram);
-
-  // Set the uUseTexture uniform
-  GLint useTexLoc = glGetUniformLocation(shaderProgram, "uUseTexture");
-  if(useTexLoc >= 0)
-    glUniform1i(useTexLoc, glIsTexture(texHandle));
-
-  // Set the uTex uniform
-  GLint texLoc = glGetUniformLocation(shaderProgram, "uTex");
-  if(texLoc >= 0)
-    glUniform1i(texLoc, 0);
-
-  glUseProgram(0);
 
   useShader = true;
 }
@@ -249,7 +229,6 @@ void InitTexture(const char * aFileName)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
 
     glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid *) data);
   }
@@ -354,6 +333,96 @@ void DrawMesh(Mesh &aMesh)
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
+}
+
+// Load a file to the mesh
+void LoadFile(const char * aFileName, const char * aOverrideTexture)
+{
+  // Get the file name (excluding the path), and the path (excluding the file name)
+  fileName = string(aFileName);
+  size_t lastSlash = fileName.rfind("/");
+  if(lastSlash == string::npos)
+    lastSlash = fileName.rfind("\\");
+  if(lastSlash != string::npos)
+  {
+    filePath = fileName.substr(0, lastSlash + 1);
+    fileName = fileName.substr(lastSlash + 1);
+  }
+  else
+    filePath = string("");
+
+  // Get the file size
+  ifstream f(aFileName, ios::in | ios::binary);
+  if(f.fail())
+    throw runtime_error("Unable to open the file.");
+  f.seekg(0, ios_base::end);
+  fileSize = (long) f.tellg();
+  f.close();
+
+  // Set window title
+  string windowCaption = string("OpenCTM viewer - ") + fileName;
+  glutSetWindowTitle(windowCaption.c_str());
+
+  // Load the mesh
+  cout << "Loading " << aFileName << "..." << flush;
+  int t = glutGet(GLUT_ELAPSED_TIME);
+  ImportMesh(aFileName, mesh);
+  t = glutGet(GLUT_ELAPSED_TIME) - t;
+  cout << "done (" << t << " ms)" << endl;
+
+  // If the file did not contain any normals, calculate them now...
+  if(mesh.mNormals.size() != mesh.mVertices.size())
+  {
+    cout << "Calculating normals..." << flush;
+    int t = glutGet(GLUT_ELAPSED_TIME);
+    mesh.CalculateNormals();
+    t = glutGet(GLUT_ELAPSED_TIME) - t;
+    cout << "done (" << t << " ms)" << endl;
+  }
+
+  // Load the texture
+  if(texHandle)
+    glDeleteTextures(1, &texHandle);
+  texHandle = 0;
+  if(mesh.mTexCoords.size() == mesh.mVertices.size())
+  {
+    string texFileName = mesh.mTexFileName;
+    if(aOverrideTexture)
+      texFileName = string(aOverrideTexture);
+    if(texFileName.size() > 0)
+      InitTexture(texFileName.c_str());
+    else
+      InitTexture(0);
+  }
+
+  // Setup texture parameters for the shader
+  if(useShader)
+  {
+    glUseProgram(shaderProgram);
+
+    // Set the uUseTexture uniform
+    GLint useTexLoc = glGetUniformLocation(shaderProgram, "uUseTexture");
+    if(useTexLoc >= 0)
+      glUniform1i(useTexLoc, glIsTexture(texHandle));
+
+    // Set the uTex uniform
+    GLint texLoc = glGetUniformLocation(shaderProgram, "uTex");
+    if(texLoc >= 0)
+      glUniform1i(texLoc, 0);
+
+    glUseProgram(0);
+  }
+
+  // Load the mesh into a displaylist
+  if(displayList)
+    glDeleteLists(displayList, 1);
+  displayList = glGenLists(1);
+  glNewList(displayList, GL_COMPILE);
+  DrawMesh(mesh);
+  glEndList();
+
+  // Init the camera for the new mesh
+  SetupCamera();
 }
 
 // Draw a string using GLUT. The string is shown on top of an alpha-blended
@@ -634,110 +703,110 @@ void KeyDown(unsigned char key, int x, int y)
 
   if(key == 'w')
   {
+    // Toggle wire frame view on/off
     if(polyMode == GL_LINE)
       polyMode = GL_FILL;
     else
       polyMode = GL_LINE;
     glutPostRedisplay();
   }
+  else if(key == 's')
+  {
+    // Save the file
+    SysSaveDialog sd;
+    sd.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
+    sd.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
+    sd.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
+    sd.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
+    sd.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
+    sd.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
+    sd.mFileName = fileName;
+    if(sd.Show())
+    {
+      try
+      {
+        Options opt;
+        ExportMesh(sd.mFileName.c_str(), mesh, opt);
+      }
+      catch(exception &e)
+      {
+        SysMessageBox mb;
+        mb.mMessageType = SysMessageBox::mtError;
+        mb.mCaption = "Error";
+        mb.mText = string(e.what());
+        mb.Show();
+      }
+    }
+  }
+  else if(key == 'o')
+  {
+    // Open another file
+    SysOpenDialog od;
+    od.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
+    od.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
+    od.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
+    od.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
+    od.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
+    od.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
+    od.mFileName = fileName;
+    if(od.Show())
+    {
+      try
+      {
+        LoadFile(od.mFileName.c_str(), NULL);
+        glutPostRedisplay();
+      }
+      catch(exception &e)
+      {
+        SysMessageBox mb;
+        mb.mMessageType = SysMessageBox::mtError;
+        mb.mCaption = "Error";
+        mb.mText = string(e.what());
+        mb.Show();
+      }
+    }
+  }
 }
 
 /// Program entry.
 int main(int argc, char **argv)
 {
-  // Usage?
+  // Was the program invoked correctly?
   if((argc < 2) || (argc > 3))
   {
-    // Show usage
+    // ...usage
     stringstream s;
-    s << "Usage: ctmviewer file [texturefile]" << endl;
+    s << "ctmviewer file [texturefile]" << endl;
 
-    // Show supported formats
+    // ...supported formats
     s << endl << "Supported file formats:" << endl << endl;
     list<string> formatList;
     SupportedFormats(formatList);
     for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
       s << "  " << (*i) << endl;
 
-#ifdef WIN32
-    MessageBoxA(NULL, s.str().c_str(), "Usage", MB_OK | MB_ICONINFORMATION);
-#else
-    cout << s.str() << endl;
-#endif
+    // Show the message
+    SysMessageBox mb;
+    mb.mCaption = "Usage";
+    mb.mText = s.str();
+    mb.Show();
 
     return 0;
   }
 
   try
   {
-    // Get the file name (excluding the path), and the path (excluding the file name)
-    fileName = string(argv[1]);
-    size_t lastSlash = fileName.rfind("/");
-    if(lastSlash == string::npos)
-      lastSlash = fileName.rfind("\\");
-    if(lastSlash != string::npos)
-    {
-      filePath = fileName.substr(0, lastSlash + 1);
-      fileName = fileName.substr(lastSlash + 1);
-    }
-
-    // Get the file size
-    ifstream f(argv[1], ios::in | ios::binary);
-    if(f.fail())
-      throw runtime_error("Unable to open the file.");
-    f.seekg(0, ios_base::end);
-    fileSize = (long) f.tellg();
-    f.close();
-
     // Init GLUT
     glutInit(&argc, argv);
-
-    // Load the file
-    cout << "Loading " << argv[1] << "..." << flush;
-    int t = glutGet(GLUT_ELAPSED_TIME);
-    ImportMesh(argv[1], mesh);
-    t = glutGet(GLUT_ELAPSED_TIME) - t;
-    cout << "done (" << t << " ms)" << endl;
-
-    // If the file did not contain any normals, calculate them now...
-    if(mesh.mNormals.size() != mesh.mVertices.size())
-    {
-      cout << "Calculating normals..." << flush;
-      int t = glutGet(GLUT_ELAPSED_TIME);
-      mesh.CalculateNormals();
-      t = glutGet(GLUT_ELAPSED_TIME) - t;
-      cout << "done (" << t << " ms)" << endl;
-    }
-
-    // Init scene
-    SetupScene();
 
     // Create the glut window
     glutInitWindowSize(640, 480);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    string windowCaption = string("OpenCTM viewer - ") + fileName;
-    glutCreateWindow(windowCaption.c_str());
-    glutReshapeFunc(WindowResize);
-    glutDisplayFunc(WindowRedraw);
-    glutMouseFunc(MouseClick);
-    glutMotionFunc(MouseMove);
-    glutKeyboardFunc(KeyDown); 
+    glutCreateWindow("OpenCTM viewer");
 
     // Init GLEW (for OpenGL 2.x support)
     if(glewInit() != GLEW_OK)
       throw runtime_error("Unable to initialize GLEW.");
-
-    // Load the texture
-    if(mesh.mTexCoords.size() == mesh.mVertices.size())
-    {
-      string texFileName = mesh.mTexFileName;
-      if(argc >= 3)
-        texFileName = string(argv[2]);
-      if(texFileName.size() > 0)
-        InitTexture(texFileName.c_str());
-      else
-        InitTexture(0);
-    }
 
     // Load the phong shader, if we can
     if(GLEW_VERSION_2_0)
@@ -745,30 +814,36 @@ int main(int argc, char **argv)
     else if(GLEW_VERSION_1_2)
       glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
-    // Load the mesh into a displaylist
-    displayList = glGenLists(1);
-    glNewList(displayList, GL_COMPILE);
-    DrawMesh(mesh);
-    glEndList();
+    // Load the file
+    const char * overrideTexName = NULL;
+    if(argc >= 3)
+      overrideTexName = argv[2];
+    LoadFile(argv[1], overrideTexName);
+
+    // Set the GLUT callback functions
+    glutReshapeFunc(WindowResize);
+    glutDisplayFunc(WindowRedraw);
+    glutMouseFunc(MouseClick);
+    glutMotionFunc(MouseMove);
+    glutKeyboardFunc(KeyDown); 
 
     // Enter the main loop
     glutMainLoop();
   }
   catch(ctm_error &e)
   {
-    string msg = string("OpenCTM error: ") + string(e.what());
-#ifdef WIN32
-    MessageBoxA(NULL, msg.c_str(), "Error", MB_OK | MB_ICONERROR);
-#else
-    cout << msg.c_str() << endl;
-#endif
+    SysMessageBox mb;
+    mb.mMessageType = SysMessageBox::mtError;
+    mb.mCaption = "Error";
+    mb.mText = string("OpenCTM error: ") + string(e.what());
+    mb.Show();
   }
   catch(exception &e)
   {
-#ifdef WIN32
-    MessageBoxA(NULL, e.what(), "Error", MB_OK | MB_ICONERROR);
-#else
-    cout << "Error: " << e.what() << endl;
-#endif
+    SysMessageBox mb;
+    mb.mMessageType = SysMessageBox::mtError;
+    mb.mCaption = "Error";
+    mb.mText = string(e.what());
+    mb.Show();
   }
 }

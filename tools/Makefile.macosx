@@ -39,7 +39,7 @@ MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 all: ctmconv ctmviewer ctmbench
 
 clean:
-	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o convoptions.o $(MESHOBJS) glew.o bin2c phong_frag.h phong_vert.h
+	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o systimer.o sysdialog.o convoptions.o $(MESHOBJS) glew.o bin2c phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f makefile.macosx clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.macosx clean
 
@@ -49,8 +49,8 @@ libopenctm.so: $(OPENCTMDIR)/libopenctm.so
 ctmconv: ctmconv.o systimer.o convoptions.o $(MESHOBJS) $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o $(MESHOBJS) -lopenctm -ltinyxml
 
-ctmviewer: ctmviewer.o systimer.o convoptions.o $(MESHOBJS) glew.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
-	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o convoptions.o $(MESHOBJS) glew.o -lopenctm -ltinyxml -ljpeg -framework GLUT -framework OpenGL
+ctmviewer: ctmviewer.o systimer.o sysdialog.o convoptions.o $(MESHOBJS) glew.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
+	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o sysdialog.o convoptions.o $(MESHOBJS) glew.o -lopenctm -ltinyxml -ljpeg -framework GLUT -framework OpenGL
 
 ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
@@ -59,9 +59,10 @@ ctmbench: ctmbench.o systimer.o $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h mesh.h meshio.h
-ctmviewer.o: ctmviewer.cpp systimer.h mesh.h meshio.h phong_vert.h phong_frag.h $(JPEGDIR)/libjpeg.a
+ctmviewer.o: ctmviewer.cpp systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h $(JPEGDIR)/libjpeg.a
 ctmbench.o: ctmbench.cpp systimer.h
 systimer.o: systimer.cpp systimer.h
+sysdialog.o: sysdialog.cpp sysdialog.h
 convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h
 meshio.o: meshio.cpp convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h
