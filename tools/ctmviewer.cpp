@@ -742,6 +742,7 @@ void KeyDown(unsigned char key, int x, int y)
   {
     // Open another file
     SysOpenDialog od;
+    od.mFilters.push_back(string("All supported 3D files|*.ctm;*.ply;*.stl;*.3ds;*.dae;*.obj"));
     od.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
     od.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
     od.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
@@ -846,4 +847,5 @@ int main(int argc, char **argv)
     mb.mText = string(e.what());
     mb.Show();
   }
+  cout << endl;
 }

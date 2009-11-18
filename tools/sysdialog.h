@@ -57,10 +57,6 @@ class SysMessageBox {
     std::string mText;
 };
 
-/// Convenience function for the message box.
-void ShowMessage(const char * aMessage, const char * aCaption);
-
-
 /// Open dialog class.
 class SysOpenDialog {
   public:
@@ -76,13 +72,7 @@ class SysOpenDialog {
     /// Filters (e.g. "OpenCTM|*.ctm")
     std::list<std::string> mFilters;
 
-    /// Allow multiselect
-    bool mMultiSelect;
-
-    /// File names (result)
-    std::list<std::string> mFileNames;
-
-    /// First file name in the mFileNames list (result)
+    /// File name (result)
     std::string mFileName;
 };
 

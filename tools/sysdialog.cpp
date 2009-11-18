@@ -76,14 +76,31 @@ bool SysMessageBox::Show()
 #elif defined(USE_GTK)
 
   // Init GTK+
-  gtk_init(0, NULL);
+  if(!gtk_init_check(0, NULL))
+    return true;
+
+  GtkMessageType dialogType;
+  switch(mMessageType)
+  {
+    default:
+    case mtInformation:
+      dialogType = GTK_MESSAGE_INFO;
+      break;
+    case mtWarning:
+      dialogType = GTK_MESSAGE_WARNING;
+      break;
+    case mtError:
+      dialogType = GTK_MESSAGE_ERROR;
+      break;
+  }
 
   // Create dialog widget
-  GtkWidget * dialog = gtk_message_dialog_new(NULL,
-            GTK_DIALOG_DESTROY_WITH_PARENT,
-            GTK_MESSAGE_INFO,
-            GTK_BUTTONS_OK,
-            mText.c_str(), "title");
+  GtkWidget * dialog = gtk_message_dialog_new(
+    NULL,
+    GTK_DIALOG_DESTROY_WITH_PARENT,
+    dialogType,
+    GTK_BUTTONS_OK,
+    mText.c_str(), "title");
   gtk_window_set_title(GTK_WINDOW(dialog), mCaption.c_str());
 
   // Execute dialog
@@ -91,6 +108,7 @@ bool SysMessageBox::Show()
 
   // Free the dialog widget (we're done with it)
   gtk_widget_destroy(dialog);
+  while(gtk_events_pending()) gtk_main_iteration();
 
   // Evaluate dialog result
   return (dlgResult == GTK_RESPONSE_ACCEPT);
@@ -104,20 +122,10 @@ bool SysMessageBox::Show()
 }
 
 
-/// Convenience function for the message box.
-void ShowMessage(const char * aMessage, const char * aCaption)
-{
-  SysMessageBox mb;
-  mb.mCaption = aCaption;
-  mb.mText = aMessage;
-  mb.Show();
-}
-
-
 /// Constructor
 SysOpenDialog::SysOpenDialog()
 {
-  mMultiSelect = false;
+  mCaption = "Open File";
 }
 
 /// Show the dialog.
@@ -144,27 +152,69 @@ bool SysOpenDialog::Show()
   bool result = GetOpenFileNameA(&ofn);
 
   // Extract the resulting file names
-  mFileNames.clear();
-  mFileName = string("");
   if(result)
-  {
-    unsigned int pos = 0;
-    while((pos < sizeof(fileNameBuf)) && (fileNameBuf[pos] != 0))
-    {
-      unsigned int start = pos;
-      while((pos < sizeof(fileNameBuf)) && (fileNameBuf[pos] != 0))
-        ++ pos;
-      if(pos < sizeof(fileNameBuf))
-      {
-        mFileNames.push_back(string(&fileNameBuf[start]));
-        ++ pos;
-      }
-    }
-    if(mFileNames.size() > 0)
-      mFileName = *(mFileNames.begin());
-  }
+    mFileName = string(fileNameBuf);
+  else
+    mFileName = string("");
 
   return result;
+
+#elif defined(USE_GTK)
+
+  // Init GTK+
+  if(!gtk_init_check(0, NULL))
+    return true;
+
+  // Create dialog widget
+  GtkWidget * dialog = gtk_file_chooser_dialog_new(
+    mCaption.c_str(),
+    NULL,
+    GTK_FILE_CHOOSER_ACTION_OPEN,
+    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+    GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+    NULL);
+
+  // Add filters
+  for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
+  {
+    size_t splitPos = (*i).find("|");
+    if(splitPos != string::npos)
+    {
+      string name = (*i).substr(0, splitPos);
+      string pattern = (*i).substr(splitPos + 1);
+      GtkFileFilter * filter = gtk_file_filter_new();
+      gtk_file_filter_set_name(filter, name.c_str());
+      size_t pos1 = 0;
+      while(pos1 != string::npos)
+      {
+        size_t pos2 = pattern.find(";", pos1);
+        gtk_file_filter_add_pattern(filter, (pattern.substr(pos1, pos2 - pos1)).c_str());
+        if(pos2 != string::npos)
+          pos1 = pos2 + 1;
+        else
+          pos1 = pos2;
+      }
+      gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+    }
+  }
+
+  // Execute dialog
+  gint dlgResult = gtk_dialog_run(GTK_DIALOG(dialog));
+
+  // Collect file name
+  if(dlgResult == GTK_RESPONSE_ACCEPT)
+  {
+    char * fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+    mFileName = string(fileName);
+    g_free(fileName);
+  }
+
+  // Free the dialog widget (we're done with it)
+  gtk_widget_destroy(dialog);
+  while(gtk_events_pending()) gtk_main_iteration();
+
+  // Evaluate dialog result
+  return (dlgResult == GTK_RESPONSE_ACCEPT);
 
 #else
 
@@ -178,6 +228,7 @@ bool SysOpenDialog::Show()
 /// Constructor
 SysSaveDialog::SysSaveDialog()
 {
+  mCaption = "Save File";
 }
 
 /// Show the dialog.
@@ -210,6 +261,63 @@ bool SysSaveDialog::Show()
     mFileName = string("");
 
   return result;
+
+#elif defined(USE_GTK)
+
+  // Init GTK+
+  if(!gtk_init_check(0, NULL))
+    return true;
+
+  // Create dialog widget
+  GtkWidget * dialog = gtk_file_chooser_dialog_new(
+    mCaption.c_str(),
+    NULL,
+    GTK_FILE_CHOOSER_ACTION_SAVE,
+    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+    NULL);
+
+  // Add filters
+  for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
+  {
+    size_t splitPos = (*i).find("|");
+    if(splitPos != string::npos)
+    {
+      string name = (*i).substr(0, splitPos);
+      string pattern = (*i).substr(splitPos + 1);
+      GtkFileFilter * filter = gtk_file_filter_new();
+      gtk_file_filter_set_name(filter, name.c_str());
+      size_t pos1 = 0;
+      while(pos1 != string::npos)
+      {
+        size_t pos2 = pattern.find(";", pos1);
+        gtk_file_filter_add_pattern(filter, (pattern.substr(pos1, pos2 - pos1)).c_str());
+        if(pos2 != string::npos)
+          pos1 = pos2 + 1;
+        else
+          pos1 = pos2;
+      }
+      gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+    }
+  }
+
+  // Execute dialog
+  gint dlgResult = gtk_dialog_run(GTK_DIALOG(dialog));
+
+  // Collect file name
+  if(dlgResult == GTK_RESPONSE_ACCEPT)
+  {
+    char * fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+    mFileName = string(fileName);
+    g_free(fileName);
+  }
+
+  // Free the dialog widget (we're done with it)
+  gtk_widget_destroy(dialog);
+  while(gtk_events_pending()) gtk_main_iteration();
+
+  // Evaluate dialog result
+  return (dlgResult == GTK_RESPONSE_ACCEPT);
 
 #else
 
