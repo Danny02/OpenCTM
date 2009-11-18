@@ -34,20 +34,28 @@
 #include <cstdlib>
 #include <GL/glew.h>
 #ifdef __APPLE_CC__
-#include <GLUT/glut.h>
+  #include <GLUT/glut.h>
 #else
-#include <GL/glut.h>
+  #include <GL/glut.h>
 #endif
 #include <jpeglib.h>
+#include <openctm.h>
 #include "mesh.h"
 #include "meshio.h"
+
+#if !defined(WIN32) && defined(_WIN32)
+  #define WIN32
+#endif
+#ifdef WIN32
+  #include <windows.h>
+#endif
 
 using namespace std;
 
 
 // We need PI
 #ifndef PI
-#define PI 3.141592653589793238462643f
+  #define PI 3.141592653589793238462643f
 #endif
 
 
@@ -640,15 +648,22 @@ int main(int argc, char **argv)
   // Usage?
   if((argc < 2) || (argc > 3))
   {
-    cout << "Usage: ctmviewer file [texturefile]" << endl;
+    // Show usage
+    stringstream s;
+    s << "Usage: ctmviewer file [texturefile]" << endl;
 
     // Show supported formats
-    cout << endl << "Supported file formats:" << endl << endl;
+    s << endl << "Supported file formats:" << endl << endl;
     list<string> formatList;
     SupportedFormats(formatList);
     for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
-      cout << "  " << (*i) << endl;
-    cout << endl;
+      s << "  " << (*i) << endl;
+
+#ifdef WIN32
+    MessageBoxA(NULL, s.str().c_str(), "Usage", MB_OK | MB_ICONINFORMATION);
+#else
+    cout << s.str() << endl;
+#endif
 
     return 0;
   }
@@ -739,8 +754,21 @@ int main(int argc, char **argv)
     // Enter the main loop
     glutMainLoop();
   }
+  catch(ctm_error &e)
+  {
+    string msg = string("OpenCTM error: ") + string(e.what());
+#ifdef WIN32
+    MessageBoxA(NULL, msg.c_str(), "Error", MB_OK | MB_ICONERROR);
+#else
+    cout << msg.c_str() << endl;
+#endif
+  }
   catch(exception &e)
   {
+#ifdef WIN32
+    MessageBoxA(NULL, e.what(), "Error", MB_OK | MB_ICONERROR);
+#else
     cout << "Error: " << e.what() << endl;
+#endif
   }
 }
