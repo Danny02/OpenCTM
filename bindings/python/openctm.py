@@ -38,7 +38,7 @@ CTMcontext = c_void_p
 CTMenum = c_uint32
 
 # Constants
-CTM_API_VERSION = 0x00000008
+CTM_API_VERSION = 0x00000100
 CTM_TRUE = 1
 CTM_FALSE = 0
 
