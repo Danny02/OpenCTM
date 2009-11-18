@@ -32,7 +32,7 @@ RPLYDIR = rply
 TINYXMLDIR = tinyxml
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR)
+CPPFLAGS = -c -O3 -W -Wall -DUSE_GTK `pkg-config --cflags gtk+-2.0` -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR)
 
 MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 
@@ -50,7 +50,7 @@ ctmconv: ctmconv.o systimer.o convoptions.o $(MESHOBJS) $(TINYXMLDIR)/libtinyxml
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o $(MESHOBJS) -Wl,-rpath,. -lopenctm -ltinyxml
 
 ctmviewer: ctmviewer.o systimer.o sysdialog.o convoptions.o $(MESHOBJS) glew.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o sysdialog.o convoptions.o $(MESHOBJS) glew.o -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o sysdialog.o convoptions.o $(MESHOBJS) glew.o -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut `pkg-config --libs gtk+-2.0`
 
 ctmbench: ctmbench.o systimer.o libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -Wl,-rpath,. -lopenctm

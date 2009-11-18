@@ -34,9 +34,11 @@
 
 #ifdef WIN32
 #include <windows.h>
-#else
-#include <iostream>
+#elif defined(USE_GTK)
+#include <gtk/gtk.h>
 #endif
+
+#include <iostream>
 
 #include "sysdialog.h"
 
@@ -53,6 +55,7 @@ SysMessageBox::SysMessageBox()
 bool SysMessageBox::Show()
 {
 #ifdef WIN32
+
   DWORD dialogType;
   switch(mMessageType)
   {
@@ -69,9 +72,34 @@ bool SysMessageBox::Show()
   }
   MessageBoxA(NULL, mText.c_str(), mCaption.c_str(), MB_OK | dialogType);
   return true;
+
+#elif defined(USE_GTK)
+
+  // Init GTK+
+  gtk_init(0, NULL);
+
+  // Create dialog widget
+  GtkWidget * dialog = gtk_message_dialog_new(NULL,
+            GTK_DIALOG_DESTROY_WITH_PARENT,
+            GTK_MESSAGE_INFO,
+            GTK_BUTTONS_OK,
+            mText.c_str(), "title");
+  gtk_window_set_title(GTK_WINDOW(dialog), mCaption.c_str());
+
+  // Execute dialog
+  gint dlgResult = gtk_dialog_run(GTK_DIALOG(dialog));
+
+  // Free the dialog widget (we're done with it)
+  gtk_widget_destroy(dialog);
+
+  // Evaluate dialog result
+  return (dlgResult == GTK_RESPONSE_ACCEPT);
+
 #else
+
   cout << mCaption << ": " << mText << endl;
   return true;
+
 #endif
 }
 
@@ -96,6 +124,7 @@ SysOpenDialog::SysOpenDialog()
 bool SysOpenDialog::Show()
 {
 #ifdef WIN32
+
   OPENFILENAME ofn;
   char fileNameBuf[10000];
 
@@ -136,9 +165,12 @@ bool SysOpenDialog::Show()
   }
 
   return result;
+
 #else
+
   cout << "SysOpenDialog is not yet implemented for your system." << endl;
   return false;
+
 #endif
 }
 
@@ -152,6 +184,7 @@ SysSaveDialog::SysSaveDialog()
 bool SysSaveDialog::Show()
 {
 #ifdef WIN32
+
   OPENFILENAME ofn;
   char fileNameBuf[1000];
 
@@ -177,8 +210,11 @@ bool SysSaveDialog::Show()
     mFileName = string("");
 
   return result;
+
 #else
+
   cout << "SysSaveDialog is not yet implemented for your system." << endl;
   return false;
+
 #endif
 }
