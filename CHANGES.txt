@@ -1,3 +1,21 @@
+v1.0.2 - ????.??.??
+-------------------
+- Added the possiblity to save and load files from ctmviewer, effectively
+  turning it into a quick and simple converter tool (without all the options
+  in the ctmconv program, though).
+
+- Added a GUI dialog for showing errors in ctmviewer (this is especially useful
+  under Windows, where console output is disabeled).
+
+- Added an option for calculating the normals in ctmconv (if the input file
+  does not have normals).
+
+- Added options for turning off normals, texture coordinates and/or vertex
+  colors for the output file in ctmconv.
+
+- Note: The Linux/X11 version of ctmviewer now reqires GTK+ 2.0.
+
+
 v1.0.1 - 2009.11.15
 -------------------
 - Notable reduction of the memory footprint by tuning of the LZMA compression
