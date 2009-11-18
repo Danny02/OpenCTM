@@ -602,6 +602,28 @@ static void ActionExit()
   exit(0);
 }
 
+/// Show a help dialog
+static void ActionHelp()
+{
+  stringstream helpText;
+  helpText << "ctmviewer - OpenCTM file viewer" << endl;
+  helpText << "Copyright (c) 2009 Marcus Geelnard" << endl << endl;
+  helpText << "Keyboard actions:" << endl;
+  helpText << "o - Open file" << endl;
+  helpText << "s - Save file" << endl;
+  helpText << "w - Toggle wire frame view on/off" << endl;
+  helpText << "Esc - Exit program" << endl << endl;
+  helpText << "Mouse control:" << endl;
+  helpText << "Left button - Rotate camera" << endl;
+  helpText << "Right button - Zoom camera";
+
+  SysMessageBox mb;
+  mb.mMessageType = SysMessageBox::mtInformation;
+  mb.mCaption = "Help";
+  mb.mText = helpText.str();
+  mb.Show();
+}
+
 
 //-----------------------------------------------------------------------------
 // GLUT callback functions
@@ -800,6 +822,13 @@ void KeyDown(unsigned char key, int x, int y)
     ActionExit();
 }
 
+/// Keyboard function (special keys)
+void SpecialKeyDown(int key, int x, int y)
+{
+  if(key == GLUT_KEY_F1)
+    ActionHelp();
+}
+
 
 //-----------------------------------------------------------------------------
 // Main application function
@@ -862,7 +891,8 @@ int main(int argc, char **argv)
     glutDisplayFunc(WindowRedraw);
     glutMouseFunc(MouseClick);
     glutMotionFunc(MouseMove);
-    glutKeyboardFunc(KeyDown); 
+    glutKeyboardFunc(KeyDown);
+    glutSpecialFunc(SpecialKeyDown);
 
     // Enter the main loop
     glutMainLoop();
