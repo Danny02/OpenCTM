@@ -612,13 +612,13 @@ static void ActionHelp()
   helpText << "ctmviewer - OpenCTM file viewer" << endl;
   helpText << "Copyright (c) 2009 Marcus Geelnard" << endl << endl;
   helpText << "Keyboard actions:" << endl;
-  helpText << "o - Open file" << endl;
-  helpText << "s - Save file" << endl;
-  helpText << "w - Toggle wire frame view on/off" << endl;
-  helpText << "Esc - Exit program" << endl << endl;
+  helpText << "  o - Open file" << endl;
+  helpText << "  s - Save file" << endl;
+  helpText << "  w - Toggle wire frame view on/off" << endl;
+  helpText << "  ESC - Exit program" << endl << endl;
   helpText << "Mouse control:" << endl;
-  helpText << "Left button - Rotate camera" << endl;
-  helpText << "Right button - Zoom camera";
+  helpText << "  Left button  - Rotate camera" << endl;
+  helpText << "  Right button - Zoom camera";
 
   SysMessageBox mb;
   mb.mMessageType = SysMessageBox::mtInformation;
