@@ -5,17 +5,17 @@
 
 [Setup]
 AppName=OpenCTM
-AppVerName=OpenCTM 1.0.1
-VersionInfoVersion=1.0.1.0
+AppVerName=OpenCTM 1.0.2
+VersionInfoVersion=1.0.2.0
 AppPublisher=Marcus Geelnard
 AppPublisherURL=http://openctm.sourceforge.net/
 AppSupportURL=http://openctm.sourceforge.net/
 AppUpdatesURL=http://openctm.sourceforge.net/
-DefaultDirName={pf}\OpenCTM 1.0.1
-DefaultGroupName=OpenCTM 1.0.1
+DefaultDirName={pf}\OpenCTM 1.0.2
+DefaultGroupName=OpenCTM 1.0.2
 LicenseFile=LICENSE.txt
 OutputDir=.
-OutputBaseFilename=OpenCTM-1.0.1-setup
+OutputBaseFilename=OpenCTM-1.0.2-setup
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
@@ -39,6 +39,7 @@ Source: "tools\ctmviewer.exe"; DestDir: "{app}\bin"
 Source: "doc\APIReference\*"; DestDir: "{app}\Documentation\APIReference"
 Source: "doc\DevelopersManual.pdf"; DestDir: "{app}\Documentation"
 Source: "doc\FormatSpecification.pdf"; DestDir: "{app}\Documentation"
+Source: "README.txt"; DestDir: "{app}\Documentation"; Flags: isreadme
 Source: "LICENSE.txt"; DestDir: "{app}\Documentation"
 Source: "CHANGES.txt"; DestDir: "{app}\Documentation"
 Source: "lib\openctm.h"; DestDir: "{app}\Developer files"
