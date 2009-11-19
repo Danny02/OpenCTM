@@ -25,3 +25,5 @@ GLUT_ICON ICON "openctm.ico"
 			VALUE "Translation", 0x0409, 1252
 		END
 	END
+
+1 24 "ctmviewer.exe.manifest"
