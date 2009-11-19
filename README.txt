@@ -48,3 +48,67 @@ Legal notices:
 
 - This software is based in part on the work of the Independent JPEG Group.
 
+
+4. CHANGES
+==========
+
+v1.0.2 - ????.??.??
+-------------------
+- Added the possiblity to save and load files from ctmviewer, effectively
+  turning it into a quick and simple converter tool (without all the options
+  in the ctmconv program, though).
+
+- Added a GUI dialog for showing errors in ctmviewer (this is especially useful
+  under Windows, where console output is disabeled).
+
+- Added an option for calculating the normals in ctmconv (if the input file
+  does not have normals).
+
+- Added options for turning off normals, texture coordinates and/or vertex
+  colors for the output file in ctmconv.
+
+- NOTE: The Linux/X11 version of ctmviewer now reqires GTK+ 2.0.
+
+
+v1.0.1 - 2009.11.15
+-------------------
+- Notable reduction of the memory footprint by tuning of the LZMA compression
+  parameters.
+
+- Added a Wavefront OBJ file importer/exporter.
+
+- Some improvements to ctmviewer and ctmconv.
+
+- Some directory structure and build system cleanups.
+
+
+v1.0 - 2009.11.09
+-----------------
+- Added a COLLADA converter module to the ctmconv program.
+
+- Added Python bindings and a demo Python program.
+
+- Improved the internal mesh integrity checking, to minimize the risk of invalid
+  data processing.
+
+- Improved the file format specification document.
+
+
+v0.8 (beta) - 2009.09.14
+------------------------
+- Introduced a new API function for controlling the compression level
+  (ctmCompressionLevel), and set the default compression level to 5 (rather
+  than 9, which would eat a lot of memory, usally without much difference).
+
+- Changed the name "texture map" in the API to "UV map" (and all
+  corresponding constant and function names). This is more in line with
+  the nomenclature of most 3D authoring software, and avoids the confusion
+  with the term texture mapping in 3D hardware (which is not limited to
+  2D UV mapping coordinates).
+
+- A few updates to the documentation.
+
+
+v0.7 (beta) - 2009.08.29
+------------------------
+- This was the first public release of OpenCTM.
