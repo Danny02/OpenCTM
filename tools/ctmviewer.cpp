@@ -345,6 +345,21 @@ static void DrawMesh(Mesh &aMesh)
 // Load a file to the mesh
 static void LoadFile(const char * aFileName, const char * aOverrideTexture)
 {
+  // Get the file size
+  ifstream f(aFileName, ios::in | ios::binary);
+  if(f.fail())
+    throw runtime_error("Unable to open the file.");
+  f.seekg(0, ios_base::end);
+  long tmpFileSize = (long) f.tellg();
+  f.close();
+
+  // Load the mesh
+  cout << "Loading " << aFileName << "..." << flush;
+  int t = glutGet(GLUT_ELAPSED_TIME);
+  ImportMesh(aFileName, mesh);
+  t = glutGet(GLUT_ELAPSED_TIME) - t;
+  cout << "done (" << t << " ms)" << endl;
+
   // Get the file name (excluding the path), and the path (excluding the file name)
   fileName = string(aFileName);
   size_t lastSlash = fileName.rfind("/");
@@ -358,24 +373,12 @@ static void LoadFile(const char * aFileName, const char * aOverrideTexture)
   else
     filePath = string("");
 
-  // Get the file size
-  ifstream f(aFileName, ios::in | ios::binary);
-  if(f.fail())
-    throw runtime_error("Unable to open the file.");
-  f.seekg(0, ios_base::end);
-  fileSize = (long) f.tellg();
-  f.close();
+  // The temporary file size is now the official file size...
+  fileSize = tmpFileSize;
 
   // Set window title
   string windowCaption = string("OpenCTM viewer - ") + fileName;
   glutSetWindowTitle(windowCaption.c_str());
-
-  // Load the mesh
-  cout << "Loading " << aFileName << "..." << flush;
-  int t = glutGet(GLUT_ELAPSED_TIME);
-  ImportMesh(aFileName, mesh);
-  t = glutGet(GLUT_ELAPSED_TIME) - t;
-  cout << "done (" << t << " ms)" << endl;
 
   // If the file did not contain any normals, calculate them now...
   if(mesh.mNormals.size() != mesh.mVertices.size())
