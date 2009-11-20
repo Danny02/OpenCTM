@@ -74,10 +74,11 @@ void GLUTSpecialKeyDown(int key, int x, int y);
 
 
 class GLViewer {
-  private:
+
+private:
 
   //-----------------------------------------------------------------------------
-  // Global variables
+  // State variables
   //-----------------------------------------------------------------------------
 
   string mFileName, mFilePath;
@@ -640,7 +641,7 @@ class GLViewer {
   }
 
 
-  public:
+public:
 
   //-----------------------------------------------------------------------------
   // GLUT callback functions
@@ -848,61 +849,87 @@ class GLViewer {
       ActionHelp();
   }
 
+
+  //-----------------------------------------------------------------------------
+  // Application main code
+  //-----------------------------------------------------------------------------
+
   /// Run the application
   void Run(int argc, char **argv)
   {
-    // Clear internal state
-    mFileName = "";
-    mFilePath = "";
-    mFileSize = 0;
-    mWidth = 1;
-    mHeight = 1;
-    mOldMouseX = 0;
-    mOldMouseY = 0;
-    mMouseRotate = false;
-    mMouseZoom = false;
-    mDisplayList = 0;
-    mPolyMode = GL_FILL;
-    mTexHandle = 0;
-    mUseShader = false;
-    mShaderProgram = 0;
-    mVertShader = 0;
-    mFragShader = 0;
+    try
+    {
+      // Clear internal state
+      mFileName = "";
+      mFilePath = "";
+      mFileSize = 0;
+      mWidth = 1;
+      mHeight = 1;
+      mOldMouseX = 0;
+      mOldMouseY = 0;
+      mMouseRotate = false;
+      mMouseZoom = false;
+      mDisplayList = 0;
+      mPolyMode = GL_FILL;
+      mTexHandle = 0;
+      mUseShader = false;
+      mShaderProgram = 0;
+      mVertShader = 0;
+      mFragShader = 0;
 
-    // Init GLUT
-    glutInit(&argc, argv);
+      // Init GLUT
+      glutInit(&argc, argv);
 
-    // Create the glut window
-    glutInitWindowSize(640, 480);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    glutCreateWindow("OpenCTM viewer");
+      // Create the glut window
+      glutInitWindowSize(640, 480);
+      glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+      glutCreateWindow("OpenCTM viewer");
 
-    // Init GLEW (for OpenGL 2.x support)
-    if(glewInit() != GLEW_OK)
-      throw runtime_error("Unable to initialize GLEW.");
+      // Init GLEW (for OpenGL 2.x support)
+      if(glewInit() != GLEW_OK)
+        throw runtime_error("Unable to initialize GLEW.");
 
-    // Load the phong shader, if we can
-    if(GLEW_VERSION_2_0)
-      InitShader();
-    else if(GLEW_VERSION_1_2)
-      glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+      // Load the phong shader, if we can
+      if(GLEW_VERSION_2_0)
+        InitShader();
+      else if(GLEW_VERSION_1_2)
+        glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
-    // Load the file
-    const char * overrideTexName = NULL;
-    if(argc >= 3)
-      overrideTexName = argv[2];
-    LoadFile(argv[1], overrideTexName);
+      // Load the file
+      const char * overrideTexName = NULL;
+      if(argc >= 3)
+        overrideTexName = argv[2];
+      LoadFile(argv[1], overrideTexName);
 
-    // Set the GLUT callback functions
-    glutReshapeFunc(GLUTWindowResize);
-    glutDisplayFunc(GLUTWindowRedraw);
-    glutMouseFunc(GLUTMouseClick);
-    glutMotionFunc(GLUTMouseMove);
-    glutKeyboardFunc(GLUTKeyDown);
-    glutSpecialFunc(GLUTSpecialKeyDown);
+      // Set the GLUT callback functions (these are bridged to the corresponding
+      // class methods)
+      glutReshapeFunc(GLUTWindowResize);
+      glutDisplayFunc(GLUTWindowRedraw);
+      glutMouseFunc(GLUTMouseClick);
+      glutMotionFunc(GLUTMouseMove);
+      glutKeyboardFunc(GLUTKeyDown);
+      glutSpecialFunc(GLUTSpecialKeyDown);
 
-    // Enter the main loop
-    glutMainLoop();
+      // Enter the main loop
+      glutMainLoop();
+    }
+    catch(ctm_error &e)
+    {
+      SysMessageBox mb;
+      mb.mMessageType = SysMessageBox::mtError;
+      mb.mCaption = "Error";
+      mb.mText = string("OpenCTM error: ") + string(e.what());
+      mb.Show();
+    }
+    catch(exception &e)
+    {
+      SysMessageBox mb;
+      mb.mMessageType = SysMessageBox::mtError;
+      mb.mCaption = "Error";
+      mb.mText = string(e.what());
+      mb.Show();
+    }
+    cout << endl;
   }
 };
 
@@ -911,6 +938,9 @@ class GLViewer {
 // Bridge GLUT callback functions to class methods
 //-----------------------------------------------------------------------------
 
+// NOTE: This is just a hack to be able to reference the application class
+// object from the GLUT callback functions, since there is no way (afaik) to
+// pass user data (i.e. the object reference) through GLUT...
 static GLViewer * gGLViewer = NULL;
 
 /// Redraw function.
@@ -957,7 +987,7 @@ void GLUTSpecialKeyDown(int key, int x, int y)
 
 
 //-----------------------------------------------------------------------------
-// Main application function
+// Program startup
 //-----------------------------------------------------------------------------
 
 /// Program entry.
@@ -986,31 +1016,11 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  try
-  {
-    // Run the application class
-    gGLViewer = new GLViewer;
-    gGLViewer->Run(argc, argv);
-    delete gGLViewer;
-    gGLViewer = NULL;
-  }
-  catch(ctm_error &e)
-  {
-    SysMessageBox mb;
-    mb.mMessageType = SysMessageBox::mtError;
-    mb.mCaption = "Error";
-    mb.mText = string("OpenCTM error: ") + string(e.what());
-    mb.Show();
-  }
-  catch(exception &e)
-  {
-    SysMessageBox mb;
-    mb.mMessageType = SysMessageBox::mtError;
-    mb.mCaption = "Error";
-    mb.mText = string(e.what());
-    mb.Show();
-  }
-  cout << endl;
+  // Run the application class
+  gGLViewer = new GLViewer;
+  gGLViewer->Run(argc, argv);
+  delete gGLViewer;
+  gGLViewer = NULL;
 
   return 0;
 }
