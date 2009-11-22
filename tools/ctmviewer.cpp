@@ -54,6 +54,44 @@ using namespace std;
 
 
 //-----------------------------------------------------------------------------
+// GLSL source code (generated from source by bin2c)
+//-----------------------------------------------------------------------------
+
+#include "phong_vert.h"
+#include "phong_frag.h"
+
+
+//-----------------------------------------------------------------------------
+// A class for OpenGL rendered GUI buttons
+//-----------------------------------------------------------------------------
+
+class GLButton {
+
+private:
+  GLuint mTexHandle;
+
+public:
+  /// Constructor.
+  GLButton()
+  {
+    mTexHandle = 0;
+    mPosX = 0;
+    mPosY = 0;
+    mWidth = 32;
+    mHeight = 32;
+  }
+
+  /// Destructor.
+  ~GLButton()
+  {
+  }
+
+  GLint mPosX, mPosY;
+  GLint mWidth, mHeight;
+};
+
+
+//-----------------------------------------------------------------------------
 // GLUT callback function prototypes
 //-----------------------------------------------------------------------------
 
@@ -66,12 +104,8 @@ void GLUTSpecialKeyDown(int key, int x, int y);
 
 
 //-----------------------------------------------------------------------------
-// GLSL source code (generated from source by bin2c)
+// The GLViewer application class
 //-----------------------------------------------------------------------------
-
-#include "phong_vert.h"
-#include "phong_frag.h"
-
 
 class GLViewer {
 
