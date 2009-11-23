@@ -37,6 +37,8 @@
 // Include system specific headers
 #if defined(USE_WIN32)
   #include <windows.h>
+#elif defined(USE_MACOSX)
+  #include "sysdialog_mac.h"
 #elif defined(USE_GTK)
   #include <gtk/gtk.h>
 #endif
@@ -66,25 +68,30 @@ bool SysMessageBox::Show()
 #if defined(USE_WIN32)
 
   // Select message type
-  DWORD dialogType;
+  DWORD messageType;
   switch(mMessageType)
   {
     default:
     case mtInformation:
-      dialogType = MB_ICONINFORMATION;
+      messageType = MB_ICONINFORMATION;
       break;
     case mtWarning:
-      dialogType = MB_ICONWARNING;
+      messageType = MB_ICONWARNING;
       break;
     case mtError:
-      dialogType = MB_ICONERROR;
+      messageType = MB_ICONERROR;
       break;
   }
 
   // Show the message box
-  MessageBoxA(NULL, mText.c_str(), mCaption.c_str(), MB_OK | dialogType);
+  MessageBoxA(NULL, mText.c_str(), mCaption.c_str(), MB_OK | messageType);
 
   return true;
+
+#elif defined(USE_MACOSX)
+
+  // Show the message box
+  return MacMessageBox_Show(mText.c_str(), mCaption.c_str(), mMessageType);
 
 #elif defined(USE_GTK)
 
@@ -93,18 +100,18 @@ bool SysMessageBox::Show()
     return false;
 
   // Select message type
-  GtkMessageType dialogType;
+  GtkMessageType messageType;
   switch(mMessageType)
   {
     default:
     case mtInformation:
-      dialogType = GTK_MESSAGE_INFO;
+      messageType = GTK_MESSAGE_INFO;
       break;
     case mtWarning:
-      dialogType = GTK_MESSAGE_WARNING;
+      messageType = GTK_MESSAGE_WARNING;
       break;
     case mtError:
-      dialogType = GTK_MESSAGE_ERROR;
+      messageType = GTK_MESSAGE_ERROR;
       break;
   }
 
@@ -112,7 +119,7 @@ bool SysMessageBox::Show()
   GtkWidget * dialog = gtk_message_dialog_new(
     NULL,
     GTK_DIALOG_DESTROY_WITH_PARENT,
-    dialogType,
+    messageType,
     GTK_BUTTONS_OK,
     mText.c_str(), "title");
   gtk_window_set_title(GTK_WINDOW(dialog), mCaption.c_str());
