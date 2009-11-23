@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Product:     OpenCTM tools
 // File:        sysdialog_mac.h
 // Description: Interface for system GUI dialog routines for Mac OS X, 

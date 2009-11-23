@@ -26,7 +26,7 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
-#include <NSAlert.h>
+#import <Cocoa/Cocoa.h>
 #include "sysdialog_mac.h"
 
 
@@ -34,30 +34,34 @@
 bool MacMessageBox_Show(const char * aText, const char * aCaption,
   SysMessageBox::MessageType aMessageType)
 {
+  NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
   // Create the alert object
   NSAlert *alert = [[NSAlert alloc] init];
   [alert addButtonWithTitle:@"OK"];
-  [alert setMessageText:@aCaption];
-  [alert setInformativeText:@aText];
+  [alert setMessageText:[NSString stringWithCString:aCaption length:strlen(aCaption)]];
+  [alert setInformativeText:[NSString stringWithCString:aText length:strlen(aText)]];
   switch(aMessageType)
   {
-    case SysDialogBox::mtInformation:
+    case SysMessageBox::mtInformation:
     default:
       [alert setAlertStyle:NSInformationalAlertStyle];
       break;
-    case SysDialogBox::mtWarning:
+    case SysMessageBox::mtWarning:
       [alert setAlertStyle:NSWarningAlertStyle];
       break;
-    case SysDialogBox::mtError:
+    case SysMessageBox::mtError:
       [alert setAlertStyle:NSCriticalAlertStyle];
       break;
   }
 
   // Show the dialog
-  bool result = ([alert runModal] == NSAlertFirstButtonReturn);
+  NSInteger clickedButton = [alert runModal];
+  bool result = (clickedButton == NSAlertFirstButtonReturn);
 
-  // Free the alert
+  // Cleanup
   [alert release];
+  [pool drain];
 
   return result;
 }
