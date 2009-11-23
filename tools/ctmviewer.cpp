@@ -929,12 +929,6 @@ public:
       else if(GLEW_VERSION_1_2)
         glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
-      // Load the file
-      const char * overrideTexName = NULL;
-      if(argc >= 3)
-        overrideTexName = argv[2];
-      LoadFile(argv[1], overrideTexName);
-
       // Set the GLUT callback functions (these are bridged to the corresponding
       // class methods)
       glutReshapeFunc(GLUTWindowResize);
@@ -943,6 +937,12 @@ public:
       glutMotionFunc(GLUTMouseMove);
       glutKeyboardFunc(GLUTKeyDown);
       glutSpecialFunc(GLUTSpecialKeyDown);
+
+      // Load the file
+      const char * overrideTexName = NULL;
+      if(argc >= 3)
+        overrideTexName = argv[2];
+      LoadFile(argv[1], overrideTexName);
 
       // Enter the main loop
       glutMainLoop();

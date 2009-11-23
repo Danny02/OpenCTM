@@ -34,6 +34,8 @@
 bool MacMessageBox_Show(const char * aText, const char * aCaption,
   SysMessageBox::MessageType aMessageType)
 {
+  // Intialize Cocoa environment
+  [NSApplication sharedApplication];
   NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
   // Create the alert object
