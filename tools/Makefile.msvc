@@ -83,10 +83,10 @@ phong_frag.h: phong.frag bin2c.exe
 bin2c.exe: bin2c.cpp
 	$(CPP) /nologo /Ox /W3 /EHsc /Fe$@ bin2c.cpp
 
-ctmconv.res: ctmconv.rc openctm.ico
+ctmconv.res: ctmconv.rc icons\openctm.ico
 	$(RC) ctmconv.rc
 
-ctmviewer.res: ctmviewer.rc openctm.ico
+ctmviewer.res: ctmviewer.rc icons\openctm.ico
 	$(RC) ctmviewer.rc
 
 $(JPEGDIR)\libjpeg.lib: 

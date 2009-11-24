@@ -25,7 +25,9 @@ cp lib/*.c lib/*.h lib/*.rc lib/*.def lib/Makefile* $tmpdir/lib/
 mkdir $tmpdir/lib/liblzma
 cp lib/liblzma/* $tmpdir/lib/liblzma/
 mkdir $tmpdir/tools
-cp tools/*.cpp tools/*.h tools/*.ico tools/*.vert tools/*.frag tools/*.rc tools/Makefile* $tmpdir/tools/
+cp tools/*.cpp tools/*.h tools/*.vert tools/*.frag tools/*.rc tools/Makefile* $tmpdir/tools/
+mkdir $tmpdir/tools/icons
+cp tools/icons/* $tmpdir/tools/icons/
 mkdir $tmpdir/tools/jpeg
 cp tools/jpeg/* $tmpdir/tools/jpeg/
 mkdir $tmpdir/tools/rply
