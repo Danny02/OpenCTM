@@ -29,6 +29,8 @@
 #import <Cocoa/Cocoa.h>
 #include "sysdialog.h"
 
+using namespace std;
+
 
 /// Constructor.
 SysMessageBox::SysMessageBox()
@@ -128,10 +130,7 @@ bool SysSaveDialog::Show()
 
   // Create the file save panel object
   NSSavePanel * sPanel = [NSSavePanel savePanel];
-  [sPanel setCanChooseDirectories:NO];
-  [sPanel setCanChooseFiles:YES];
-  [sPanel setCanCreateDirectories:NO];
-  [sPanel setAllowsMultipleSelection:NO];
+  [sPanel setCanCreateDirectories:YES];
   [sPanel setTitle:[NSString stringWithCString:mCaption.c_str() length:mCaption.size()]];
 
   // Define filters (FIXME)
