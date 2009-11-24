@@ -27,12 +27,17 @@
 //-----------------------------------------------------------------------------
 
 #import <Cocoa/Cocoa.h>
-#include "sysdialog_mac.h"
+#include "sysdialog.h"
 
 
-/// Show a message box.
-bool MacMessageBox_Show(const char * aText, const char * aCaption,
-  SysMessageBox::MessageType aMessageType)
+/// Constructor.
+SysMessageBox::SysMessageBox()
+{
+  mMessageType = mtInformation;
+}
+
+/// Show the dialog.
+bool SysMessageBox::Show()
 {
   // Intialize Cocoa environment
   [NSApplication sharedApplication];
@@ -41,18 +46,18 @@ bool MacMessageBox_Show(const char * aText, const char * aCaption,
   // Create the alert object
   NSAlert *alert = [[NSAlert alloc] init];
   [alert addButtonWithTitle:@"OK"];
-  [alert setMessageText:[NSString stringWithCString:aCaption length:strlen(aCaption)]];
-  [alert setInformativeText:[NSString stringWithCString:aText length:strlen(aText)]];
-  switch(aMessageType)
+  [alert setMessageText:[NSString stringWithCString:mCaption.c_str() length:mCaption.size()]];
+  [alert setInformativeText:[NSString stringWithCString:mText.c_str() length:mText.size()]];
+  switch(mMessageType)
   {
-    case SysMessageBox::mtInformation:
+    case mtInformation:
     default:
       [alert setAlertStyle:NSInformationalAlertStyle];
       break;
-    case SysMessageBox::mtWarning:
+    case mtWarning:
       [alert setAlertStyle:NSWarningAlertStyle];
       break;
-    case SysMessageBox::mtError:
+    case mtError:
       [alert setAlertStyle:NSCriticalAlertStyle];
       break;
   }
@@ -66,4 +71,82 @@ bool MacMessageBox_Show(const char * aText, const char * aCaption,
   [pool drain];
 
   return result;
+}
+
+
+/// Constructor
+SysOpenDialog::SysOpenDialog()
+{
+  mCaption = "Open File";
+}
+
+/// Show the dialog.
+bool SysOpenDialog::Show()
+{
+  // Intialize Cocoa environment
+  [NSApplication sharedApplication];
+  NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
+  // Create the file open panel object
+  NSOpenPanel * oPanel = [NSOpenPanel openPanel];
+  [oPanel setCanChooseDirectories:NO];
+  [oPanel setCanChooseFiles:YES];
+  [oPanel setCanCreateDirectories:NO];
+  [oPanel setAllowsMultipleSelection:NO];
+  [oPanel setTitle:[NSString stringWithCString:mCaption.c_str() length:mCaption.size()]];
+
+  // Define filters (FIXME)
+  NSArray * fileTypes = [NSArray arrayWithObjects:@"ctm", @"3ds", @"stl", @"dae", @"obj", nil];
+  [oPanel setAllowedFileTypes:fileTypes];
+
+  // Display the dialog
+  int dlgResult = [oPanel runModal];
+
+  // Extract the resulting file name
+  if(dlgResult == NSOKButton)
+    mFileName = string([[oPanel filename] UTF8String]);
+
+  // Cleanup
+  [pool drain];
+
+  return (dlgResult == NSOKButton);
+}
+
+
+/// Constructor
+SysSaveDialog::SysSaveDialog()
+{
+  mCaption = "Save File";
+}
+
+/// Show the dialog.
+bool SysSaveDialog::Show()
+{
+  // Intialize Cocoa environment
+  [NSApplication sharedApplication];
+  NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
+  // Create the file save panel object
+  NSSavePanel * sPanel = [NSSavePanel savePanel];
+  [sPanel setCanChooseDirectories:NO];
+  [sPanel setCanChooseFiles:YES];
+  [sPanel setCanCreateDirectories:NO];
+  [sPanel setAllowsMultipleSelection:NO];
+  [sPanel setTitle:[NSString stringWithCString:mCaption.c_str() length:mCaption.size()]];
+
+  // Define filters (FIXME)
+  NSArray * fileTypes = [NSArray arrayWithObjects:@"ctm", @"3ds", @"stl", @"dae", @"obj", nil];
+  [sPanel setAllowedFileTypes:fileTypes];
+
+  // Display the dialog
+  int dlgResult = [sPanel runModal];
+
+  // Extract the resulting file name
+  if(dlgResult == NSOKButton)
+    mFileName = string([[sPanel filename] UTF8String]);
+
+  // Cleanup
+  [pool drain];
+
+  return (dlgResult == NSOKButton);
 }

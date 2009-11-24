@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // Product:     OpenCTM tools
-// File:        sysdialog.cpp
-// Description: Implementation of system GUI dialog routines.
+// File:        sysdialog_gtk.cpp
+// Description: Implementation of system GUI dialog routines for GTK+.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2009 Marcus Geelnard
 //
@@ -25,35 +25,8 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
-// What system are we on?
-#if defined(WIN32) || defined(_WIN32)
-  #define USE_WIN32
-#elif defined(__APPLE__)
-  #define USE_MACOSX
-#else
-  #define USE_GTK
-#endif
-
-// Include system specific headers
-#if defined(USE_WIN32)
-  #include <windows.h>
-#elif defined(USE_MACOSX)
-  #include "sysdialog_mac.h"
-#elif defined(USE_GTK)
-  #include <gtk/gtk.h>
-#endif
-
-#include <cstring>
-#include <iostream>
+#include <gtk/gtk.h>
 #include "sysdialog.h"
-
-using namespace std;
-
-/*
-TODO:
- - Implement filters for Win32
- - Mac OS X implementation (check COCOA NSRunAlertPanel, NSOpenPanel, NSSavePanel)
-*/
 
 
 /// Constructor.
@@ -65,36 +38,6 @@ SysMessageBox::SysMessageBox()
 /// Show the dialog.
 bool SysMessageBox::Show()
 {
-#if defined(USE_WIN32)
-
-  // Select message type
-  DWORD messageType;
-  switch(mMessageType)
-  {
-    default:
-    case mtInformation:
-      messageType = MB_ICONINFORMATION;
-      break;
-    case mtWarning:
-      messageType = MB_ICONWARNING;
-      break;
-    case mtError:
-      messageType = MB_ICONERROR;
-      break;
-  }
-
-  // Show the message box
-  MessageBoxA(NULL, mText.c_str(), mCaption.c_str(), MB_OK | messageType);
-
-  return true;
-
-#elif defined(USE_MACOSX)
-
-  // Show the message box
-  return MacMessageBox_Show(mText.c_str(), mCaption.c_str(), mMessageType);
-
-#elif defined(USE_GTK)
-
   // Init GTK+
   if(!gtk_init_check(0, NULL))
     return false;
@@ -133,13 +76,6 @@ bool SysMessageBox::Show()
 
   // Evaluate dialog result
   return (dlgResult == GTK_RESPONSE_ACCEPT);
-
-#else
-
-  cout << mCaption << ": " << mText << endl;
-  return true;
-
-#endif
 }
 
 
@@ -152,36 +88,6 @@ SysOpenDialog::SysOpenDialog()
 /// Show the dialog.
 bool SysOpenDialog::Show()
 {
-#if defined(USE_WIN32)
-
-  OPENFILENAME ofn;
-  char fileNameBuf[1000];
-
-  // Initialize the file dialog structure
-  memset(&ofn, 0, sizeof(OPENFILENAME));
-  ofn.lStructSize = sizeof(OPENFILENAME);
-  ofn.lpstrFilter = NULL; // FIXME
-  ofn.nFilterIndex = 1;
-  memset(&fileNameBuf, 0, sizeof(fileNameBuf));
-  mFileName.copy(fileNameBuf, mFileName.size());
-  ofn.lpstrFile = fileNameBuf;
-  ofn.nMaxFile = sizeof(fileNameBuf);
-  ofn.lpstrTitle = mCaption.c_str();
-  ofn.Flags = 0;
-
-  // Show the dialog
-  bool result = GetOpenFileNameA(&ofn);
-
-  // Extract the resulting file name
-  if(result)
-    mFileName = string(fileNameBuf);
-  else
-    mFileName = string("");
-
-  return result;
-
-#elif defined(USE_GTK)
-
   // Init GTK+
   if(!gtk_init_check(0, NULL))
     return true;
@@ -236,13 +142,6 @@ bool SysOpenDialog::Show()
 
   // Evaluate dialog result
   return (dlgResult == GTK_RESPONSE_ACCEPT);
-
-#else
-
-  cout << "SysOpenDialog is not yet implemented for your system." << endl;
-  return false;
-
-#endif
 }
 
 
@@ -255,36 +154,6 @@ SysSaveDialog::SysSaveDialog()
 /// Show the dialog.
 bool SysSaveDialog::Show()
 {
-#if defined(USE_WIN32)
-
-  OPENFILENAME ofn;
-  char fileNameBuf[1000];
-
-  // Initialize the file dialog structure
-  memset(&ofn, 0, sizeof(OPENFILENAME));
-  ofn.lStructSize = sizeof(OPENFILENAME);
-  ofn.lpstrFilter = NULL; // FIXME
-  ofn.nFilterIndex = 1;
-  memset(&fileNameBuf, 0, sizeof(fileNameBuf));
-  mFileName.copy(fileNameBuf, mFileName.size());
-  ofn.lpstrFile = fileNameBuf;
-  ofn.nMaxFile = sizeof(fileNameBuf);
-  ofn.lpstrTitle = mCaption.c_str();
-  ofn.Flags = 0;
-
-  // Show the dialog
-  bool result = GetSaveFileNameA(&ofn);
-
-  // Extract the resulting file name
-  if(result)
-    mFileName = string(fileNameBuf);
-  else
-    mFileName = string("");
-
-  return result;
-
-#elif defined(USE_GTK)
-
   // Init GTK+
   if(!gtk_init_check(0, NULL))
     return true;
@@ -339,11 +208,4 @@ bool SysSaveDialog::Show()
 
   // Evaluate dialog result
   return (dlgResult == GTK_RESPONSE_ACCEPT);
-
-#else
-
-  cout << "SysSaveDialog is not yet implemented for your system." << endl;
-  return false;
-
-#endif
 }
