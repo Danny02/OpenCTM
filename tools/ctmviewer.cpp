@@ -659,9 +659,9 @@ private:
     helpText << "ctmviewer - OpenCTM file viewer" << endl;
     helpText << "Copyright (c) 2009 Marcus Geelnard" << endl << endl;
     helpText << "Keyboard actions:" << endl;
-    helpText << "  o - Open file" << endl;
-    helpText << "  s - Save file" << endl;
-    helpText << "  w - Toggle wire frame view on/off" << endl;
+    helpText << "  CTRL+O - Open file" << endl;
+    helpText << "  CTRL+S - Save file" << endl;
+    helpText << "  W - Toggle wire frame view on/off" << endl;
     helpText << "  ESC - Exit program" << endl << endl;
     helpText << "Mouse control:" << endl;
     helpText << "  Left button  - Rotate camera" << endl;
@@ -866,13 +866,13 @@ public:
   /// Keyboard function
   void KeyDown(unsigned char key, int x, int y)
   {
-    if(key == 'o')
+    if(key == 15)       // CTRL+O
       ActionOpenFile();
-    else if(key == 's')
+    else if(key == 19)  // CTRL+S
       ActionSaveFile();
     else if(key == 'w')
       ActionToggleWireframe();
-    else if(key == 27)
+    else if(key == 27)  // ESC
       ActionExit();
   }
 
