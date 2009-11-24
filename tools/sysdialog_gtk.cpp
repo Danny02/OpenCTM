@@ -28,6 +28,8 @@
 #include <gtk/gtk.h>
 #include "sysdialog.h"
 
+using namespace std;
+
 
 /// Constructor.
 SysMessageBox::SysMessageBox()
