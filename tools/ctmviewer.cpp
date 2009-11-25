@@ -43,6 +43,7 @@
 #include "mesh.h"
 #include "meshio.h"
 #include "sysdialog.h"
+#include "systimer.h"
 
 using namespace std;
 
@@ -605,8 +606,13 @@ void GLViewer::DrawMesh(Mesh &aMesh)
 
   // Use glDrawElements to draw the triangles...
   glShadeModel(GL_SMOOTH);
-  glDrawElements(GL_TRIANGLES, aMesh.mIndices.size(), GL_UNSIGNED_INT,
-                 &aMesh.mIndices[0]);
+  if(GLEW_VERSION_1_2)
+    glDrawRangeElements(GL_TRIANGLES, 0, aMesh.mVertices.size() - 1,
+                        aMesh.mIndices.size(), GL_UNSIGNED_INT,
+                        &aMesh.mIndices[0]);
+  else
+    glDrawElements(GL_TRIANGLES, aMesh.mIndices.size(), GL_UNSIGNED_INT,
+                   &aMesh.mIndices[0]);
 
   // We do not use the client state anymore...
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -628,10 +634,10 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
 
   // Load the mesh
   cout << "Loading " << aFileName << "..." << flush;
-  int t = glutGet(GLUT_ELAPSED_TIME);
+  SysTimer t;
+  t.Push();
   ImportMesh(aFileName, mMesh);
-  t = glutGet(GLUT_ELAPSED_TIME) - t;
-  cout << "done (" << t << " ms)" << endl;
+  cout << "done (" << int(t.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
 
   // Get the file name (excluding the path), and the path (excluding the file name)
   mFileName = string(aFileName);
@@ -657,10 +663,10 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   if(mMesh.mNormals.size() != mMesh.mVertices.size())
   {
     cout << "Calculating normals..." << flush;
-    int t = glutGet(GLUT_ELAPSED_TIME);
+    SysTimer t;
+    t.Push();
     mMesh.CalculateNormals();
-    t = glutGet(GLUT_ELAPSED_TIME) - t;
-    cout << "done (" << t << " ms)" << endl;
+    cout << "done (" << int(t.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
   }
 
   // Load the texture
