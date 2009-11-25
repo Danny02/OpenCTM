@@ -36,15 +36,32 @@
 
 using namespace std;
 
+class OBJFaceNode {
+  public:
+    OBJFaceNode()
+    {
+      v = vt = vn = 0;
+    }
+
+    void Set(int aIndex, int aValue)
+    {
+      if(aIndex == 0)
+        v = aValue;
+      else if(aIndex == 1)
+        vt = aValue;
+      else
+        vn = aValue;
+    }
+
+    int v, vt, vn;
+};
+
 // OBJ file face description class (three triangle corners, with one vertex,
 // texcoord and normal index each).
 class OBJFace {
   public:
     OBJFace()
     {
-      for(int i = 0; i < 3; ++ i)
-        for(int j = 0; j < 3; ++ j)
-          v[i][j] = 0;
     }
 
     // Contruct a face (one triangle) from an OBJ face description string
@@ -52,7 +69,7 @@ class OBJFace {
     {
       // Extract three face corners (one triangle)
       unsigned int pos = 0;
-      for(int i = 0; i < 3; ++ i)
+      while((pos < aStr.size()) && (aStr[pos] != ' '))
       {
         // Extract three /-separated strings (v/vt/vn)
         string v_s[3];
@@ -68,23 +85,26 @@ class OBJFace {
         ++ pos;
 
         // Convert the strings to integers
+        mNodes.push_back(OBJFaceNode());
+        OBJFaceNode &n = mNodes.back();
         for(int j = 0; j < 3; ++ j)
         {
-          v[i][j] = 0;
+          int value = 0;
           if(v_s[j].size() > 0)
           {
             istringstream ss(v_s[j]);
-            ss >> v[i][j];
-            if(v[i][j] > 0)
-              v[i][j] --;
-            else if(v[i][j] < 0)
+            ss >> value;
+            if(value > 0)
+              value --;
+            else if(value < 0)
               throw runtime_error("Negative vertex references in OBJ files are not supported.");
           }
+          n.Set(j, value);
         }
       }
     }
 
-    int v[3][3];  // v[3], vt[3], vn[3]
+    list<OBJFaceNode> mNodes;
 };
 
 // Parse a 2 x float string as a Vector2
@@ -115,8 +135,8 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
   aMesh.Clear();
 
   // Open the input file
-  ifstream f(aFileName, ios_base::in | ios_base::binary);
-  if(f.fail())
+  ifstream inFile(aFileName, ios_base::in | ios_base::binary);
+  if(inFile.fail())
     throw runtime_error("Could not open input file.");
 
   // Mesh description - parsed from the OBJ file
@@ -126,10 +146,10 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
   list<OBJFace> faces;
 
   // Parse the file
-  while(!f.eof())
+  while(!inFile.eof())
   {
     string line;
-    getline(f, line);
+    getline(inFile, line);
     if(line.size() >= 1)
     {
       if(line.substr(0, 2) == string("v "))
@@ -148,41 +168,78 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
   vector<Vector2> texCoordsArray(texCoords.begin(), texCoords.end());
   vector<Vector3> normalsArray(normals.begin(), normals.end());
 
-  // Prepare mesh
+  // Prepare vertices
   aMesh.mVertices.resize(verticesArray.size());
   if(texCoordsArray.size() > 0)
     aMesh.mTexCoords.resize(verticesArray.size());
   if(normalsArray.size() > 0)
     aMesh.mNormals.resize(verticesArray.size());
-  aMesh.mIndices.resize(faces.size() * 3);
+
+  // Prepare indices
+  int triCount = 0;
+  for(list<OBJFace>::iterator i = faces.begin(); i != faces.end(); ++ i)
+  {
+    int nodeCount = (*i).mNodes.size();
+    if(nodeCount < 3)
+      throw runtime_error("Faces must have at least three nodes.");
+    triCount += (nodeCount - 2);
+  }
+  aMesh.mIndices.resize(triCount * 3);
 
   // Iterate faces and extract vertex data
   unsigned int idx = 0;
   for(list<OBJFace>::iterator i = faces.begin(); i != faces.end(); ++ i)
   {
     OBJFace &f = (*i);
-    aMesh.mIndices[idx ++] = f.v[0][0];
-    aMesh.mIndices[idx ++] = f.v[1][0];
-    aMesh.mIndices[idx ++] = f.v[2][0];
-    aMesh.mVertices[f.v[0][0]] = verticesArray[f.v[0][0]];
-    aMesh.mVertices[f.v[1][0]] = verticesArray[f.v[1][0]];
-    aMesh.mVertices[f.v[2][0]] = verticesArray[f.v[2][0]];
-    if(texCoordsArray.size() > 0)
+    int nodes[3][3];
+    int nodeCount = 0;
+    for(list<OBJFaceNode>::iterator n = f.mNodes.begin(); n != f.mNodes.end(); ++ n)
     {
-      aMesh.mTexCoords[f.v[0][0]] = texCoordsArray[f.v[0][1]];
-      aMesh.mTexCoords[f.v[1][0]] = texCoordsArray[f.v[1][1]];
-      aMesh.mTexCoords[f.v[2][0]] = texCoordsArray[f.v[2][1]];
-    }
-    if(normalsArray.size() > 0)
-    {
-      aMesh.mNormals[f.v[0][0]] = normalsArray[f.v[0][2]];
-      aMesh.mNormals[f.v[1][0]] = normalsArray[f.v[1][2]];
-      aMesh.mNormals[f.v[2][0]] = normalsArray[f.v[2][2]];
+      // Collect polygon nodes for this face, turning it into triangles
+      if(nodeCount < 3)
+      {
+        nodes[nodeCount][0] = (*n).v;
+        nodes[nodeCount][1] = (*n).vt;
+        nodes[nodeCount][2] = (*n).vn;
+      }
+      else
+      {
+        nodes[1][0] = nodes[2][0];
+        nodes[1][1] = nodes[2][1];
+        nodes[1][2] = nodes[2][2];
+        nodes[2][0] = (*n).v;
+        nodes[2][1] = (*n).vt;
+        nodes[2][2] = (*n).vn;
+      }
+      ++ nodeCount;
+
+      // Emit one triangle?
+      if(nodeCount >= 3)
+      {
+        aMesh.mIndices[idx ++] = nodes[0][0];
+        aMesh.mIndices[idx ++] = nodes[1][0];
+        aMesh.mIndices[idx ++] = nodes[2][0];
+        aMesh.mVertices[nodes[0][0]] = verticesArray[nodes[0][0]];
+        aMesh.mVertices[nodes[1][0]] = verticesArray[nodes[1][0]];
+        aMesh.mVertices[nodes[2][0]] = verticesArray[nodes[2][0]];
+        if(texCoordsArray.size() > 0)
+        {
+          aMesh.mTexCoords[nodes[0][0]] = texCoordsArray[nodes[0][1]];
+          aMesh.mTexCoords[nodes[1][0]] = texCoordsArray[nodes[1][1]];
+          aMesh.mTexCoords[nodes[2][0]] = texCoordsArray[nodes[2][1]];
+        }
+        if(normalsArray.size() > 0)
+        {
+          aMesh.mNormals[nodes[0][0]] = normalsArray[nodes[0][2]];
+          aMesh.mNormals[nodes[1][0]] = normalsArray[nodes[1][2]];
+          aMesh.mNormals[nodes[2][0]] = normalsArray[nodes[2][2]];
+        }
+      }
     }
   }
 
   // Close the input file
-  f.close();
+  inFile.close();
 }
 
 /// Export a mesh to an OBJ file.
