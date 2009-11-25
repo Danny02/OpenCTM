@@ -62,13 +62,24 @@ using namespace std;
 
 
 //-----------------------------------------------------------------------------
+// Icon bitmaps
+//-----------------------------------------------------------------------------
+
+#include "icons/icon_open.h"
+#include "icons/icon_save.h"
+
+
+//-----------------------------------------------------------------------------
 // A class for OpenGL rendered GUI buttons
 //-----------------------------------------------------------------------------
+
+class GLViewer;
 
 class GLButton {
 
 private:
   GLuint mTexHandle;
+  bool mHighlight;
 
 public:
   /// Constructor.
@@ -79,15 +90,129 @@ public:
     mPosY = 0;
     mWidth = 32;
     mHeight = 32;
+    mHighlight = false;
+    mParent = NULL;
   }
 
   /// Destructor.
   ~GLButton()
   {
+    if(mTexHandle)
+      glDeleteTextures(1, &mTexHandle);
+  }
+
+  /// Set glyph for this button.
+  void SetGlyph(const unsigned char * aBitmap, int aWidth, int aHeight,
+    int aComponents)
+  {
+    // Update the button size
+    mWidth = aWidth;
+    mHeight = aHeight;
+
+    // Upload the texture to OpenGL
+    if(mTexHandle)
+      glDeleteTextures(1, &mTexHandle);
+    glGenTextures(1, &mTexHandle);
+    if(mTexHandle)
+    {
+      // Determine the color format
+      GLuint format;
+      if(aComponents == 3)
+        format = GL_RGB;
+      else if(aComponents == 4)
+        format = GL_RGBA;
+      else
+        format = GL_LUMINANCE;
+
+      glBindTexture(GL_TEXTURE_2D, mTexHandle);
+
+      if(GLEW_VERSION_1_4)
+      {
+        // Generate mipmaps automatically and use them
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      }
+      else
+      {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      }
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+      glTexImage2D(GL_TEXTURE_2D, 0, aComponents, aWidth, aHeight, 0, format,
+                   GL_UNSIGNED_BYTE, (GLvoid *) aBitmap);
+    }
+  }
+
+  /// Redraw function.
+  void Redraw()
+  {
+    if(!mParent)
+      return;
+
+    // Init OpenGL state
+    if(GLEW_VERSION_2_0)
+      glUseProgram(0);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+
+    // Set opacity of the icon
+    if(mHighlight)
+      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    else
+      glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+
+    // Enable texturing
+    if(mTexHandle)
+    {
+      glBindTexture(GL_TEXTURE_2D, mTexHandle);
+      glEnable(GL_TEXTURE_2D);
+    }
+
+    // Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Draw the icon as a textured quad
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2i(mPosX, mPosY);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2i(mPosX + mWidth, mPosY);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2i(mPosX + mWidth, mPosY + mHeight);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2i(mPosX, mPosY + mHeight);
+    glEnd();
+
+    // We're done
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+  }
+
+  /// Mouse move function. The function returns true if the state of the
+  /// button has changed.
+  bool MouseMove(int x, int y)
+  {
+    bool hit = (x >= mPosX) && (x < (mPosX + mWidth)) &&
+               (y >= mPosY) && (y < (mPosY + mHeight));
+    bool changed = (mHighlight != hit);
+    mHighlight = hit;
+    return changed;
+  }
+
+  /// Mouse click function.
+  bool MouseClick(int aState, int x, int y)
+  {
+    bool hit = (x >= mPosX) && (x < (mPosX + mWidth)) &&
+               (y >= mPosY) && (y < (mPosY + mHeight));
+    return hit;
   }
 
   GLint mPosX, mPosY;
   GLint mWidth, mHeight;
+  GLViewer * mParent;
 };
 
 
@@ -108,6 +233,8 @@ void GLUTSpecialKeyDown(int key, int x, int y);
 //-----------------------------------------------------------------------------
 
 class GLViewer {
+
+  friend class GLButton;
 
 private:
 
@@ -135,6 +262,8 @@ private:
   GLuint mShaderProgram;
   GLuint mVertShader;
   GLuint mFragShader;
+
+  list<GLButton> mButtons;
 
 
   //-----------------------------------------------------------------------------
@@ -569,6 +698,10 @@ private:
     s << mMesh.mVertices.size() << " vertices" << endl;
     s << mMesh.mIndices.size() / 3 << " triangles";
     DrawString(s.str(), 10, mHeight - 50);
+
+    // Render all the buttons (last = on top)
+    for(list<GLButton>::iterator b = mButtons.begin(); b != mButtons.end(); ++ b)
+      (*b).Redraw();
   }
 
 
@@ -590,13 +723,16 @@ private:
     od.mFileName = mFileName;
     if(od.Show())
     {
+      glutSetCursor(GLUT_CURSOR_WAIT);
       try
       {
         LoadFile(od.mFileName.c_str(), NULL);
         glutPostRedisplay();
+        glutSetCursor(GLUT_CURSOR_INHERIT);
       }
       catch(exception &e)
       {
+        glutSetCursor(GLUT_CURSOR_INHERIT);
         SysMessageBox mb;
         mb.mMessageType = SysMessageBox::mtError;
         mb.mCaption = "Error";
@@ -619,13 +755,16 @@ private:
     sd.mFileName = mFileName;
     if(sd.Show())
     {
+      glutSetCursor(GLUT_CURSOR_WAIT);
       try
       {
         Options opt;
         ExportMesh(sd.mFileName.c_str(), mMesh, opt);
+        glutSetCursor(GLUT_CURSOR_INHERIT);
       }
       catch(exception &e)
       {
+        glutSetCursor(GLUT_CURSOR_INHERIT);
         SysMessageBox mb;
         mb.mMessageType = SysMessageBox::mtError;
         mb.mCaption = "Error";
@@ -778,12 +917,22 @@ public:
   /// Mouse click function
   void MouseClick(int button, int state, int x, int y)
   {
+    bool clickConsumed = false;
     if(button == GLUT_LEFT_BUTTON)
     {
-      if(state == GLUT_DOWN)
-        mMouseRotate = true;
-      else if(state == GLUT_UP)
-        mMouseRotate = false;
+      // Check if any of the GUI buttons were clicked
+      for(list<GLButton>::iterator b = mButtons.begin(); b != mButtons.end(); ++ b)
+      {
+        if((*b).MouseClick(state, x, y))
+          clickConsumed = true;
+      }
+      if(!clickConsumed)
+      {
+        if(state == GLUT_DOWN)
+          mMouseRotate = true;
+        else if(state == GLUT_UP)
+          mMouseRotate = false;
+      }
     }
     else if(button == GLUT_RIGHT_BUTTON)
     {
@@ -799,6 +948,8 @@ public:
   /// Mouse move function
   void MouseMove(int x, int y)
   {
+    bool needsRedraw = false;
+
     float deltaX = (float) x - (float) mOldMouseX;
     float deltaY = (float) y - (float) mOldMouseY;
     mOldMouseX = x;
@@ -842,7 +993,7 @@ public:
       viewVector.z = r * cos(phi);
       mCameraPosition = mCameraLookAt + viewVector;
 
-      glutPostRedisplay();
+      needsRedraw = true;
     }
     else if(mMouseZoom)
     {
@@ -859,8 +1010,21 @@ public:
       // Update the camera position
       mCameraPosition = mCameraLookAt + viewVector;
 
-      glutPostRedisplay();
+      needsRedraw = true;
     }
+    else
+    {
+      // Call mouse move for all the GUI buttons
+      for(list<GLButton>::iterator b = mButtons.begin(); b != mButtons.end(); ++ b)
+      {
+        if((*b).MouseMove(x, y))
+          needsRedraw = true;
+      }
+    }
+
+    // Redraw?
+    if(needsRedraw)
+      glutPostRedisplay();
   }
 
   /// Keyboard function
@@ -935,8 +1099,23 @@ public:
       glutDisplayFunc(GLUTWindowRedraw);
       glutMouseFunc(GLUTMouseClick);
       glutMotionFunc(GLUTMouseMove);
+      glutPassiveMotionFunc(GLUTMouseMove);
       glutKeyboardFunc(GLUTKeyDown);
       glutSpecialFunc(GLUTSpecialKeyDown);
+
+      // Create GUI buttons
+      mButtons.push_back(GLButton());
+      GLButton &b1 = mButtons.back();
+      b1.mParent = this;
+      b1.SetGlyph(icon_open, 48, 48, 4);
+      b1.mPosX = 10;
+      b1.mPosY = 10;
+      mButtons.push_back(GLButton());
+      GLButton &b2 = mButtons.back();
+      b2.mParent = this;
+      b2.SetGlyph(icon_save, 48, 48, 4);
+      b2.mPosX = 70;
+      b2.mPosY = 10;
 
       // Load the file
       const char * overrideTexName = NULL;
