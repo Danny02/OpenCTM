@@ -29,6 +29,7 @@
 #include <stdexcept>
 #include <string>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 #include <rply.h>
@@ -231,6 +232,9 @@ void Export_PLY(const char * aFileName, Mesh &aMesh)
   ofstream f(aFileName, ios_base::out | ios_base::binary);
   if(f.fail())
     throw runtime_error("Could not open output file.");
+
+  // Set floating point precision
+  f << setprecision(8);
 
   // Write header
   f << "ply" << endl;
