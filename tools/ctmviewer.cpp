@@ -125,14 +125,18 @@ class GLViewer {
     /// Draw a mesh
     void DrawMesh(Mesh &aMesh);
 
-    // Load a file to the mesh
+    /// Load a file to the mesh
     void LoadFile(const char * aFileName, const char * aOverrideTexture);
 
-    // Draw a string using GLUT. The string is shown on top of an alpha-blended
-    // quad.
+    /// Draw an outline box.
+    void DrawOutlineBox(int x1, int y1, int x2, int y2,
+      float r, float g, float b, float a);
+
+    /// Draw a string using GLUT. The string is shown on top of an alpha-blended
+    /// quad.
     void DrawString(string aString, int x, int y);
 
-    // Draw 2D overlay
+    /// Draw 2D overlay
     void Draw2DOverlay();
 
   public:
@@ -264,7 +268,7 @@ class GLButton {
       if(mHighlight)
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
       else
-        glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+        glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
 
       // Enable texturing
       if(mTexHandle)
@@ -714,6 +718,29 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   SetupCamera();
 }
 
+// Draw an outline box.
+void GLViewer::DrawOutlineBox(int x1, int y1, int x2, int y2,
+  float r, float g, float b, float a)
+{
+  glColor4f(r, g, b, a);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBegin(GL_QUADS);
+  glVertex2i(x1, y1);
+  glVertex2i(x2, y1);
+  glVertex2i(x2, y2);
+  glVertex2i(x1, y2);
+  glEnd();
+  glDisable(GL_BLEND);
+  glColor4f(r, g, b, 1.0f);
+  glBegin(GL_LINE_LOOP);
+  glVertex2i(x1, y1);
+  glVertex2i(x2, y1);
+  glVertex2i(x2, y2);
+  glVertex2i(x1, y2);
+  glEnd();
+}
+
 // Draw a string using GLUT. The string is shown on top of an alpha-blended
 // quad.
 void GLViewer::DrawString(string aString, int x, int y)
@@ -739,23 +766,7 @@ void GLViewer::DrawString(string aString, int x, int y)
   y1 = y2 + 13;
 
   // Draw a alpha blended box
-  glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glBegin(GL_QUADS);
-  glVertex2i(x0 - 4, y0 - 3);
-  glVertex2i(x1 + 4, y0 - 3);
-  glVertex2i(x1 + 4, y1 + 4);
-  glVertex2i(x0 - 4, y1 + 4);
-  glEnd();
-  glDisable(GL_BLEND);
-  glColor3f(0.5f, 0.5f, 0.5f);
-  glBegin(GL_LINE_LOOP);
-  glVertex2i(x0 - 4, y0 - 3);
-  glVertex2i(x1 + 4, y0 - 3);
-  glVertex2i(x1 + 4, y1 + 4);
-  glVertex2i(x0 - 4, y1 + 4);
-  glEnd();
+  DrawOutlineBox(x0-4, y0-3, x1+4, y1+4, 0.3f, 0.3f, 0.3f, 0.6f);
 
   // Print the text
   glColor3f(1.0f, 1.0f, 1.0f);
@@ -798,6 +809,17 @@ void GLViewer::Draw2DOverlay()
   s << mMesh.mVertices.size() << " vertices" << endl;
   s << mMesh.mIndices.size() / 3 << " triangles";
   DrawString(s.str(), 10, mHeight - 50);
+
+  // Calculate buttons bounding box, and draw it as an outline box
+  int x1 = 9999, y1 = 9999, x2 = 0, y2 = 0;
+  for(list<GLButton *>::iterator b = mButtons.begin(); b != mButtons.end(); ++ b)
+  {
+    if((*b)->mPosX < x1) x1 = (*b)->mPosX;
+    if(((*b)->mPosX + (*b)->mWidth) > x2) x2 = (*b)->mPosX + (*b)->mWidth;
+    if((*b)->mPosY < y1) y1 = (*b)->mPosY;
+    if(((*b)->mPosY + (*b)->mHeight) > y2) y2 = (*b)->mPosY + (*b)->mHeight;
+  }
+  DrawOutlineBox(x1-5, y1-5, x2+5, y2+5, 0.3f, 0.3f, 0.3f, 0.6f);
 
   // Render all the buttons (last = on top)
   for(list<GLButton *>::iterator b = mButtons.begin(); b != mButtons.end(); ++ b)
