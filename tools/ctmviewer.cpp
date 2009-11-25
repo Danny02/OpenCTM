@@ -207,7 +207,7 @@ class GLButton {
     }
 
     /// Destructor.
-    ~GLButton()
+    virtual ~GLButton()
     {
       if(mTexHandle)
         glDeleteTextures(1, &mTexHandle);
