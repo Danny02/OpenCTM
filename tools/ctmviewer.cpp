@@ -722,22 +722,27 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
 void GLViewer::DrawOutlineBox(int x1, int y1, int x2, int y2,
   float r, float g, float b, float a)
 {
-  glColor4f(r, g, b, a);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glBegin(GL_QUADS);
+  glColor4f(r, g, b, 0.7f * a);
   glVertex2i(x1, y1);
   glVertex2i(x2, y1);
+  glColor4f(r, g, b, 0.7f * a + 0.3f);
   glVertex2i(x2, y2);
   glVertex2i(x1, y2);
   glEnd();
   glDisable(GL_BLEND);
   glColor4f(r, g, b, 1.0f);
-  glBegin(GL_LINE_LOOP);
-  glVertex2i(x1, y1);
-  glVertex2i(x2, y1);
+  glBegin(GL_LINES);
+  glVertex2i(x1, y1-1);
+  glVertex2i(x2, y1-1);
+  glVertex2i(x2+1, y1);
+  glVertex2i(x2+1, y2);
   glVertex2i(x2, y2);
   glVertex2i(x1, y2);
+  glVertex2i(x1, y2);
+  glVertex2i(x1, y1);
   glEnd();
 }
 
@@ -1233,14 +1238,14 @@ void GLViewer::Run(int argc, char **argv)
     GLButton * b1 = new OpenButton();
     mButtons.push_back(b1);
     b1->mParent = this;
-    b1->SetGlyph(icon_open, 48, 48, 4);
-    b1->mPosX = 10;
+    b1->SetGlyph(icon_open, 32, 32, 4);
+    b1->mPosX = 12;
     b1->mPosY = 10;
     GLButton * b2 = new SaveButton();
     mButtons.push_back(b2);
     b2->mParent = this;
-    b2->SetGlyph(icon_save, 48, 48, 4);
-    b2->mPosX = 70;
+    b2->SetGlyph(icon_save, 32, 32, 4);
+    b2->mPosX = 60;
     b2->mPosY = 10;
 
     // Load the file
