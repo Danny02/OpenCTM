@@ -32,6 +32,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <clocale>
 #include <tinyxml.h>
 #include "dae.h"
 
@@ -214,10 +215,14 @@ void InsertVertNormalTexcoord(vector<Vector3>& vertVector,vector<Vector3>& norma
 /// Import a DAE file from a file.
 void Import_DAE(const char * aFileName, Mesh * aMesh)
 {
+  // Start by ensuring that we use proper locale settings for the file format
+  setlocale(LC_NUMERIC, "C");
+
   // Clear the mesh
   aMesh->Clear();
+
+  // Load the XML document
   TiXmlDocument doc(aFileName);
-  
   if (doc.LoadFile())
   {
     
@@ -501,6 +506,9 @@ static string MakeISO8601DateTime(void)
 /// Export a DAE file to a file.
 void Export_DAE(const char * aFileName, Mesh * aMesh)
 {
+  // Start by ensuring that we use proper locale settings for the file format
+  setlocale(LC_NUMERIC, "C");
+
   TiXmlDocument xmlDoc;
   TiXmlElement * elem;
   string dateTime = MakeISO8601DateTime();

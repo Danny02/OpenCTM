@@ -32,6 +32,7 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <clocale>
 #include <rply.h>
 #include "ply.h"
 
@@ -149,12 +150,14 @@ static int PLYColorCallback(p_ply_argument argument)
 /// Import a PLY file from a file.
 void Import_PLY(const char * aFileName, Mesh * aMesh)
 {
-  PLYReaderState state;
+  // Start by ensuring that we use proper locale settings for the file format
+  setlocale(LC_NUMERIC, "C");
 
   // Clear the mesh
   aMesh->Clear();
 
   // Initialize the state
+  PLYReaderState state;
   state.mMesh = aMesh;
   state.mFaceIdx = 0;
   state.mVertexIdx = 0;
@@ -228,6 +231,9 @@ void Import_PLY(const char * aFileName, Mesh * aMesh)
 /// Export a PLY file to a file.
 void Export_PLY(const char * aFileName, Mesh * aMesh)
 {
+  // Start by ensuring that we use proper locale settings for the file format
+  setlocale(LC_NUMERIC, "C");
+
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);
   if(f.fail())
