@@ -740,28 +740,35 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
 void GLViewer::DrawOutlineBox(int x1, int y1, int x2, int y2,
   float r, float g, float b, float a)
 {
+  // Draw a blended box
+  // Note: We add (1,1) to the (x2,y2) corner to cover the entire pixel range
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glBegin(GL_QUADS);
   glColor4f(r, g, b, 0.7f * a);
   glVertex2i(x1, y1);
-  glVertex2i(x2, y1);
+  glVertex2i(x2+1, y1);
   glColor4f(r, g, b, 0.7f * a + 0.3f);
-  glVertex2i(x2, y2);
-  glVertex2i(x1, y2);
+  glVertex2i(x2+1, y2+1);
+  glVertex2i(x1, y2+1);
   glEnd();
   glDisable(GL_BLEND);
+
+  // Draw a solid outline
+  glPushMatrix();
+  glTranslatef(0.5f, 0.5f, 0.0f);  // Compensate for 0.5 pixel center offset
   glColor4f(r, g, b, 1.0f);
-  glBegin(GL_LINES);
+  glBegin(GL_LINE_LOOP);
   glVertex2i(x1, y1-1);
   glVertex2i(x2, y1-1);
   glVertex2i(x2+1, y1);
   glVertex2i(x2+1, y2);
-  glVertex2i(x2, y2);
-  glVertex2i(x1, y2);
-  glVertex2i(x1, y2);
-  glVertex2i(x1, y1);
+  glVertex2i(x2, y2+1);
+  glVertex2i(x1, y2+1);
+  glVertex2i(x1-1, y2);
+  glVertex2i(x1-1, y1);
   glEnd();
+  glPopMatrix();
 }
 
 // Draw a string using GLUT. The string is shown on top of an alpha-blended
