@@ -166,10 +166,10 @@ static void WriteVector3(ostream &aStream, Vector3 aValue)
 }
 
 /// Import a 3DS file from a file.
-void Import_3DS(const char * aFileName, Mesh &aMesh)
+void Import_3DS(const char * aFileName, Mesh * aMesh)
 {
   // Clear the mesh
-  aMesh.Clear();
+  aMesh->Clear();
 
   // Open the input file
   ifstream f(aFileName, ios_base::in | ios_base::binary);
@@ -283,40 +283,40 @@ void Import_3DS(const char * aFileName, Mesh &aMesh)
   f.close();
 
   // Convert the loaded object list to the mesh structore (merge all geometries)
-  aMesh.Clear();
+  aMesh->Clear();
   for(list<Obj3DS>::iterator o = objList.begin(); o != objList.end(); ++ o)
   {
     // Append...
-    uint32 idxOffset = aMesh.mIndices.size();
-    uint32 vertOffset = aMesh.mVertices.size();
-    aMesh.mIndices.resize(idxOffset + (*o).mIndices.size());
-    aMesh.mVertices.resize(vertOffset + (*o).mVertices.size());
+    uint32 idxOffset = aMesh->mIndices.size();
+    uint32 vertOffset = aMesh->mVertices.size();
+    aMesh->mIndices.resize(idxOffset + (*o).mIndices.size());
+    aMesh->mVertices.resize(vertOffset + (*o).mVertices.size());
     if(hasUVCoords)
-      aMesh.mTexCoords.resize(vertOffset + (*o).mVertices.size());
+      aMesh->mTexCoords.resize(vertOffset + (*o).mVertices.size());
 
     // Transcode the data
     for(uint32 i = 0; i < (*o).mIndices.size(); ++ i)
-      aMesh.mIndices[idxOffset + i] = vertOffset + uint32((*o).mIndices[i]);
+      aMesh->mIndices[idxOffset + i] = vertOffset + uint32((*o).mIndices[i]);
     for(uint32 i = 0; i < (*o).mVertices.size(); ++ i)
-      aMesh.mVertices[vertOffset + i] = (*o).mVertices[i];
+      aMesh->mVertices[vertOffset + i] = (*o).mVertices[i];
     if(hasUVCoords)
     {
       if((*o).mUVCoords.size() == (*o).mVertices.size())
         for(uint32 i = 0; i < (*o).mVertices.size(); ++ i)
-          aMesh.mTexCoords[vertOffset + i] = (*o).mUVCoords[i];
+          aMesh->mTexCoords[vertOffset + i] = (*o).mUVCoords[i];
       else
         for(uint32 i = 0; i < (*o).mVertices.size(); ++ i)
-          aMesh.mTexCoords[vertOffset + i] = Vector2(0.0f, 0.0f);
+          aMesh->mTexCoords[vertOffset + i] = Vector2(0.0f, 0.0f);
     }
   }
 }
 
 /// Export a 3DS file to a file.
-void Export_3DS(const char * aFileName, Mesh &aMesh)
+void Export_3DS(const char * aFileName, Mesh * aMesh)
 {
   // First, check that the mesh fits in a 3DS file (at most 65535 triangles
   // and 65535 vertices are supported).
-  if((aMesh.mIndices.size() > (3*65535)) || (aMesh.mVertices.size() > 65535))
+  if((aMesh->mIndices.size() > (3*65535)) || (aMesh->mVertices.size() > 65535))
     throw runtime_error("The mesh is too large to fit in a 3DS file.");
 
   // Predefined names / strings
@@ -324,16 +324,16 @@ void Export_3DS(const char * aFileName, Mesh &aMesh)
   string matName("Material0");
 
   // Get mesh properties
-  uint32 triCount = aMesh.mIndices.size() / 3;
-  uint32 vertCount = aMesh.mVertices.size();
-  bool hasUVCoors = (aMesh.mTexCoords.size() == aMesh.mVertices.size());
+  uint32 triCount = aMesh->mIndices.size() / 3;
+  uint32 vertCount = aMesh->mVertices.size();
+  bool hasUVCoors = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
 
   // Calculate the material chunk size
   uint32 materialSize = 0;
   uint32 matGroupSize = 0;
-  if(hasUVCoors && aMesh.mTexFileName.size() > 0)
+  if(hasUVCoors && aMesh->mTexFileName.size() > 0)
   {
-    materialSize += 24 + matName.size() + 1 + aMesh.mTexFileName.size() + 1;
+    materialSize += 24 + matName.size() + 1 + aMesh->mTexFileName.size() + 1;
     matGroupSize += 8 + matName.size() + 1 + 2 * triCount;
   }
 
@@ -373,10 +373,10 @@ void Export_3DS(const char * aFileName, Mesh &aMesh)
     WriteInt32(f, 6 + matName.size() + 1);
     f.write(matName.c_str(), matName.size() + 1);
     WriteInt16(f, CHUNK_MAT_TEXMAP);
-    WriteInt32(f, 12 + aMesh.mTexFileName.size() + 1);
+    WriteInt32(f, 12 + aMesh->mTexFileName.size() + 1);
     WriteInt16(f, CHUNK_MAT_MAPNAME);
-    WriteInt32(f, 6 + aMesh.mTexFileName.size() + 1);
-    f.write(aMesh.mTexFileName.c_str(), aMesh.mTexFileName.size() + 1);
+    WriteInt32(f, 6 + aMesh->mTexFileName.size() + 1);
+    f.write(aMesh->mTexFileName.c_str(), aMesh->mTexFileName.size() + 1);
   }
 
   // Object chunk
@@ -393,7 +393,7 @@ void Export_3DS(const char * aFileName, Mesh &aMesh)
   WriteInt32(f, 8 + 12 * vertCount);
   WriteInt16(f, vertCount);
   for(uint32 i = 0; i < vertCount; ++ i)
-    WriteVector3(f, aMesh.mVertices[i]);
+    WriteVector3(f, aMesh->mVertices[i]);
 
   // Mapping Coordinates chunk
   if(hasUVCoors)
@@ -402,7 +402,7 @@ void Export_3DS(const char * aFileName, Mesh &aMesh)
     WriteInt32(f, 8 + 8 * vertCount);
     WriteInt16(f, vertCount);
     for(uint32 i = 0; i < vertCount; ++ i)
-      WriteVector2(f, aMesh.mTexCoords[i]);
+      WriteVector2(f, aMesh->mTexCoords[i]);
   }
 
   // Faces chunk
@@ -411,9 +411,9 @@ void Export_3DS(const char * aFileName, Mesh &aMesh)
   WriteInt16(f, triCount);
   for(uint32 i = 0; i < triCount; ++ i)
   {
-    WriteInt16(f, uint16(aMesh.mIndices[i * 3]));
-    WriteInt16(f, uint16(aMesh.mIndices[i * 3 + 1]));
-    WriteInt16(f, uint16(aMesh.mIndices[i * 3 + 2]));
+    WriteInt16(f, uint16(aMesh->mIndices[i * 3]));
+    WriteInt16(f, uint16(aMesh->mIndices[i * 3 + 1]));
+    WriteInt16(f, uint16(aMesh->mIndices[i * 3 + 2]));
     WriteInt16(f, 0);
   }
 

@@ -34,10 +34,10 @@
 
 
 /// Import a mesh from a file.
-void ImportMesh(const char * aFileName, Mesh &aMesh);
+void ImportMesh(const char * aFileName, Mesh * aMesh);
 
 /// Export a mesh to a file.
-void ExportMesh(const char * aFileName, Mesh &aMesh, Options &aOptions);
+void ExportMesh(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 /// Return a list of supported formats.
 void SupportedFormats(std::list<std::string> &aList);

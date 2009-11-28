@@ -31,9 +31,9 @@
 #include "mesh.h"
 
 /// Import a mesh from an OBJ file.
-void Import_OBJ(const char * aFileName, Mesh &aMesh);
+void Import_OBJ(const char * aFileName, Mesh * aMesh);
 
 /// Export a mesh to an OBJ file.
-void Export_OBJ(const char * aFileName, Mesh &aMesh);
+void Export_OBJ(const char * aFileName, Mesh * aMesh);
 
 #endif // __OBJ_H_

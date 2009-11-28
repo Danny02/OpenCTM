@@ -147,15 +147,15 @@ static int PLYColorCallback(p_ply_argument argument)
 }
 
 /// Import a PLY file from a file.
-void Import_PLY(const char * aFileName, Mesh &aMesh)
+void Import_PLY(const char * aFileName, Mesh * aMesh)
 {
   PLYReaderState state;
 
   // Clear the mesh
-  aMesh.Clear();
+  aMesh->Clear();
 
   // Initialize the state
-  state.mMesh = &aMesh;
+  state.mMesh = aMesh;
   state.mFaceIdx = 0;
   state.mVertexIdx = 0;
   state.mNormalIdx = 0;
@@ -175,9 +175,9 @@ void Import_PLY(const char * aFileName, Mesh &aMesh)
   while(comment)
   {
     if(firstComment)
-      aMesh.mComment = string(comment);
+      aMesh->mComment = string(comment);
     else
-      aMesh.mComment += string(" ") + string(comment);
+      aMesh->mComment += string(" ") + string(comment);
     firstComment = false;
     comment = ply_get_next_comment(ply, comment);
   }
@@ -211,11 +211,11 @@ void Import_PLY(const char * aFileName, Mesh &aMesh)
     throw runtime_error("Empty PLY mesh - invalid file format?");
 
   // Prepare the mesh
-  aMesh.mIndices.resize(faceCount * 3);
-  aMesh.mVertices.resize(vertexCount);
-  aMesh.mNormals.resize(normalCount);
-  aMesh.mTexCoords.resize(texCoordCount);
-  aMesh.mColors.resize(colorCount);
+  aMesh->mIndices.resize(faceCount * 3);
+  aMesh->mVertices.resize(vertexCount);
+  aMesh->mNormals.resize(normalCount);
+  aMesh->mTexCoords.resize(texCoordCount);
+  aMesh->mColors.resize(colorCount);
 
   // Read the PLY file
   if(!ply_read(ply))
@@ -226,7 +226,7 @@ void Import_PLY(const char * aFileName, Mesh &aMesh)
 }
 
 /// Export a PLY file to a file.
-void Export_PLY(const char * aFileName, Mesh &aMesh)
+void Export_PLY(const char * aFileName, Mesh * aMesh)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);
@@ -239,58 +239,58 @@ void Export_PLY(const char * aFileName, Mesh &aMesh)
   // Write header
   f << "ply" << endl;
   f << "format ascii 1.0" << endl;
-  if(aMesh.mComment.size() > 0)
-    f << "comment " << aMesh.mComment << endl;
-  f << "element vertex " << aMesh.mVertices.size() << endl;
+  if(aMesh->mComment.size() > 0)
+    f << "comment " << aMesh->mComment << endl;
+  f << "element vertex " << aMesh->mVertices.size() << endl;
   f << "property float x" << endl;
   f << "property float y" << endl;
   f << "property float z" << endl;
-  if(aMesh.mTexCoords.size() > 0)
+  if(aMesh->mTexCoords.size() > 0)
   {
     f << "property float s" << endl;
     f << "property float t" << endl;
   }
-  if(aMesh.mNormals.size() > 0)
+  if(aMesh->mNormals.size() > 0)
   {
     f << "property float nx" << endl;
     f << "property float ny" << endl;
     f << "property float nz" << endl;
   }
-  if(aMesh.mColors.size() > 0)
+  if(aMesh->mColors.size() > 0)
   {
     f << "property uchar red" << endl;
     f << "property uchar green" << endl;
     f << "property uchar blue" << endl;
   }
-  f << "element face " << aMesh.mIndices.size() / 3 << endl;
+  f << "element face " << aMesh->mIndices.size() / 3 << endl;
   f << "property list uchar int vertex_indices" << endl;
   f << "end_header" << endl;
 
   // Write vertices
-  for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
+  for(unsigned int i = 0; i < aMesh->mVertices.size(); ++ i)
   {
-    f << aMesh.mVertices[i].x << " " <<
-               aMesh.mVertices[i].y << " " <<
-               aMesh.mVertices[i].z;
-    if(aMesh.mTexCoords.size() > 0)
-      f << " " << aMesh.mTexCoords[i].u << " " <<
-                        aMesh.mTexCoords[i].v;
-    if(aMesh.mNormals.size() > 0)
-      f << " " << aMesh.mNormals[i].x << " " <<
-                        aMesh.mNormals[i].y << " " <<
-                        aMesh.mNormals[i].z;
-    if(aMesh.mColors.size() > 0)
-      f << " " << int(floorf(255.0f * aMesh.mColors[i].x + 0.5f)) << " " <<
-                        int(floorf(255.0f * aMesh.mColors[i].y + 0.5f)) << " " <<
-                        int(floorf(255.0f * aMesh.mColors[i].z + 0.5f));
+    f << aMesh->mVertices[i].x << " " <<
+               aMesh->mVertices[i].y << " " <<
+               aMesh->mVertices[i].z;
+    if(aMesh->mTexCoords.size() > 0)
+      f << " " << aMesh->mTexCoords[i].u << " " <<
+                        aMesh->mTexCoords[i].v;
+    if(aMesh->mNormals.size() > 0)
+      f << " " << aMesh->mNormals[i].x << " " <<
+                        aMesh->mNormals[i].y << " " <<
+                        aMesh->mNormals[i].z;
+    if(aMesh->mColors.size() > 0)
+      f << " " << int(floorf(255.0f * aMesh->mColors[i].x + 0.5f)) << " " <<
+                        int(floorf(255.0f * aMesh->mColors[i].y + 0.5f)) << " " <<
+                        int(floorf(255.0f * aMesh->mColors[i].z + 0.5f));
     f << endl;
   }
 
   // Write faces
-  for(unsigned int i = 0; i < aMesh.mIndices.size() / 3; ++ i)
-    f << "3 " << aMesh.mIndices[i * 3] << " " <<
-                       aMesh.mIndices[i * 3 + 1] << " " <<
-                       aMesh.mIndices[i * 3 + 2] << endl;
+  for(unsigned int i = 0; i < aMesh->mIndices.size() / 3; ++ i)
+    f << "3 " << aMesh->mIndices[i * 3] << " " <<
+                 aMesh->mIndices[i * 3 + 1] << " " <<
+                 aMesh->mIndices[i * 3 + 2] << endl;
 
   // Close the output file
   f.close();

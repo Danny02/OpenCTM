@@ -31,9 +31,9 @@
 #include "mesh.h"
 
 /// Import a PLY file from a file.
-void Import_PLY(const char * aFileName, Mesh &aMesh);
+void Import_PLY(const char * aFileName, Mesh * aMesh);
 
 /// Export a PLY file to a file.
-void Export_PLY(const char * aFileName, Mesh &aMesh);
+void Export_PLY(const char * aFileName, Mesh * aMesh);
 
 #endif // __PLY_H_

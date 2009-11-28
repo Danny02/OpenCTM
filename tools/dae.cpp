@@ -212,10 +212,10 @@ void InsertVertNormalTexcoord(vector<Vector3>& vertVector,vector<Vector3>& norma
 }
 
 /// Import a DAE file from a file.
-void Import_DAE(const char * aFileName, Mesh &aMesh)
+void Import_DAE(const char * aFileName, Mesh * aMesh)
 {
   // Clear the mesh
-  aMesh.Clear();
+  aMesh->Clear();
   TiXmlDocument doc(aFileName);
   
   if (doc.LoadFile())
@@ -443,22 +443,22 @@ void Import_DAE(const char * aFileName, Mesh &aMesh)
           vertexOffset += vertVector.size();
           normalOffset += normalVector.size();
           texcoordOffset += texcoordVector.size();
-          aMesh.mIndices.resize(indicesOffset );
-          aMesh.mVertices.resize(vertexOffset );
-          aMesh.mNormals.resize(normalOffset );
-          aMesh.mTexCoords.resize(texcoordOffset );
+          aMesh->mIndices.resize(indicesOffset );
+          aMesh->mVertices.resize(vertexOffset );
+          aMesh->mNormals.resize(normalOffset );
+          aMesh->mTexCoords.resize(texcoordOffset );
           
           for(size_t i = 0; i < indexVector.size(); ++i)
-            aMesh.mIndices[indicesOff + i] = indexVector[i];
+            aMesh->mIndices[indicesOff + i] = indexVector[i];
           
           for(size_t i = 0; i < vertVector.size(); ++i)
-            aMesh.mVertices[vertexOff + i] = vertVector[i];
+            aMesh->mVertices[vertexOff + i] = vertVector[i];
           
           for(size_t i = 0; i < normalVector.size(); ++i)
-            aMesh.mNormals[normalOff + i] = normalVector[i];
+            aMesh->mNormals[normalOff + i] = normalVector[i];
           
           for(size_t i = 0; i < texcoordVector.size(); ++i)
-            aMesh.mTexCoords[texcoordOff + i] = texcoordVector[i];
+            aMesh->mTexCoords[texcoordOff + i] = texcoordVector[i];
         }
       }
     }
@@ -499,7 +499,7 @@ static string MakeISO8601DateTime(void)
 }
 
 /// Export a DAE file to a file.
-void Export_DAE(const char * aFileName, Mesh &aMesh)
+void Export_DAE(const char * aFileName, Mesh * aMesh)
 {
   TiXmlDocument xmlDoc;
   TiXmlElement * elem;
@@ -524,7 +524,7 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   authoring_tool->LinkEndChild(new TiXmlText("ctmconv"));
   TiXmlElement * comments = new TiXmlElement("comments");
   contributor->LinkEndChild(comments);
-  comments->LinkEndChild(new TiXmlText(aMesh.mComment.c_str()));
+  comments->LinkEndChild(new TiXmlText(aMesh->mComment.c_str()));
   elem = new TiXmlElement("created");
   asset->LinkEndChild(elem);
   elem->LinkEndChild(new TiXmlText(dateTime.c_str()));
@@ -550,13 +550,13 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   TiXmlElement * positions_array = new TiXmlElement("float_array");
   source_position->LinkEndChild(positions_array);
   positions_array->SetAttribute("id", "Mesh-1-positions-array");
-  positions_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
-  FloatArrayToXML(positions_array, &aMesh.mVertices[0].x, aMesh.mVertices.size() * 3);
+  positions_array->SetAttribute("count", int(aMesh->mVertices.size() * 3));
+  FloatArrayToXML(positions_array, &aMesh->mVertices[0].x, aMesh->mVertices.size() * 3);
   TiXmlElement * positions_technique = new TiXmlElement("technique_common");
   source_position->LinkEndChild(positions_technique);
   TiXmlElement * positions_technique_accessor = new TiXmlElement("accessor");
   positions_technique->LinkEndChild(positions_technique_accessor);
-  positions_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size()));
+  positions_technique_accessor->SetAttribute("count", int(aMesh->mVertices.size()));
   positions_technique_accessor->SetAttribute("offset", 0);
   positions_technique_accessor->SetAttribute("source", "#Mesh-1-positions-array");
   positions_technique_accessor->SetAttribute("stride", 3);
@@ -574,7 +574,7 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   elem->SetAttribute("type", "float");
 
   // Normals
-  bool hasNormals = (aMesh.mNormals.size() == aMesh.mVertices.size());
+  bool hasNormals = (aMesh->mNormals.size() == aMesh->mVertices.size());
   if(hasNormals)
   {
     TiXmlElement * source_normal = new TiXmlElement("source");
@@ -584,13 +584,13 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
     TiXmlElement * normals_array = new TiXmlElement("float_array");
     source_normal->LinkEndChild(normals_array);
     normals_array->SetAttribute("id", "Mesh-1-normals-array");
-    normals_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
-    FloatArrayToXML(normals_array, &aMesh.mNormals[0].x, aMesh.mNormals.size() * 3);
+    normals_array->SetAttribute("count", int(aMesh->mVertices.size() * 3));
+    FloatArrayToXML(normals_array, &aMesh->mNormals[0].x, aMesh->mNormals.size() * 3);
     TiXmlElement * normals_technique = new TiXmlElement("technique_common");
     source_normal->LinkEndChild(normals_technique);
     TiXmlElement * normals_technique_accessor = new TiXmlElement("accessor");
     normals_technique->LinkEndChild(normals_technique_accessor);
-    normals_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size()));
+    normals_technique_accessor->SetAttribute("count", int(aMesh->mVertices.size()));
     normals_technique_accessor->SetAttribute("offset", 0);
     normals_technique_accessor->SetAttribute("source", "#Mesh-1-normals-array");
     normals_technique_accessor->SetAttribute("stride", 3);
@@ -609,7 +609,7 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   }
 
   // UV map
-  bool hasTexCoords = (aMesh.mTexCoords.size() == aMesh.mVertices.size());
+  bool hasTexCoords = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
   if(hasTexCoords)
   {
     TiXmlElement * source_map1 = new TiXmlElement("source");
@@ -619,13 +619,13 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
     TiXmlElement * map1_array = new TiXmlElement("float_array");
     source_map1->LinkEndChild(map1_array);
     map1_array->SetAttribute("id", "Mesh-1-map1-array");
-    map1_array->SetAttribute("count", int(aMesh.mVertices.size() * 3));
-    FloatArrayToXML(map1_array, &aMesh.mTexCoords[0].u, aMesh.mTexCoords.size() * 2);
+    map1_array->SetAttribute("count", int(aMesh->mVertices.size() * 3));
+    FloatArrayToXML(map1_array, &aMesh->mTexCoords[0].u, aMesh->mTexCoords.size() * 2);
     TiXmlElement * map1_technique = new TiXmlElement("technique_common");
     source_map1->LinkEndChild(map1_technique);
     TiXmlElement * map1_technique_accessor = new TiXmlElement("accessor");
     map1_technique->LinkEndChild(map1_technique_accessor);
-    map1_technique_accessor->SetAttribute("count", int(aMesh.mVertices.size()));
+    map1_technique_accessor->SetAttribute("count", int(aMesh->mVertices.size()));
     map1_technique_accessor->SetAttribute("offset", 0);
     map1_technique_accessor->SetAttribute("source", "#Mesh-1-map1-array");
     map1_technique_accessor->SetAttribute("stride", 2);
@@ -651,7 +651,7 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
   // Triangles
   TiXmlElement * triangles = new TiXmlElement("triangles");
   mesh->LinkEndChild(triangles);
-  triangles->SetAttribute("count", int(aMesh.mIndices.size() / 3));
+  triangles->SetAttribute("count", int(aMesh->mIndices.size() / 3));
   int triangleInputCount = 0;
   elem = new TiXmlElement("input");
   triangles->LinkEndChild(elem);
@@ -682,9 +682,9 @@ void Export_DAE(const char * aFileName, Mesh &aMesh)
     elem = new TiXmlElement("p");
     triangles->LinkEndChild(elem);
     stringstream ss;
-    for(unsigned int i = 0; i < aMesh.mIndices.size(); ++ i)
+    for(unsigned int i = 0; i < aMesh->mIndices.size(); ++ i)
       for(int j = 0; j < triangleInputCount; ++ j)
-        ss << aMesh.mIndices[i] << " ";
+        ss << aMesh->mIndices[i] << " ";
     elem->LinkEndChild(new TiXmlText(ss.str().c_str()));
   }
 

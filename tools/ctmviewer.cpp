@@ -89,7 +89,7 @@ class GLViewer {
     bool mMouseZoom;
 
     // Mesh information
-    Mesh mMesh;
+    Mesh * mMesh;
     Vector3 mAABBMin, mAABBMax;
     Vector3 mCameraPosition, mCameraLookAt;
     GLuint mDisplayList;
@@ -123,7 +123,7 @@ class GLViewer {
     void SetupMaterial();
 
     /// Draw a mesh
-    void DrawMesh(Mesh &aMesh);
+    void DrawMesh(Mesh * aMesh);
 
     /// Load a file to the mesh
     void LoadFile(const char * aFileName, const char * aOverrideTexture);
@@ -372,7 +372,13 @@ void GLUTSpecialKeyDown(int key, int x, int y);
 /// Set up the camera.
 void GLViewer::SetupCamera()
 {
-  mMesh.BoundingBox(mAABBMin, mAABBMax);
+  if(mMesh)
+    mMesh->BoundingBox(mAABBMin, mAABBMax);
+  else
+  {
+    mAABBMin = Vector3(-1.0f, -1.0f, -1.0f);
+    mAABBMax = Vector3(1.0f, 1.0f, 1.0f);
+  }
   mCameraLookAt = (mAABBMax + mAABBMin) * 0.5f;
   float delta = (mAABBMax - mAABBMin).Abs();
   mCameraPosition = Vector3(mCameraLookAt.x,
@@ -581,42 +587,42 @@ void GLViewer::SetupMaterial()
 }
 
 /// Draw a mesh
-void GLViewer::DrawMesh(Mesh &aMesh)
+void GLViewer::DrawMesh(Mesh * aMesh)
 {
   // We always have vertices
-  glVertexPointer(3, GL_FLOAT, 0, &aMesh.mVertices[0]);
+  glVertexPointer(3, GL_FLOAT, 0, &aMesh->mVertices[0]);
   glEnableClientState(GL_VERTEX_ARRAY);
 
   // Do we have normals?
-  if(aMesh.mNormals.size() == aMesh.mVertices.size())
+  if(aMesh->mNormals.size() == aMesh->mVertices.size())
   {
-    glNormalPointer(GL_FLOAT, 0, &aMesh.mNormals[0]);
+    glNormalPointer(GL_FLOAT, 0, &aMesh->mNormals[0]);
     glEnableClientState(GL_NORMAL_ARRAY);
   }
 
   // Do we have texture coordinates?
-  if(aMesh.mTexCoords.size() == aMesh.mVertices.size())
+  if(aMesh->mTexCoords.size() == aMesh->mVertices.size())
   {
-    glTexCoordPointer(2, GL_FLOAT, 0, &aMesh.mTexCoords[0]);
+    glTexCoordPointer(2, GL_FLOAT, 0, &aMesh->mTexCoords[0]);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   }
 
   // Do we have colors?
-  if(aMesh.mColors.size() == aMesh.mVertices.size())
+  if(aMesh->mColors.size() == aMesh->mVertices.size())
   {
-    glColorPointer(4, GL_FLOAT, 0, &aMesh.mColors[0]);
+    glColorPointer(4, GL_FLOAT, 0, &aMesh->mColors[0]);
     glEnableClientState(GL_COLOR_ARRAY);
   }
 
   // Use glDrawElements to draw the triangles...
   glShadeModel(GL_SMOOTH);
   if(GLEW_VERSION_1_2)
-    glDrawRangeElements(GL_TRIANGLES, 0, aMesh.mVertices.size() - 1,
-                        aMesh.mIndices.size(), GL_UNSIGNED_INT,
-                        &aMesh.mIndices[0]);
+    glDrawRangeElements(GL_TRIANGLES, 0, aMesh->mVertices.size() - 1,
+                        aMesh->mIndices.size(), GL_UNSIGNED_INT,
+                        &aMesh->mIndices[0]);
   else
-    glDrawElements(GL_TRIANGLES, aMesh.mIndices.size(), GL_UNSIGNED_INT,
-                   &aMesh.mIndices[0]);
+    glDrawElements(GL_TRIANGLES, aMesh->mIndices.size(), GL_UNSIGNED_INT,
+                   &aMesh->mIndices[0]);
 
   // We do not use the client state anymore...
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -640,7 +646,19 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   cout << "Loading " << aFileName << "..." << flush;
   SysTimer t;
   t.Push();
-  ImportMesh(aFileName, mMesh);
+  Mesh * newMesh = new Mesh();
+  try
+  {
+    ImportMesh(aFileName, newMesh);
+  }
+  catch(exception &e)
+  {
+    delete newMesh;
+    throw;
+  }
+  if(mMesh)
+    delete mMesh;
+  mMesh = newMesh;
   cout << "done (" << int(t.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
 
   // Get the file name (excluding the path), and the path (excluding the file name)
@@ -664,12 +682,12 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   glutSetWindowTitle(windowCaption.c_str());
 
   // If the file did not contain any normals, calculate them now...
-  if(mMesh.mNormals.size() != mMesh.mVertices.size())
+  if(mMesh->mNormals.size() != mMesh->mVertices.size())
   {
     cout << "Calculating normals..." << flush;
     SysTimer t;
     t.Push();
-    mMesh.CalculateNormals();
+    mMesh->CalculateNormals();
     cout << "done (" << int(t.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
   }
 
@@ -677,9 +695,9 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   if(mTexHandle)
     glDeleteTextures(1, &mTexHandle);
   mTexHandle = 0;
-  if(mMesh.mTexCoords.size() == mMesh.mVertices.size())
+  if(mMesh->mTexCoords.size() == mMesh->mVertices.size())
   {
-    string texFileName = mMesh.mTexFileName;
+    string texFileName = mMesh->mTexFileName;
     if(aOverrideTexture)
       texFileName = string(aOverrideTexture);
     if(texFileName.size() > 0)
@@ -811,8 +829,11 @@ void GLViewer::Draw2DOverlay()
   // Render an info string
   stringstream s;
   s << mFileName << " (" << (mFileSize + 512) / 1024 << "KB)" << endl;
-  s << mMesh.mVertices.size() << " vertices" << endl;
-  s << mMesh.mIndices.size() / 3 << " triangles";
+  if(mMesh)
+  {
+    s << mMesh->mVertices.size() << " vertices" << endl;
+    s << mMesh->mIndices.size() / 3 << " triangles";
+  }
   DrawString(s.str(), 10, mHeight - 50);
 
   // Calculate buttons bounding box, and draw it as an outline box
@@ -869,6 +890,8 @@ void GLViewer::ActionOpenFile()
 /// Save the file
 void GLViewer::ActionSaveFile()
 {
+  if(!mMesh)
+    return;
   SysSaveDialog sd;
   sd.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
   sd.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
@@ -1008,7 +1031,8 @@ void GLViewer::WindowRedraw(void)
   }
   else
     glColor3f(0.9f, 0.86f, 0.7f);
-  glCallList(mDisplayList);
+  if(mDisplayList)
+    glCallList(mDisplayList);
   glDisable(GL_TEXTURE_2D);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -1191,6 +1215,7 @@ GLViewer::GLViewer()
   mShaderProgram = 0;
   mVertShader = 0;
   mFragShader = 0;
+  mMesh = NULL;
 }
 
 /// Destructor
@@ -1199,6 +1224,10 @@ GLViewer::~GLViewer()
   // Free all GUI buttons
   for(list<GLButton *>::iterator b = mButtons.begin(); b != mButtons.end(); ++ b)
     delete (*b);
+
+  // Free the mesh
+  if(mMesh)
+    delete mMesh;
 }
 
 /// Run the application
@@ -1249,10 +1278,13 @@ void GLViewer::Run(int argc, char **argv)
     b2->mPosY = 10;
 
     // Load the file
-    const char * overrideTexName = NULL;
-    if(argc >= 3)
-      overrideTexName = argv[2];
-    LoadFile(argv[1], overrideTexName);
+    if(argc >= 2)
+    {
+      const char * overrideTexName = NULL;
+      if(argc >= 3)
+        overrideTexName = argv[2];
+      LoadFile(argv[1], overrideTexName);
+    }
 
     // Enter the main loop
     glutMainLoop();

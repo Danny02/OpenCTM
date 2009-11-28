@@ -129,10 +129,10 @@ static Vector3 ParseVector3(const string aString)
 }
 
 /// Import a mesh from an OBJ file.
-void Import_OBJ(const char * aFileName, Mesh &aMesh)
+void Import_OBJ(const char * aFileName, Mesh * aMesh)
 {
   // Clear the mesh
-  aMesh.Clear();
+  aMesh->Clear();
 
   // Open the input file
   ifstream inFile(aFileName, ios_base::in | ios_base::binary);
@@ -169,11 +169,11 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
   vector<Vector3> normalsArray(normals.begin(), normals.end());
 
   // Prepare vertices
-  aMesh.mVertices.resize(verticesArray.size());
+  aMesh->mVertices.resize(verticesArray.size());
   if(texCoordsArray.size() > 0)
-    aMesh.mTexCoords.resize(verticesArray.size());
+    aMesh->mTexCoords.resize(verticesArray.size());
   if(normalsArray.size() > 0)
-    aMesh.mNormals.resize(verticesArray.size());
+    aMesh->mNormals.resize(verticesArray.size());
 
   // Prepare indices
   int triCount = 0;
@@ -184,7 +184,7 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
       throw runtime_error("Faces must have at least three nodes.");
     triCount += (nodeCount - 2);
   }
-  aMesh.mIndices.resize(triCount * 3);
+  aMesh->mIndices.resize(triCount * 3);
 
   // Iterate faces and extract vertex data
   unsigned int idx = 0;
@@ -216,23 +216,23 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
       // Emit one triangle?
       if(nodeCount >= 3)
       {
-        aMesh.mIndices[idx ++] = nodes[0][0];
-        aMesh.mIndices[idx ++] = nodes[1][0];
-        aMesh.mIndices[idx ++] = nodes[2][0];
-        aMesh.mVertices[nodes[0][0]] = verticesArray[nodes[0][0]];
-        aMesh.mVertices[nodes[1][0]] = verticesArray[nodes[1][0]];
-        aMesh.mVertices[nodes[2][0]] = verticesArray[nodes[2][0]];
+        aMesh->mIndices[idx ++] = nodes[0][0];
+        aMesh->mIndices[idx ++] = nodes[1][0];
+        aMesh->mIndices[idx ++] = nodes[2][0];
+        aMesh->mVertices[nodes[0][0]] = verticesArray[nodes[0][0]];
+        aMesh->mVertices[nodes[1][0]] = verticesArray[nodes[1][0]];
+        aMesh->mVertices[nodes[2][0]] = verticesArray[nodes[2][0]];
         if(texCoordsArray.size() > 0)
         {
-          aMesh.mTexCoords[nodes[0][0]] = texCoordsArray[nodes[0][1]];
-          aMesh.mTexCoords[nodes[1][0]] = texCoordsArray[nodes[1][1]];
-          aMesh.mTexCoords[nodes[2][0]] = texCoordsArray[nodes[2][1]];
+          aMesh->mTexCoords[nodes[0][0]] = texCoordsArray[nodes[0][1]];
+          aMesh->mTexCoords[nodes[1][0]] = texCoordsArray[nodes[1][1]];
+          aMesh->mTexCoords[nodes[2][0]] = texCoordsArray[nodes[2][1]];
         }
         if(normalsArray.size() > 0)
         {
-          aMesh.mNormals[nodes[0][0]] = normalsArray[nodes[0][2]];
-          aMesh.mNormals[nodes[1][0]] = normalsArray[nodes[1][2]];
-          aMesh.mNormals[nodes[2][0]] = normalsArray[nodes[2][2]];
+          aMesh->mNormals[nodes[0][0]] = normalsArray[nodes[0][2]];
+          aMesh->mNormals[nodes[1][0]] = normalsArray[nodes[1][2]];
+          aMesh->mNormals[nodes[2][0]] = normalsArray[nodes[2][2]];
         }
       }
     }
@@ -243,48 +243,48 @@ void Import_OBJ(const char * aFileName, Mesh &aMesh)
 }
 
 /// Export a mesh to an OBJ file.
-void Export_OBJ(const char * aFileName, Mesh &aMesh)
+void Export_OBJ(const char * aFileName, Mesh * aMesh)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 
-  bool hasUVCoords = (aMesh.mTexCoords.size() == aMesh.mVertices.size());
-  bool hasNormals = (aMesh.mNormals.size() == aMesh.mVertices.size());
+  bool hasUVCoords = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
+  bool hasNormals = (aMesh->mNormals.size() == aMesh->mVertices.size());
 
   // Set floating point precision
   f << setprecision(8);
 
   // Write comment
-  if(aMesh.mComment.size() > 0)
-    f << "# " << aMesh.mComment << endl;
+  if(aMesh->mComment.size() > 0)
+    f << "# " << aMesh->mComment << endl;
   f << "# Generator: ctmconv" << endl;
 
   // Write vertices
-  for(unsigned int i = 0; i < aMesh.mVertices.size(); ++ i)
-    f << "v " << aMesh.mVertices[i].x << " " << aMesh.mVertices[i].y << " " << aMesh.mVertices[i].z << endl;
+  for(unsigned int i = 0; i < aMesh->mVertices.size(); ++ i)
+    f << "v " << aMesh->mVertices[i].x << " " << aMesh->mVertices[i].y << " " << aMesh->mVertices[i].z << endl;
 
   // Write UV coordinates
   if(hasUVCoords)
   {
-    for(unsigned int i = 0; i < aMesh.mTexCoords.size(); ++ i)
-      f << "vt " << aMesh.mTexCoords[i].u << " " << aMesh.mTexCoords[i].v << endl;
+    for(unsigned int i = 0; i < aMesh->mTexCoords.size(); ++ i)
+      f << "vt " << aMesh->mTexCoords[i].u << " " << aMesh->mTexCoords[i].v << endl;
   }
 
   // Write normals
   if(hasNormals)
   {
-    for(unsigned int i = 0; i < aMesh.mNormals.size(); ++ i)
-      f << "vn " << aMesh.mNormals[i].x << " " << aMesh.mNormals[i].y << " " << aMesh.mNormals[i].z << endl;
+    for(unsigned int i = 0; i < aMesh->mNormals.size(); ++ i)
+      f << "vn " << aMesh->mNormals[i].x << " " << aMesh->mNormals[i].y << " " << aMesh->mNormals[i].z << endl;
   }
 
   // Write faces
-  unsigned int triCount = aMesh.mIndices.size() / 3;
+  unsigned int triCount = aMesh->mIndices.size() / 3;
   f << "s 1" << endl; // Put all faces in the same smoothing group
   for(unsigned int i = 0; i < triCount; ++ i)
   {
-    unsigned int idx = aMesh.mIndices[i * 3] + 1;
+    unsigned int idx = aMesh->mIndices[i * 3] + 1;
     f << "f " << idx << "/";
     if(hasUVCoords)
       f << idx;
@@ -292,7 +292,7 @@ void Export_OBJ(const char * aFileName, Mesh &aMesh)
     if(hasNormals)
       f << idx;
 
-    idx = aMesh.mIndices[i * 3 + 1] + 1;
+    idx = aMesh->mIndices[i * 3 + 1] + 1;
     f << " " << idx << "/";
     if(hasUVCoords)
       f << idx;
@@ -300,7 +300,7 @@ void Export_OBJ(const char * aFileName, Mesh &aMesh)
     if(hasNormals)
       f << idx;
 
-    idx = aMesh.mIndices[i * 3 + 2] + 1;
+    idx = aMesh->mIndices[i * 3 + 2] + 1;
     f << " " << idx << "/";
     if(hasUVCoords)
       f << idx;

@@ -107,10 +107,10 @@ class SortVertex {
 };
 
 /// Import an STL file from a file.
-void Import_STL(const char * aFileName, Mesh &aMesh)
+void Import_STL(const char * aFileName, Mesh * aMesh)
 {
   // Clear the mesh
-  aMesh.Clear();
+  aMesh->Clear();
 
   // Open the input file
   ifstream f(aFileName, ios_base::in | ios_base::binary);
@@ -128,7 +128,7 @@ void Import_STL(const char * aFileName, Mesh &aMesh)
   char comment[81];
   f.read(comment, 80);
   comment[80] = 0;
-  aMesh.mComment = string(comment);
+  aMesh->mComment = string(comment);
   uint32 triangleCount = ReadInt32(f);
   if(fileSize != (84 + triangleCount * 50))
     throw runtime_error("Invalid format - not a valid STL file.");
@@ -162,8 +162,8 @@ void Import_STL(const char * aFileName, Mesh &aMesh)
     // of vertex duplicates, so remove the redundancy), and store the data in
     // the mesh object
     sort(vertices.begin(), vertices.end());
-    aMesh.mVertices.resize(vertices.size());
-    aMesh.mIndices.resize(vertices.size());
+    aMesh->mVertices.resize(vertices.size());
+    aMesh->mIndices.resize(vertices.size());
     SortVertex * firstEqual = &vertices[0];
     int vertIdx = -1;
     for(uint32 i = 0; i < vertices.size(); ++ i)
@@ -175,11 +175,11 @@ void Import_STL(const char * aFileName, Mesh &aMesh)
       {
         firstEqual = &vertices[i];
         ++ vertIdx;
-        aMesh.mVertices[vertIdx] = Vector3(firstEqual->x, firstEqual->y, firstEqual->z);
+        aMesh->mVertices[vertIdx] = Vector3(firstEqual->x, firstEqual->y, firstEqual->z);
       }
-      aMesh.mIndices[vertices[i].mOldIndex] = vertIdx;
+      aMesh->mIndices[vertices[i].mOldIndex] = vertIdx;
     }
-    aMesh.mVertices.resize(vertIdx + 1);
+    aMesh->mVertices.resize(vertIdx + 1);
   }
 
   // Close the input file
@@ -187,7 +187,7 @@ void Import_STL(const char * aFileName, Mesh &aMesh)
 }
 
 /// Export an STL file to a file.
-void Export_STL(const char * aFileName, Mesh &aMesh)
+void Export_STL(const char * aFileName, Mesh * aMesh)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);
@@ -198,22 +198,22 @@ void Export_STL(const char * aFileName, Mesh &aMesh)
   char comment[80];
   for(uint32 i = 0; i < 80; ++ i)
   {
-    if(i < aMesh.mComment.size())
-      comment[i] = aMesh.mComment[i];
+    if(i < aMesh->mComment.size())
+      comment[i] = aMesh->mComment[i];
     else
       comment[i] = 0;
   }
   f.write(comment, 80);
-  uint32 triangleCount = aMesh.mIndices.size() / 3;
+  uint32 triangleCount = aMesh->mIndices.size() / 3;
   WriteInt32(f, triangleCount);
 
   // Write the triangle data
   for(uint32 i = 0; i < triangleCount; ++ i)
   {
     // Get the triangle vertices
-    Vector3 v1 = aMesh.mVertices[aMesh.mIndices[i * 3]];
-    Vector3 v2 = aMesh.mVertices[aMesh.mIndices[i * 3 + 1]];
-    Vector3 v3 = aMesh.mVertices[aMesh.mIndices[i * 3 + 2]];
+    Vector3 v1 = aMesh->mVertices[aMesh->mIndices[i * 3]];
+    Vector3 v2 = aMesh->mVertices[aMesh->mIndices[i * 3 + 1]];
+    Vector3 v3 = aMesh->mVertices[aMesh->mIndices[i * 3 + 2]];
 
     // Calculate the triangle normal
     Vector3 n1 = v2 - v1;

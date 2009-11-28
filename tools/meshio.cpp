@@ -61,7 +61,7 @@ static string ExtractFileExt(const string &aString)
 }
 
 /// Import a mesh from a file.
-void ImportMesh(const char * aFileName, Mesh &aMesh)
+void ImportMesh(const char * aFileName, Mesh * aMesh)
 {
   string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
   if(fileExt == string(".CTM"))
@@ -81,7 +81,7 @@ void ImportMesh(const char * aFileName, Mesh &aMesh)
 }
 
 /// Export a mesh to a file.
-void ExportMesh(const char * aFileName, Mesh &aMesh, Options &aOptions)
+void ExportMesh(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
   if(fileExt == string(".CTM"))

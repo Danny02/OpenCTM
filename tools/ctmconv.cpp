@@ -200,7 +200,7 @@ int main(int argc, char ** argv)
     // Load input file
     cout << "Loading " << inFile << "... " << flush;
     timer.Push();
-    ImportMesh(inFile.c_str(), mesh);
+    ImportMesh(inFile.c_str(), &mesh);
     dt = timer.PopDelta();
     cout << 1000.0 * dt << " ms" << endl;
 
@@ -226,7 +226,7 @@ int main(int argc, char ** argv)
     // Save output file
     cout << "Saving " << outFile << "... " << flush;
     timer.Push();
-    ExportMesh(outFile.c_str(), mesh, opt);
+    ExportMesh(outFile.c_str(), &mesh, opt);
     dt = timer.PopDelta();
     cout << 1000.0 * dt << " ms" << endl;
   }
