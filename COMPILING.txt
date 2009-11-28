@@ -7,9 +7,10 @@ compiler and it should compile right out of the box.
 In order to compile the entire OpenCTM package, including documentation and the
 tools, there are some extra dependencies:
 
-- To build all the tools, you need GLUT, and for Un*x/X11 you also need GTK+ 2.0 (Ubuntu: sudo apt-get install libgtk2.0-dev).
+- To build all the tools, you need GLUT, and for Un*x/X11 you also need
+  GTK+ 2.0 (Ubuntu: sudo apt-get install libgtk2.0-dev).
 
-- To build the Documentation you need Doxygen (www.doxygen.org) and a full
+- To build the documentation you need Doxygen (www.doxygen.org) and a full
   LaTeX installation (see TeX Live - http://www.tug.org/texlive/).
 
 
