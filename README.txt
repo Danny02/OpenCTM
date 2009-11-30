@@ -69,6 +69,8 @@ v1.0.2 - ????.??.??
 - Added options for turning off normals, texture coordinates and/or vertex
   colors for the output file in ctmconv.
 
+- Added manuals for ctmviewer and ctmconv (man pages).
+
 - NOTE: The Linux/X11 version of ctmviewer now reqires GTK+ 2.0.
 
 

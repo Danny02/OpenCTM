@@ -42,6 +42,8 @@ cp tools/tinyxml/* $tmpdir/tools/tinyxml/
 mkdir $tmpdir/doc
 cp doc/DevelopersManual.pdf $tmpdir/doc/
 cp doc/FormatSpecification.pdf $tmpdir/doc/
+cp doc/ctmconv.1 $tmpdir/doc/
+cp doc/ctmviewer.1 $tmpdir/doc/
 mkdir $tmpdir/doc/APIReference
 cp doc/APIReference/* $tmpdir/doc/APIReference/
 
