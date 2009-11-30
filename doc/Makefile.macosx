@@ -32,10 +32,11 @@
 all: DevelopersManual.pdf \
      FormatSpecification.pdf \
      APIReference/index.html \
+     ctmconv.html \
      ctmviewer.html
 
 clean:
-	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out ctmviewer.html
+	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out ctmconv.html ctmviewer.html
 
 DevelopersManual.pdf: DevelopersManual.tex
 	pdflatex DevelopersManual.tex
@@ -49,7 +50,7 @@ APIReference/index.html: ../lib/openctm.h ../lib/openctmpp.h
 	doxygen
 
 ctmconv.html: ctmconv.1
-	groff -t -Thtml $< > $@
+	groff -t -mandoc -Thtml $< > $@
 
 ctmviewer.html: ctmviewer.1
 	groff -t -mandoc -Thtml $< > $@
