@@ -28,7 +28,7 @@ Also, OpenCTM relies heavily on many other open source projects.
 Here is an incomplete list of persons that deserve credit:
 
 - Igor Pavlov (LZMA library)
-- Jonas Innala (COLLADA importer)
+- Jonas Innala (COLLADA importer, Maya exporter plugin)
 - Lee Thomason (TinyXML)
 - Diego Nehab (RPly - for loading PLY files)
 - Lev Povalahev, Marcelo E. Magallon, Milan Ikits (GLEW)
@@ -54,6 +54,8 @@ Legal notices:
 
 v1.0.2 - ????.??.??
 -------------------
+- Added an OpenCTM exporter plugin for Maya [Jonas Innala].
+
 - Added the possiblity to save and load files from ctmviewer, effectively
   turning it into a quick and simple converter tool (without all the options
   in the ctmconv program, though).
@@ -84,7 +86,7 @@ v1.0.1 - 2009.11.15
 
 v1.0 - 2009.11.09
 -----------------
-- Added a COLLADA converter module to the ctmconv program.
+- Added a COLLADA converter module to the ctmconv program [Jonas Innala].
 
 - Added Python bindings and a demo Python program.
 
