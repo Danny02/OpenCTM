@@ -41,27 +41,6 @@ Do not export texture coordinates.
 .B --no-colors
 Do not export vertex colors.
 .TP
-.B --method arg
-Select compression method (RAW, MG1, MG2).
-.TP
-.B --level arg
-Set the compression level (0 - 9).
-.TP
-.B --vprec arg
-Set vertex precision.
-.TP
-.B --vprecrel arg
-Set vertex precision, relative method.
-.TP
-.B --nprec arg
-Set normal precision.
-.TP
-.B --tprec arg
-Set texture map precision.
-.TP
-.B --cprec arg
-Set color precision.
-.TP
 .B --comment arg
 Set the file comment (default is to use the comment from the input file, if
 any).
@@ -69,6 +48,30 @@ any).
 .B --texfile arg
 Set the texture file name reference for the texture (default is to use the
 texture file name reference from the input file, if any).
+.PP
+When exporting an OpenCTM file, the following options are also
+available:
+.TP 16
+.B --method arg
+Select compression method (RAW, MG1, MG2).
+.TP
+.B --level arg
+Set the compression level (0 - 9).
+.TP
+.B --vprec arg
+Set vertex precision (only for MG2).
+.TP
+.B --vprecrel arg
+Set vertex precision, relative method (only for MG2).
+.TP
+.B --nprec arg
+Set normal precision (only for MG2).
+.TP
+.B --tprec arg
+Set texture map precision (only for MG2).
+.TP
+.B --cprec arg
+Set color precision (only for MG2).
 .SH FILE FORMATS
 The following 3D model file formats are supported:
 OpenCTM (.ctm),
