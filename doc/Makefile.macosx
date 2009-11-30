@@ -29,10 +29,13 @@
 
 .PHONY: all clean
 
-all: DevelopersManual.pdf FormatSpecification.pdf APIReference/index.html
+all: DevelopersManual.pdf \
+     FormatSpecification.pdf \
+     APIReference/index.html \
+     ctmviewer.html
 
 clean:
-	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out
+	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out ctmviewer.html
 
 DevelopersManual.pdf: DevelopersManual.tex
 	pdflatex DevelopersManual.tex
@@ -44,3 +47,9 @@ FormatSpecification.pdf: FormatSpecification.tex
 
 APIReference/index.html: ../lib/openctm.h ../lib/openctmpp.h
 	doxygen
+
+ctmconv.html: ctmconv.1
+	groff -t -Thtml $< > $@
+
+ctmviewer.html: ctmviewer.1
+	groff -t -mandoc -Thtml $< > $@

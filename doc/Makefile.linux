@@ -3,8 +3,8 @@
 # File:        Makefile.linux
 # Description: Makefile for the documentation for Linux systems (should work on
 #              most Un*x-like systems, e.g. OpenSolaris).
-#              This build system requires Doxygen and a full LaTeX installation
-#              (try TeX Live, http://www.tug.org/texlive/).
+#              This build system requires Doxygen, a full LaTeX installation
+#              (try TeX Live, http://www.tug.org/texlive/) and Groff.
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
 #
@@ -30,10 +30,13 @@
 
 .PHONY: all clean
 
-all: DevelopersManual.pdf FormatSpecification.pdf APIReference/index.html
+all: DevelopersManual.pdf \
+     FormatSpecification.pdf \
+     APIReference/index.html \
+     ctmviewer.html
 
 clean:
-	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out
+	rm -f APIReference/*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out ctmviewer.html
 
 DevelopersManual.pdf: DevelopersManual.tex
 	pdflatex DevelopersManual.tex
@@ -45,3 +48,9 @@ FormatSpecification.pdf: FormatSpecification.tex
 
 APIReference/index.html: ../lib/openctm.h ../lib/openctmpp.h
 	doxygen
+
+ctmconv.html: ctmconv.1
+	groff -t -Thtml $< > $@
+
+ctmviewer.html: ctmviewer.1
+	groff -t -mandoc -Thtml $< > $@
