@@ -7,5 +7,58 @@
 .I modelfile [texturefile]
 .SH DESCRIPTION
 .B ctmviewer
-is a 3D file viewer that can load, show and save 3D model files of several
+is a 3D file viewer that can load, show and save 3D model files in several
 different formats.
+.PP
+The program displays an interactive 3D view of the model, which can be operated
+with the mouse (e.g. for rotating and zooming).
+.PP
+If the selected model file contains texture coordinate information, it is
+possible to specify which 2D image file to use as a texture with the additional
+.I texturefile
+argument. If no texture file is given (either by the 3D model file, or by the
+.I texturefile
+argument), a standard 2D grid is used as a texture.
+.SH GUI OPERATIONS
+In addition to the command line arguments,
+.B ctmviewer
+offers several operations that can be performed from the 3D GUI display.
+.SS Loading and Saving
+It is possible to load and save 3D model files from the program by either
+using the icons in the upper left corner of the 3D display, or by using the
+keyboard shortcuts CTRL+O (open) and CTRL+S (save).
+.SS Rendering
+To toggle between a normal filled surface view (default) and a wire frame view,
+press the 'w' key.
+.SS Camera Control
+By holding down the left mouse button and moving the mouse, the camera is
+rotated around the 3D model.
+.PP
+By holding down the right mouse button and moving the mouse, the camera will
+zoom in and out.
+.SH FILE FORMATS
+The following 3D model file formats are supported:
+OpenCTM (.ctm),
+Stanford triangle format (.ply),
+Stereolitography (.stl),
+3D Studio (.3ds),
+COLLADA 1.4/1.5 (.dae),
+Wavefront geometry file (.obj).
+.PP
+The following 2D image file formats are supported (texture):
+JPEG (.jpg).
+.SH AVAILABILITY
+.B ctmviewer
+is designed to be portable, and is available for several different systems,
+including (but not limited to): Windows, Mac OS X (10.3+), Linux and
+OpenSolaris.
+.PP
+.B ctmviewer
+uses OpenGL for its accelerated 3D display. When the OpenGL implementation
+supports it,
+.B ctmviewer
+will use per pixel Phong shading for improved visual appearance. Otherwise
+.B ctmviewer
+will fall back to classic per vertex shading.
+.SH SEE ALSO
+ctmconv(1)
