@@ -4,7 +4,8 @@
 # Description: Makefile for the documentation for Linux systems (should work on
 #              most Un*x-like systems, e.g. OpenSolaris).
 #              This build system requires Doxygen, a full LaTeX installation
-#              (try TeX Live, http://www.tug.org/texlive/) and Groff.
+#              (try TeX Live, http://www.tug.org/texlive/) and Groff
+#              (Ubuntu: sudo apt-get install groff).
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
 #

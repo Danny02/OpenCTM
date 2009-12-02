@@ -10,8 +10,10 @@ tools, there are some extra dependencies:
 - To build all the tools, you need GLUT, and for Un*x/X11 you also need
   GTK+ 2.0 (Ubuntu: sudo apt-get install libgtk2.0-dev).
 
-- To build the documentation you need Doxygen (www.doxygen.org) and a full
-  LaTeX installation (see TeX Live - http://www.tug.org/texlive/).
+- To build the documentation you need Doxygen (www.doxygen.org), a full
+  LaTeX installation (see TeX Live - http://www.tug.org/texlive/), and Groff
+  (Windows: http://gnuwin32.sourceforge.net/packages/groff.htm,
+  Mac OS X: preinstalled, Ubuntu: sudo apt-get install groff).
 
 
 2. COMPILING
@@ -69,3 +71,23 @@ MS Visual Studio, type:
 
  nmake /f Makefile.msvc openctm
 
+
+4. INSTALLATION
+===============
+
+For Linux, it is possible to make a system wide installation by using the
+"install" build target. The installation process will install the following:
+
+ - OpenCTM shared library
+ - OpenCTM C/C++ headers (inlcude files)
+ - ctmconv and ctmviewer tools
+ - Man pages
+
+Just make sure that the Makefile contains the correct (and desired)
+installation paths. Also, you need to have root privileges to make a system
+wide installation.
+
+For instance, to compile and install OpenCTM under Ubuntu, do:
+
+make -f Makefile.linux
+sudo make -f Makefile.linux install
