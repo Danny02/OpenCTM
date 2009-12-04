@@ -26,16 +26,9 @@
 #     distribution.
 ###############################################################################
 
-# Installation settings
-LIBDIR  = /usr/local/lib/
-INCDIR  = /usr/local/include/
-BINDIR  = /usr/local/bin/
-MAN1DIR = /usr/local/share/man/man1/
-CP = cp
-MKDIR = mkdir -p
+.phony: default all openctm toolset documentation install clean
 
-.phony: all openctm toolset documentation install clean
-
+default: openctm toolset
 all: openctm toolset documentation
 
 clean:
@@ -52,15 +45,21 @@ toolset:
 documentation:
 	cd doc && $(MAKE) -f Makefile.linux -j2 && cd ..
 
-install: openctm toolset
-	$(MKDIR) $(LIBDIR)
-	$(MKDIR) $(INCDIR)
-	$(MKDIR) $(BINDIR)
-	$(MKDIR) $(MAN1DIR)
+
+# Installation settings
+LIBDIR  = /usr/lib/
+INCDIR  = /usr/local/include/
+BINDIR  = /usr/local/bin/
+MAN1DIR = /usr/local/share/man/man1/
+CP = cp
+MKDIR = mkdir -p
+
+install:
 	$(CP) lib/libopenctm.so $(LIBDIR)
 	$(CP) lib/openctm.h $(INCDIR)
 	$(CP) lib/openctmpp.h $(INCDIR)
 	$(CP) tools/ctmconv $(BINDIR)
 	$(CP) tools/ctmviewer $(BINDIR)
+	$(MKDIR) $(MAN1DIR)
 	$(CP) doc/ctmconv.1 $(MAN1DIR)
 	$(CP) doc/ctmviewer.1 $(MAN1DIR)

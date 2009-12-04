@@ -57,13 +57,14 @@ gmake -f Makefile.linux
 3. BUILD TARGETS
 ================
 
-By default, the entire OpenCTM package is compiled when make is run. To limit
-what is built, use one of the following build targets (just append it to the
-end of the make command line):
+By default, the OpenCTM shared library and the OpenCTM tools are compiled when
+make is run. To select what is built, use one of the following build targets
+(just append it to the end of the make command line):
 
  openctm       (the shared library)
  toolset       (the tools)
  documentation (the HTML and PDF documentation)
+ all           (openctm + toolset + documentation)
  clean         (clean all the built files - start from scratch)
 
 For instance, to just build the OpenCTM shared library under Windows with
