@@ -67,7 +67,7 @@ clean:
 	$(RM) $(DYNAMICLIB) $(OBJS) $(LZMA_OBJS)
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
-	gcc -shared -s -Wl,-soname,$@ -o $@ $(OBJS) $(LZMA_OBJS)
+	gcc -shared -s -Wl,-soname,$@ -o $@ $(OBJS) $(LZMA_OBJS) -lm
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
