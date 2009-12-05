@@ -1011,9 +1011,10 @@ void GLViewer::ActionHelp()
   helpText << "  W - Toggle wire frame view on/off" << endl;
   helpText << "  ESC - Exit program" << endl << endl;
   helpText << "Mouse control:" << endl;
-  helpText << "  Left button  - Rotate camera" << endl;
+  helpText << "  Left button - Rotate camera" << endl;
   helpText << "  Right button - Zoom camera" << endl;
-  helpText << "  Middle button - Pan camera";
+  helpText << "  Middle button - Pan camera" << endl;
+  helpText << "  Double click - Focus on indicated surface";
 
   SysMessageBox mb;
   mb.mMessageType = SysMessageBox::mtInformation;
