@@ -71,8 +71,8 @@ v1.0.2 - ????.??.??
 
 - Added manuals for ctmviewer and ctmconv (man pages).
 
-- Added a "make install" build target for Linux for simple system wide
-  installation (see COMPILING.txt).
+- Added a "make install" build target for Mac OS X and Linux for simple system
+  wide installation (see COMPILING.txt).
 
 - NOTE: The Linux/X11 version of ctmviewer now reqires GTK+ 2.0.
 

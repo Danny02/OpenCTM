@@ -76,8 +76,9 @@ MS Visual Studio, type:
 4. INSTALLATION
 ===============
 
-For Linux, it is possible to make a system wide installation by using the
-"install" build target. The installation process will install the following:
+For Linux and Mac OS X, it is possible to make a system wide installation by
+using the "install" build target. The installation process will install the
+following:
 
  - OpenCTM shared library
  - OpenCTM C/C++ headers (inlcude files)
@@ -92,3 +93,8 @@ For instance, to compile and install OpenCTM under Ubuntu, do:
 
 make -f Makefile.linux
 sudo make -f Makefile.linux install
+
+...and to compile and install OpenCTM under Mac OS X, do:
+
+make -f Makefile.macosx
+sudo make -f Makefile.macosx install

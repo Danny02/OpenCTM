@@ -43,3 +43,22 @@ toolset:
 
 documentation:
 	cd doc && $(MAKE) -f Makefile.macosx -j2 && cd ..
+
+
+# Installation settings
+LIBDIR  = /usr/local/lib/
+INCDIR  = /usr/local/include/
+BINDIR  = /usr/local/bin/
+MAN1DIR = /usr/local/share/man/man1/
+CP = cp
+MKDIR = mkdir -p
+
+install:
+	$(CP) lib/libopenctm.dylib $(LIBDIR)
+	$(CP) lib/openctm.h $(INCDIR)
+	$(CP) lib/openctmpp.h $(INCDIR)
+	$(CP) tools/ctmconv $(BINDIR)
+	$(CP) tools/ctmviewer $(BINDIR)
+	$(MKDIR) $(MAN1DIR)
+	$(CP) doc/ctmconv.1 $(MAN1DIR)
+	$(CP) doc/ctmviewer.1 $(MAN1DIR)
