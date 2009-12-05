@@ -45,36 +45,31 @@ SysTimer::SysTimer()
 #endif
 }
 
-/// Push current time (start measuring).
-void SysTimer::Push()
+/// Get current time.
+double SysTimer::GetTime()
 {
 #ifdef WIN32
   __int64 t;
   QueryPerformanceCounter((LARGE_INTEGER *)&t);
-  mStack.push_back(double(t - mTimeStart) / double(mTimeFreq));
+  return double(t - mTimeStart) / double(mTimeFreq);
 #else
   struct timeval tv;
   gettimeofday(&tv, 0);
   long long t = (long long) tv.tv_sec * (long long) 1000000 + (long long) tv.tv_usec;
-  mStack.push_back((1e-6) * double(t - mTimeStart));
+  return (1e-6) * double(t - mTimeStart);
 #endif
+}
+
+/// Push current time (start measuring).
+void SysTimer::Push()
+{
+  mStack.push_back(GetTime());
 }
 
 /// Pop delta time since last push.
 double SysTimer::PopDelta()
 {
-  double delta;
-#ifdef WIN32
-  __int64 t;
-  QueryPerformanceCounter((LARGE_INTEGER *)&t);
-  delta = double(t - mTimeStart) / double(mTimeFreq);
-#else
-  struct timeval tv;
-  gettimeofday(&tv, 0);
-  long long t = (long long) tv.tv_sec * (long long) 1000000 + (long long) tv.tv_usec;
-  delta = (1e-6) * double(t - mTimeStart);
-#endif
-  delta -= mStack.back();
+  double delta = GetTime() - mStack.back();
   mStack.pop_back();
   return delta;
 }

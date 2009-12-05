@@ -85,8 +85,18 @@ class GLViewer {
     // Window state cariables
     int mWidth, mHeight;
     int mOldMouseX, mOldMouseY;
+    double mLastClickTime;
     bool mMouseRotate;
     bool mMouseZoom;
+    bool mMousePan;
+    bool mFocusing;
+    Vector3 mFocusTo;
+    double mFocusTargetTime;
+
+    // Camera matrices
+    GLdouble mModelviewMatrix[16];
+    GLdouble mProjectionMatrix[16];
+    GLint mViewport[4];
 
     // Mesh information
     Mesh * mMesh;
@@ -106,6 +116,9 @@ class GLViewer {
 
     // List of GUI buttons
     list<GLButton *> mButtons;
+
+    // Master timer resource
+    SysTimer mTimer;
 
     /// Set up the camera.
     void SetupCamera();
@@ -138,6 +151,12 @@ class GLViewer {
 
     /// Draw 2D overlay
     void Draw2DOverlay();
+
+    /// Get 3D coordinate under the mouse cursor.
+    bool GetPointUnderCursor(int x, int y, Vector3 &aPoint);
+
+    /// Update the focus position of the camera.
+    void UpdateFocus();
 
   public:
     /// Constructor
@@ -644,8 +663,7 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
 
   // Load the mesh
   cout << "Loading " << aFileName << "..." << flush;
-  SysTimer t;
-  t.Push();
+  mTimer.Push();
   Mesh * newMesh = new Mesh();
   try
   {
@@ -659,7 +677,7 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   if(mMesh)
     delete mMesh;
   mMesh = newMesh;
-  cout << "done (" << int(t.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
+  cout << "done (" << int(mTimer.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
 
   // Get the file name (excluding the path), and the path (excluding the file name)
   mFileName = string(aFileName);
@@ -685,10 +703,9 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   if(mMesh->mNormals.size() != mMesh->mVertices.size())
   {
     cout << "Calculating normals..." << flush;
-    SysTimer t;
-    t.Push();
+    mTimer.Push();
     mMesh->CalculateNormals();
-    cout << "done (" << int(t.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
+    cout << "done (" << int(mTimer.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
   }
 
   // Load the texture
@@ -859,6 +876,46 @@ void GLViewer::Draw2DOverlay()
     (*b)->Redraw();
 }
 
+/// Get 3D coordinate under the mouse cursor.
+bool GLViewer::GetPointUnderCursor(int x, int y, Vector3 &aPoint)
+{
+  // Read back the depth value at at (x, y)
+  GLfloat z = 0.0f;
+  glReadPixels(x,  mHeight - y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (GLvoid *) &z);
+  if((z > 0.0f) && (z < 1.0f))
+  {
+    // Convert the window coordinate to space coordinates
+    GLdouble objX, objY, objZ;
+    gluUnProject((GLdouble) x, (GLdouble) (mHeight - y), (GLdouble) z,
+                 mModelviewMatrix, mProjectionMatrix, mViewport,
+                 &objX, &objY, &objZ);
+    aPoint = Vector3((float) objX, (float) objY, (float) objZ);
+    return true;
+  }
+  else
+    return false;
+}
+
+/// Update the focus position of the camera.
+void GLViewer::UpdateFocus()
+{
+  double dt = mFocusTargetTime - mTimer.GetTime();
+  Vector3 delta = mFocusTo - mCameraLookAt;
+  if(dt > 0.0)
+  {
+    delta = delta * 0.5f;
+    mCameraLookAt = mCameraLookAt + delta;
+    mCameraPosition = mCameraPosition + delta;
+  }
+  else
+  {
+    mCameraLookAt = mFocusTo;
+    mCameraPosition = mCameraPosition + delta;
+    mFocusing = false;
+  }
+  glutPostRedisplay();
+}
+
 
 //-----------------------------------------------------------------------------
 // Actions (user activated functions)
@@ -955,7 +1012,8 @@ void GLViewer::ActionHelp()
   helpText << "  ESC - Exit program" << endl << endl;
   helpText << "Mouse control:" << endl;
   helpText << "  Left button  - Rotate camera" << endl;
-  helpText << "  Right button - Zoom camera";
+  helpText << "  Right button - Zoom camera" << endl;
+  helpText << "  Middle button - Pan camera";
 
   SysMessageBox mb;
   mb.mMessageType = SysMessageBox::mtInformation;
@@ -1017,6 +1075,11 @@ void GLViewer::WindowRedraw(void)
             mCameraLookAt.x, mCameraLookAt.y, mCameraLookAt.z,
             0.0f, 0.0f, 1.0f);
 
+  // Read back camera matrices
+  glGetDoublev(GL_MODELVIEW_MATRIX, mModelviewMatrix);
+  glGetDoublev(GL_PROJECTION_MATRIX, mProjectionMatrix);
+  glGetIntegerv(GL_VIEWPORT, mViewport);
+
   // Set up the lights
   SetupLighting();
 
@@ -1054,6 +1117,13 @@ void GLViewer::WindowRedraw(void)
 
   // Swap buffers
   glutSwapBuffers();
+
+  // Focusing?
+  if(mFocusing)
+  {
+    UpdateFocus();
+    glutPostRedisplay();
+  }
 }
 
 /// Resize function.
@@ -1079,7 +1149,22 @@ void GLViewer::MouseClick(int button, int state, int x, int y)
     if(!clickConsumed)
     {
       if(state == GLUT_DOWN)
-        mMouseRotate = true;
+      {
+        double now = mTimer.GetTime();
+        if((now - mLastClickTime) < 0.5)
+        {
+          // Double click occured
+          mFocusTargetTime = now + 0.5;
+          mFocusing = GetPointUnderCursor(x, y, mFocusTo);
+          mLastClickTime = -1000.0;
+        }
+        else
+        {
+          // Single click occured
+          mMouseRotate = true;
+          mLastClickTime = now;
+        }
+      }
       else if(state == GLUT_UP)
         mMouseRotate = false;
     }
@@ -1091,8 +1176,22 @@ void GLViewer::MouseClick(int button, int state, int x, int y)
     else if(state == GLUT_UP)
       mMouseZoom = false;
   }
+  else if(button == GLUT_MIDDLE_BUTTON)
+  {
+    if(state == GLUT_DOWN)
+      mMousePan = true;
+    else if(state == GLUT_UP)
+      mMousePan = false;
+  }
   mOldMouseX = x;
   mOldMouseY = y;
+
+  // Focusing?
+  if(mFocusing)
+  {
+    UpdateFocus();
+    glutPostRedisplay();
+  }
 }
 
 /// Mouse move function
@@ -1162,6 +1261,28 @@ void GLViewer::MouseMove(int x, int y)
 
     needsRedraw = true;
   }
+  else if(mMousePan)
+  {
+    // Calculate delta movement
+    float scale = 1.0f * (mCameraPosition - mCameraLookAt).Abs();
+    if(mHeight > 0)
+      scale /= (float) mHeight;
+    float panX = scale * deltaX;
+    float panY = scale * deltaY;
+
+    // Calculate camera movement
+    Vector3 viewDir = Normalize(mCameraPosition - mCameraLookAt);
+    Vector3 upDir = Vector3(0.0f, 0.0f, 1.0f);
+    Vector3 rightDir = Normalize(Cross(viewDir, upDir));
+    upDir = Normalize(Cross(rightDir, viewDir));
+    Vector3 moveDelta = rightDir * panX + upDir * panY;
+
+    // Update the camera position
+    mCameraPosition += moveDelta;
+    mCameraLookAt += moveDelta;
+
+    needsRedraw = true;
+  }
   else
   {
     // Call mouse move for all the GUI buttons
@@ -1215,6 +1336,11 @@ GLViewer::GLViewer()
   mOldMouseY = 0;
   mMouseRotate = false;
   mMouseZoom = false;
+  mMousePan = false;
+  mFocusTo = Vector3(0.0f, 0.0f, 0.0f);
+  mFocusTargetTime = 0.0;
+  mFocusing = false;
+  mLastClickTime = -1000.0;
   mDisplayList = 0;
   mPolyMode = GL_FILL;
   mTexHandle = 0;

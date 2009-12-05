@@ -53,6 +53,9 @@ class SysTimer {
     /// Constructor
     SysTimer();
 
+    /// Get current time.
+    double GetTime();
+
     /// Push current time (start measuring).
     void Push();
 
