@@ -53,6 +53,9 @@ using namespace std;
   #define PI 3.141592653589793238462643f
 #endif
 
+// Configuration constants
+#define FOCUS_TIME 0.15
+
 
 //-----------------------------------------------------------------------------
 // GLSL source code (generated from source by bin2c)
@@ -90,8 +93,10 @@ class GLViewer {
     bool mMouseZoom;
     bool mMousePan;
     bool mFocusing;
-    Vector3 mFocusTo;
-    double mFocusTargetTime;
+    Vector3 mFocusStartPos;
+    Vector3 mFocusEndPos;
+    double mFocusStartTime;
+    double mFocusEndTime;
 
     // Camera matrices
     GLdouble mModelviewMatrix[16];
@@ -153,7 +158,7 @@ class GLViewer {
     void Draw2DOverlay();
 
     /// Get 3D coordinate under the mouse cursor.
-    bool GetPointUnderCursor(int x, int y, Vector3 &aPoint);
+    bool WinCoordTo3DCoord(int x, int y, Vector3 &aPoint);
 
     /// Update the focus position of the camera.
     void UpdateFocus();
@@ -877,7 +882,7 @@ void GLViewer::Draw2DOverlay()
 }
 
 /// Get 3D coordinate under the mouse cursor.
-bool GLViewer::GetPointUnderCursor(int x, int y, Vector3 &aPoint)
+bool GLViewer::WinCoordTo3DCoord(int x, int y, Vector3 &aPoint)
 {
   // Read back the depth value at at (x, y)
   GLfloat z = 0.0f;
@@ -899,18 +904,18 @@ bool GLViewer::GetPointUnderCursor(int x, int y, Vector3 &aPoint)
 /// Update the focus position of the camera.
 void GLViewer::UpdateFocus()
 {
-  double dt = mFocusTargetTime - mTimer.GetTime();
-  Vector3 delta = mFocusTo - mCameraLookAt;
-  if(dt > 0.0)
+  double w = (mTimer.GetTime() - mFocusStartTime) / (mFocusEndTime - mFocusStartTime);
+  Vector3 distance = mCameraPosition - mCameraLookAt;
+  if(w < 1.0)
   {
-    delta = delta * 0.5f;
-    mCameraLookAt = mCameraLookAt + delta;
-    mCameraPosition = mCameraPosition + delta;
+    w = pow(w, 0.3);
+    mCameraLookAt = mFocusStartPos + (mFocusEndPos - mFocusStartPos) * w;
+    mCameraPosition = mCameraLookAt + distance;
   }
   else
   {
-    mCameraLookAt = mFocusTo;
-    mCameraPosition = mCameraPosition + delta;
+    mCameraLookAt = mFocusEndPos;
+    mCameraPosition = mCameraLookAt + distance;
     mFocusing = false;
   }
   glutPostRedisplay();
@@ -1155,8 +1160,15 @@ void GLViewer::MouseClick(int button, int state, int x, int y)
         if((now - mLastClickTime) < 0.5)
         {
           // Double click occured
-          mFocusTargetTime = now + 0.5;
-          mFocusing = GetPointUnderCursor(x, y, mFocusTo);
+          Vector3 mouseCoord3D;
+          if(WinCoordTo3DCoord(x, y, mouseCoord3D))
+          {
+            mFocusStartTime = now;
+            mFocusEndTime = now + FOCUS_TIME;
+            mFocusStartPos = mCameraLookAt;
+            mFocusEndPos = mouseCoord3D;
+            mFocusing = true;
+          }
           mLastClickTime = -1000.0;
         }
         else
@@ -1338,8 +1350,10 @@ GLViewer::GLViewer()
   mMouseRotate = false;
   mMouseZoom = false;
   mMousePan = false;
-  mFocusTo = Vector3(0.0f, 0.0f, 0.0f);
-  mFocusTargetTime = 0.0;
+  mFocusStartPos = Vector3(0.0f, 0.0f, 0.0f);
+  mFocusEndPos = Vector3(0.0f, 0.0f, 0.0f);
+  mFocusStartTime = 0.0;
+  mFocusEndTime = 0.0;
   mFocusing = false;
   mLastClickTime = -1000.0;
   mDisplayList = 0;
