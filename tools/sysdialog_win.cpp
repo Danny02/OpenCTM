@@ -32,6 +32,21 @@
 using namespace std;
 
 
+static BOOL CALLBACK WindowEnumFun(HWND hwnd, LPARAM lParam)
+{
+  *((HWND *)lParam) = hwnd;
+  return FALSE;
+}
+
+// Get the window handle of the main window for this application
+static HWND GetMainWindow()
+{
+  HWND result = 0;
+  EnumThreadWindows(GetCurrentThreadId(), WindowEnumFun, (LPARAM) &result);
+  return result;
+}
+
+
 /// Constructor.
 SysMessageBox::SysMessageBox()
 {
@@ -58,7 +73,8 @@ bool SysMessageBox::Show()
   }
 
   // Show the message box
-  MessageBoxA(NULL, mText.c_str(), mCaption.c_str(), MB_OK | messageType);
+  MessageBoxA(GetMainWindow(), mText.c_str(), mCaption.c_str(),
+              MB_OK | messageType);
 
   return true;
 }
@@ -84,6 +100,7 @@ bool SysOpenDialog::Show()
   ofn.lpstrFile = fileNameBuf;
   ofn.nMaxFile = sizeof(fileNameBuf);
   ofn.lpstrTitle = mCaption.c_str();
+  ofn.hwndOwner = GetMainWindow();
   ofn.Flags = 0;
 
   // Add filters
@@ -145,6 +162,7 @@ bool SysSaveDialog::Show()
   ofn.lpstrFile = fileNameBuf;
   ofn.nMaxFile = sizeof(fileNameBuf);
   ofn.lpstrTitle = mCaption.c_str();
+  ofn.hwndOwner = GetMainWindow();
   ofn.Flags = OFN_OVERWRITEPROMPT;
 
   // Add filters
