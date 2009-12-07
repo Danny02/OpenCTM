@@ -54,7 +54,8 @@ using namespace std;
 #endif
 
 // Configuration constants
-#define FOCUS_TIME 0.15
+#define FOCUS_TIME        0.1
+#define DOUBLE_CLICK_TIME 0.25
 
 
 //-----------------------------------------------------------------------------
@@ -97,8 +98,13 @@ class GLViewer {
     Vector3 mFocusEndPos;
     double mFocusStartTime;
     double mFocusEndTime;
+    double mFocusStartDistance;
+    double mFocusEndDistance;
 
-    // Camera matrices
+    // Camera state
+    Vector3 mCameraPosition;
+    Vector3 mCameraLookAt;
+    Vector3 mCameraUp;
     GLdouble mModelviewMatrix[16];
     GLdouble mProjectionMatrix[16];
     GLint mViewport[4];
@@ -106,7 +112,6 @@ class GLViewer {
     // Mesh information
     Mesh * mMesh;
     Vector3 mAABBMin, mAABBMax;
-    Vector3 mCameraPosition, mCameraLookAt;
     GLuint mDisplayList;
     GLuint mTexHandle;
 
@@ -178,6 +183,21 @@ class GLViewer {
 
     /// Toggle wire frame view on/off
     void ActionToggleWireframe();
+
+    /// Fit model to the screen (re-focus)
+    void ActionFitToScreen();
+
+    /// Set camera up direction to Y
+    void ActionCameraUpY();
+
+    /// Set camera up direction to Z
+    void ActionCameraUpZ();
+
+    /// Zoom camera one step in
+    void ActionZoomIn();
+
+    /// Zoom camera one step out
+    void ActionZoomOut();
 
     /// Exit program
     void ActionExit();
@@ -405,9 +425,14 @@ void GLViewer::SetupCamera()
   }
   mCameraLookAt = (mAABBMax + mAABBMin) * 0.5f;
   float delta = (mAABBMax - mAABBMin).Abs();
-  mCameraPosition = Vector3(mCameraLookAt.x,
-                           mCameraLookAt.y - 0.8f * delta,
-                           mCameraLookAt.z + 0.2f * delta);
+  if(mCameraUp.z > 0.0f)
+    mCameraPosition = Vector3(mCameraLookAt.x,
+                              mCameraLookAt.y - 0.8f * delta,
+                              mCameraLookAt.z + 0.2f * delta);
+  else
+    mCameraPosition = Vector3(mCameraLookAt.x,
+                              mCameraLookAt.y + 0.2f * delta,
+                              mCameraLookAt.z + 0.8f * delta);
 }
 
 /// Initialize the GLSL shader (requires OpenGL 2.0 or better).
@@ -755,6 +780,7 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   glEndList();
 
   // Init the camera for the new mesh
+  mCameraUp = Vector3(0.0f, 0.0f, 1.0f);
   SetupCamera();
 }
 
@@ -905,17 +931,17 @@ bool GLViewer::WinCoordTo3DCoord(int x, int y, Vector3 &aPoint)
 void GLViewer::UpdateFocus()
 {
   double w = (mTimer.GetTime() - mFocusStartTime) / (mFocusEndTime - mFocusStartTime);
-  Vector3 distance = mCameraPosition - mCameraLookAt;
+  Vector3 dir = Normalize(mCameraPosition - mCameraLookAt);
   if(w < 1.0)
   {
-    w = pow(w, 0.3);
+    w = pow(w, 0.2);
     mCameraLookAt = mFocusStartPos + (mFocusEndPos - mFocusStartPos) * w;
-    mCameraPosition = mCameraLookAt + distance;
+    mCameraPosition = mCameraLookAt + dir * (mFocusStartDistance + (mFocusEndDistance - mFocusStartDistance) * w);
   }
   else
   {
     mCameraLookAt = mFocusEndPos;
-    mCameraPosition = mCameraLookAt + distance;
+    mCameraPosition = mCameraLookAt + dir * mFocusEndDistance;
     mFocusing = false;
   }
   glutPostRedisplay();
@@ -997,6 +1023,67 @@ void GLViewer::ActionToggleWireframe()
   glutPostRedisplay();
 }
 
+/// Fit model to the screen (re-focus)
+void GLViewer::ActionFitToScreen()
+{
+  double now = mTimer.GetTime();
+  mFocusStartTime = now;
+  mFocusEndTime = now + FOCUS_TIME;
+  mFocusStartPos = mCameraLookAt;
+  mFocusStartDistance = (mCameraLookAt - mCameraPosition).Abs();
+  mFocusEndPos = (mAABBMax + mAABBMin) * 0.5f;
+  mFocusEndDistance = 0.825 * (mAABBMax - mAABBMin).Abs();
+  mFocusing = true;
+  UpdateFocus();
+  glutPostRedisplay();
+}
+
+/// Set camera up direction to Y
+void GLViewer::ActionCameraUpY()
+{
+  mCameraUp = Vector3(0.0f, 1.0f, 0.0f);
+  SetupCamera();
+  glutPostRedisplay();
+}
+
+/// Set camera up direction to Z
+void GLViewer::ActionCameraUpZ()
+{
+  mCameraUp = Vector3(0.0f, 0.0f, 1.0f);
+  SetupCamera();
+  glutPostRedisplay();
+}
+
+/// Zoom camera one step in
+void GLViewer::ActionZoomIn()
+{
+  double now = mTimer.GetTime();
+  mFocusStartTime = now;
+  mFocusEndTime = now + FOCUS_TIME;
+  mFocusStartPos = mCameraLookAt;
+  mFocusStartDistance = (mCameraLookAt - mCameraPosition).Abs();
+  mFocusEndPos = mCameraLookAt;
+  mFocusEndDistance = (1.0/1.5) * mFocusStartDistance;
+  mFocusing = true;
+  UpdateFocus();
+  glutPostRedisplay();
+}
+
+/// Zoom camera one step out
+void GLViewer::ActionZoomOut()
+{
+  double now = mTimer.GetTime();
+  mFocusStartTime = now;
+  mFocusEndTime = now + FOCUS_TIME;
+  mFocusStartPos = mCameraLookAt;
+  mFocusStartDistance = (mCameraLookAt - mCameraPosition).Abs();
+  mFocusEndPos = mCameraLookAt;
+  mFocusEndDistance = 1.5 * mFocusStartDistance;
+  mFocusing = true;
+  UpdateFocus();
+  glutPostRedisplay();
+}
+
 /// Exit program
 void GLViewer::ActionExit()
 {
@@ -1014,11 +1101,15 @@ void GLViewer::ActionHelp()
   helpText << "  CTRL+O - Open file" << endl;
   helpText << "  CTRL+S - Save file" << endl;
   helpText << "  W - Toggle wire frame view on/off" << endl;
+  helpText << "  F - Fit model to the screen" << endl;
+  helpText << "  Y - Set Y as the up axis (change camera view)" << endl;
+  helpText << "  Z - Set Z as the up axis (change camera view)" << endl;
+  helpText << "  +/- - Zoom in/out with the camera" << endl;
   helpText << "  ESC - Exit program" << endl << endl;
   helpText << "Mouse control:" << endl;
   helpText << "  Left button - Rotate camera" << endl;
-  helpText << "  Right button - Zoom camera" << endl;
-  helpText << "  Middle button - Pan camera" << endl;
+  helpText << "  Middle button or wheel - Zoom camera" << endl;
+  helpText << "  Right button - Pan camera" << endl;
   helpText << "  Double click - Focus on indicated surface";
 
   SysMessageBox mb;
@@ -1079,7 +1170,7 @@ void GLViewer::WindowRedraw(void)
   glLoadIdentity();
   gluLookAt(mCameraPosition.x, mCameraPosition.y, mCameraPosition.z,
             mCameraLookAt.x, mCameraLookAt.y, mCameraLookAt.z,
-            0.0f, 0.0f, 1.0f);
+            mCameraUp.x, mCameraUp.y, mCameraUp.z);
 
   // Read back camera matrices
   glGetDoublev(GL_MODELVIEW_MATRIX, mModelviewMatrix);
@@ -1157,7 +1248,7 @@ void GLViewer::MouseClick(int button, int state, int x, int y)
       if(state == GLUT_DOWN)
       {
         double now = mTimer.GetTime();
-        if((now - mLastClickTime) < 0.5)
+        if((now - mLastClickTime) < DOUBLE_CLICK_TIME)
         {
           // Double click occured
           Vector3 mouseCoord3D;
@@ -1167,6 +1258,8 @@ void GLViewer::MouseClick(int button, int state, int x, int y)
             mFocusEndTime = now + FOCUS_TIME;
             mFocusStartPos = mCameraLookAt;
             mFocusEndPos = mouseCoord3D;
+            mFocusStartDistance = (mCameraLookAt - mCameraPosition).Abs();
+            mFocusEndDistance = mFocusStartDistance;
             mFocusing = true;
           }
           mLastClickTime = -1000.0;
@@ -1182,19 +1275,29 @@ void GLViewer::MouseClick(int button, int state, int x, int y)
         mMouseRotate = false;
     }
   }
-  else if(button == GLUT_RIGHT_BUTTON)
+  else if(button == GLUT_MIDDLE_BUTTON)
   {
     if(state == GLUT_DOWN)
       mMouseZoom = true;
     else if(state == GLUT_UP)
       mMouseZoom = false;
   }
-  else if(button == GLUT_MIDDLE_BUTTON)
+  else if(button == GLUT_RIGHT_BUTTON)
   {
     if(state == GLUT_DOWN)
       mMousePan = true;
     else if(state == GLUT_UP)
       mMousePan = false;
+  }
+  else if(button == 3) // Mouse wheel up on some systems
+  {
+    if(state == GLUT_DOWN)
+      ActionZoomIn();
+  }
+  else if(button == 4) // Mouse wheel down on some systems
+  {
+    if(state == GLUT_DOWN)
+      ActionZoomOut();
   }
   mOldMouseX = x;
   mOldMouseY = y;
@@ -1234,12 +1337,23 @@ void GLViewer::MouseMove(int x, int y)
     float phi, theta;
     if(r > 1e-20f)
     {
-      phi = acosf(viewVector.z / r);
-      theta = atan2f(viewVector.y, viewVector.x);
+      if(mCameraUp.z > 0.0f)
+      {
+        phi = acosf(viewVector.z / r);
+        theta = atan2f(viewVector.y, viewVector.x);
+      }
+      else
+      {
+        phi = acosf(viewVector.y / r);
+        theta = atan2f(-viewVector.z, viewVector.x);
+      }
     }
     else
     {
-      phi = viewVector.z > 0.0f ? 0.05f * PI : 0.95f * PI;
+      if(mCameraUp.z > 0.0f)
+        phi = viewVector.z > 0.0f ? 0.05f * PI : 0.95f * PI;
+      else
+        phi = viewVector.y > 0.0f ? 0.05f * PI : 0.95f * PI;
       theta = 0.0f;
     }
     phi += deltaPhi;
@@ -1250,9 +1364,18 @@ void GLViewer::MouseMove(int x, int y)
       phi = 0.05f * PI;
 
     // Update the camera position
-    viewVector.x = r * cos(theta) * sin(phi);
-    viewVector.y = r * sin(theta) * sin(phi);
-    viewVector.z = r * cos(phi);
+    if(mCameraUp.z > 0.0f)
+    {
+      viewVector.x = r * cos(theta) * sin(phi);
+      viewVector.y = r * sin(theta) * sin(phi);
+      viewVector.z = r * cos(phi);
+    }
+    else
+    {
+      viewVector.x = r * cos(theta) * sin(phi);
+      viewVector.y = r * cos(phi);
+      viewVector.z = -r * sin(theta) * sin(phi);
+    }
     mCameraPosition = mCameraLookAt + viewVector;
 
     needsRedraw = true;
@@ -1285,9 +1408,8 @@ void GLViewer::MouseMove(int x, int y)
 
     // Calculate camera movement
     Vector3 viewDir = Normalize(mCameraPosition - mCameraLookAt);
-    Vector3 upDir = Vector3(0.0f, 0.0f, 1.0f);
-    Vector3 rightDir = Normalize(Cross(viewDir, upDir));
-    upDir = Normalize(Cross(rightDir, viewDir));
+    Vector3 rightDir = Normalize(Cross(viewDir, mCameraUp));
+    Vector3 upDir = Normalize(Cross(rightDir, viewDir));
     Vector3 moveDelta = rightDir * panX + upDir * panY;
 
     // Update the camera position
@@ -1320,6 +1442,16 @@ void GLViewer::KeyDown(unsigned char key, int x, int y)
     ActionSaveFile();
   else if(key == 'w')
     ActionToggleWireframe();
+  else if(key == 'f')
+    ActionFitToScreen();
+  else if(key == 'y')
+    ActionCameraUpY();
+  else if(key == 'z')
+    ActionCameraUpZ();
+  else if(key == '+')
+    ActionZoomIn();
+  else if(key == '-')
+    ActionZoomOut();
   else if(key == 27)  // ESC
     ActionExit();
 }
@@ -1350,10 +1482,13 @@ GLViewer::GLViewer()
   mMouseRotate = false;
   mMouseZoom = false;
   mMousePan = false;
+  mCameraUp = Vector3(0.0f, 0.0f, 1.0f);
   mFocusStartPos = Vector3(0.0f, 0.0f, 0.0f);
   mFocusEndPos = Vector3(0.0f, 0.0f, 0.0f);
   mFocusStartTime = 0.0;
   mFocusEndTime = 0.0;
+  mFocusStartDistance = 1.0;
+  mFocusEndDistance = 1.0;
   mFocusing = false;
   mLastClickTime = -1000.0;
   mDisplayList = 0;

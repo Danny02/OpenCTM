@@ -60,8 +60,10 @@ v1.0.2 - ????.??.??
   turning it into a quick and simple converter tool (without all the options
   in the ctmconv program, though).
 
-- Improved the camera control in ctmviewer (panning with the middle mouse
-  button, and feature focusing by double clicking).
+- Improved the camera control in ctmviewer (panning with the right mouse
+  button, zooming with the middle mouse button and the mouse wheel, feature
+  focusing by double clicking, Y/Z up axis selection and "fit to screen"
+  function).
 
 - Added a GUI dialog for showing errors in ctmviewer (this is especially useful
   under Windows, where console output is disabeled).

@@ -22,7 +22,8 @@ argument), a standard 2D grid is used as a texture.
 .SH GUI OPERATIONS
 In addition to the command line arguments,
 .B ctmviewer
-offers several operations that can be performed from the 3D GUI display.
+offers several operations that can be performed from the 3D GUI display. For
+help, press the F1 key.
 .SS Loading and Saving
 It is possible to load and save 3D model files from the program by either
 using the icons in the upper left corner of the 3D display, or by using the
@@ -35,13 +36,22 @@ By holding down the left mouse button and moving the mouse, the camera is
 rotated around the 3D model.
 .PP
 By holding down the right mouse button and moving the mouse, the camera will
-zoom in and out.
+pan left/right and up/down.
 .PP
 By holding down the middle mouse button and moving the mouse, the camera will
-pan left/right and up/down.
+zoom in and out. It is also possible to use the mouse wheel (not supported on
+all systems) or the +/- keys to zoom in and out.
 .PP
 Double click the left mosue button on a point on the model to focus the camera
 on that point.
+.PP
+Press the 'f' key to fit the model into the screen view (re-center and re-zoom).
+.PP
+Press the 'y' key to change the camera up direction to the Y axis (may be
+necessary if the model was designed in or for an environment where the Y axis
+is considered the up direction).
+.PP
+Press the 'z' key to change the camera up direction to the Z axis (default).
 .SH FILE FORMATS
 The following 3D model file formats are supported:
 OpenCTM (.ctm),
