@@ -32,7 +32,7 @@
 
 all: DevelopersManual.pdf \
      FormatSpecification.pdf \
-     APIReference/index.html \
+     APIReference\index.html \
      ctmconv.html \
      ctmviewer.html
 
