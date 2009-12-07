@@ -169,6 +169,10 @@ bool SysSaveDialog::Show()
     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
     NULL);
 
+  // Configure the dialog
+  gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(dialog), mFileName.c_str());
+  gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+
   // Add filters
   for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
   {
