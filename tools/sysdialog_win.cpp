@@ -79,14 +79,35 @@ bool SysOpenDialog::Show()
   // Initialize the file dialog structure
   memset(&ofn, 0, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
-  ofn.lpstrFilter = NULL; // FIXME
-  ofn.nFilterIndex = 1;
   memset(&fileNameBuf, 0, sizeof(fileNameBuf));
   mFileName.copy(fileNameBuf, mFileName.size());
   ofn.lpstrFile = fileNameBuf;
   ofn.nMaxFile = sizeof(fileNameBuf);
   ofn.lpstrTitle = mCaption.c_str();
   ofn.Flags = 0;
+
+  // Add filters
+  int filterBufSize = 3;
+  for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
+    filterBufSize += (*i).size() + 1;
+  char * filterBuf = new char[filterBufSize];
+  memset(filterBuf, 0, filterBufSize);
+  int pos = 0;
+  for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
+  {
+    size_t splitPos = (*i).find("|");
+    if(splitPos != string::npos)
+    {
+      string name = (*i).substr(0, splitPos);
+      string pattern = (*i).substr(splitPos + 1);
+      memcpy(&filterBuf[pos], name.c_str(), name.size());
+      pos += name.size() + 1;
+      memcpy(&filterBuf[pos], pattern.c_str(), pattern.size());
+      pos += pattern.size() + 1;
+    }
+  }
+  ofn.lpstrFilter = filterBuf;
+  ofn.nFilterIndex = 1;
 
   // Show the dialog
   bool result = GetOpenFileNameA(&ofn);
@@ -96,6 +117,9 @@ bool SysOpenDialog::Show()
     mFileName = string(fileNameBuf);
   else
     mFileName = string("");
+
+  // Clean up
+  delete [] filterBuf;
 
   return result;
 }
@@ -116,14 +140,35 @@ bool SysSaveDialog::Show()
   // Initialize the file dialog structure
   memset(&ofn, 0, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
-  ofn.lpstrFilter = NULL; // FIXME
-  ofn.nFilterIndex = 1;
   memset(&fileNameBuf, 0, sizeof(fileNameBuf));
   mFileName.copy(fileNameBuf, mFileName.size());
   ofn.lpstrFile = fileNameBuf;
   ofn.nMaxFile = sizeof(fileNameBuf);
   ofn.lpstrTitle = mCaption.c_str();
-  ofn.Flags = 0;
+  ofn.Flags = OFN_OVERWRITEPROMPT;
+
+  // Add filters
+  int filterBufSize = 3;
+  for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
+    filterBufSize += (*i).size() + 1;
+  char * filterBuf = new char[filterBufSize];
+  memset(filterBuf, 0, filterBufSize);
+  int pos = 0;
+  for(list<string>::iterator i = mFilters.begin(); i != mFilters.end(); ++ i)
+  {
+    size_t splitPos = (*i).find("|");
+    if(splitPos != string::npos)
+    {
+      string name = (*i).substr(0, splitPos);
+      string pattern = (*i).substr(splitPos + 1);
+      memcpy(&filterBuf[pos], name.c_str(), name.size());
+      pos += name.size() + 1;
+      memcpy(&filterBuf[pos], pattern.c_str(), pattern.size());
+      pos += pattern.size() + 1;
+    }
+  }
+  ofn.lpstrFilter = filterBuf;
+  ofn.nFilterIndex = 1;
 
   // Show the dialog
   bool result = GetSaveFileNameA(&ofn);
@@ -133,6 +178,9 @@ bool SysSaveDialog::Show()
     mFileName = string(fileNameBuf);
   else
     mFileName = string("");
+
+  // Clean up
+  delete [] filterBuf;
 
   return result;
 }
