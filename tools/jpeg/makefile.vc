@@ -130,6 +130,9 @@ clean:
 	$(RM) *.obj *.exe libjpeg.lib
 	$(RM) testout*
 
+cleanlib:
+	$(RM) $(LIBOBJECTS) libjpeg.lib
+
 test: cjpeg.exe djpeg.exe jpegtran.exe
 	$(RM) testout*
 	.\djpeg -dct int -ppm -outfile testout.ppm  testorig.jpg

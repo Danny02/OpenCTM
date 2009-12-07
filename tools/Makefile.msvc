@@ -41,7 +41,7 @@ all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
 	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.obj ctmviewer.obj ctmbench.obj systimer.obj sysdialog_win.obj convoptions.obj $(MESHOBJS) glew.obj bin2c.exe phong_frag.h phong_vert.h ctmconv.res ctmviewer.res
-	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc clean
+	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc cleanlib
 	cd $(TINYXMLDIR) && $(MAKE) /fMakefile.msvc clean
 
 openctm.dll: $(OPENCTMDIR)\openctm.dll
