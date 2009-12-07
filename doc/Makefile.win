@@ -28,13 +28,14 @@
 #     distribution.
 ###############################################################################
 
-.PHONY: all clean
-
 all: DevelopersManual.pdf \
      FormatSpecification.pdf \
      APIReference\index.html \
      ctmconv.html \
      ctmviewer.html
+
+.PHONY: all clean
+
 
 clean:
 	del /Q APIReference\*.* DevelopersManual.pdf FormatSpecification.pdf *.aux *.toc *.log *.out ctmconv.html ctmviewer.html
@@ -51,7 +52,7 @@ APIReference\index.html: ..\lib\openctm.h ..\lib\openctmpp.h
 	doxygen
 
 ctmconv.html: ctmconv.1
-	groff -t -mandoc -Thtml $< > $@
+	groff -t -mandoc -Thtml ctmconv.1 > ctmconv.html
 
 ctmviewer.html: ctmviewer.1
-	groff -t -mandoc -Thtml $< > $@
+	groff -t -mandoc -Thtml ctmviewer.1 > ctmviewer.html
