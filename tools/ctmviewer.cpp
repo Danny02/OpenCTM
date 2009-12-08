@@ -88,6 +88,7 @@ class GLViewer {
 
     // Window state cariables
     int mWidth, mHeight;
+    GLint mDepthBufferResolution;
     int mOldMouseX, mOldMouseY;
     double mLastClickTime;
     bool mMouseRotate;
@@ -1127,6 +1128,9 @@ void GLViewer::ActionHelp()
 /// Redraw function.
 void GLViewer::WindowRedraw(void)
 {
+  // Get buffer properties
+  glGetIntegerv(GL_DEPTH_BITS, &mDepthBufferResolution);
+
   // Set the viewport to be the entire window
   glViewport(0, 0, mWidth, mHeight);
 
@@ -1151,19 +1155,28 @@ void GLViewer::WindowRedraw(void)
   glVertex3f(-1.0f, 1.0f, 0.5f);
   glEnd();
 
-  // Set up perspective projection
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+  // Calculate screen ratio (width / height)
   float ratio;
   if(mHeight == 0)
     ratio = 1.0f;
   else
     ratio = (float) mWidth / (float) mHeight;
-  float range = (mAABBMax - mAABBMin).Abs() +
-                (mCameraPosition - mCameraLookAt).Abs();
-  if(range < 1e-20f)
-    range = 1e-20f;
-  gluPerspective(60.0f, ratio, 0.01f * range, range);
+
+  // Calculate optimal near and far Z clipping planes
+  float farZ = (mAABBMax - mAABBMin).Abs() +
+               (mCameraPosition - mCameraLookAt).Abs();
+  if(farZ < 1e-20f)
+    farZ = 1e-20f;
+  float nearZ;
+  if(mDepthBufferResolution >= 24)
+    nearZ = 0.0001f * farZ;
+  else
+    nearZ = 0.01f * farZ;
+
+  // Set up perspective projection
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(60.0f, ratio, nearZ, farZ);
 
   // Set up the camera modelview matrix
   glMatrixMode(GL_MODELVIEW);
@@ -1477,6 +1490,7 @@ GLViewer::GLViewer()
   mFileSize = 0;
   mWidth = 1;
   mHeight = 1;
+  mDepthBufferResolution = 16;
   mOldMouseX = 0;
   mOldMouseY = 0;
   mMouseRotate = false;
