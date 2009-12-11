@@ -72,6 +72,7 @@ using namespace std;
 
 #include "icons/icon_open.h"
 #include "icons/icon_save.h"
+#include "icons/icon_help.h"
 
 
 //-----------------------------------------------------------------------------
@@ -394,6 +395,16 @@ class SaveButton: public GLButton {
       if(!mParent)
         return;
       mParent->ActionSaveFile();
+    }
+};
+
+class HelpButton: public GLButton {
+  public:
+    void DoAction()
+    {
+      if(!mParent)
+        return;
+      mParent->ActionHelp();
     }
 };
 
@@ -1574,6 +1585,12 @@ void GLViewer::Run(int argc, char **argv)
     b2->SetGlyph(icon_save, 32, 32, 4);
     b2->mPosX = 60;
     b2->mPosY = 10;
+    GLButton * b3 = new HelpButton();
+    mButtons.push_back(b3);
+    b3->mParent = this;
+    b3->SetGlyph(icon_help, 32, 32, 4);
+    b3->mPosX = 108;
+    b3->mPosY = 10;
 
     // Load the file
     if(argc >= 2)

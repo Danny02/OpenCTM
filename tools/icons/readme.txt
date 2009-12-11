@@ -9,4 +9,4 @@ Name:    Tango Icons
 License: Public Domain / by the Tango! Desktop Project
 URL:     http://tango.freedesktop.org/Tango_Desktop_Project
 Icons:   Document-open.svg
-         Document-save.svg
+         Document-save.svg         Help-browser.svg
