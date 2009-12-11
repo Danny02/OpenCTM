@@ -989,6 +989,7 @@ void GLViewer::ActionSaveFile()
   if(!mMesh)
     return;
   SysSaveDialog sd;
+  sd.mFilters.push_back(string("All files|*"));
   sd.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
   sd.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
   sd.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));

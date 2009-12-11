@@ -96,7 +96,6 @@ bool SysOpenDialog::Show()
   memset(&ofn, 0, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
   memset(&fileNameBuf, 0, sizeof(fileNameBuf));
-  mFileName.copy(fileNameBuf, mFileName.size());
   ofn.lpstrFile = fileNameBuf;
   ofn.nMaxFile = sizeof(fileNameBuf);
   ofn.lpstrTitle = mCaption.c_str();
