@@ -60,6 +60,8 @@ v1.0.2 - ????.??.??
   turning it into a quick and simple converter tool (without all the options
   in the ctmconv program, though).
 
+- Added a function to load texture files from ctmviewer.
+
 - Improved the camera control in ctmviewer (panning with the right mouse
   button, zooming with the middle mouse button and the mouse wheel, feature
   focusing by double clicking, Y/Z up axis selection and "fit to screen"

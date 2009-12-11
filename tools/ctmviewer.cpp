@@ -72,6 +72,7 @@ using namespace std;
 
 #include "icons/icon_open.h"
 #include "icons/icon_save.h"
+#include "icons/icon_texture.h"
 #include "icons/icon_help.h"
 
 
@@ -153,6 +154,9 @@ class GLViewer {
     /// Load a file to the mesh
     void LoadFile(const char * aFileName, const char * aOverrideTexture);
 
+    /// Load a texture file
+    void LoadTexture(const char * aFileName);
+
     /// Draw an outline box.
     void DrawOutlineBox(int x1, int y1, int x2, int y2,
       float r, float g, float b, float a);
@@ -182,6 +186,9 @@ class GLViewer {
 
     /// Save the file
     void ActionSaveFile();
+
+    /// Open a texture file
+    void ActionOpenTexture();
 
     /// Toggle wire frame view on/off
     void ActionToggleWireframe();
@@ -395,6 +402,16 @@ class SaveButton: public GLButton {
       if(!mParent)
         return;
       mParent->ActionSaveFile();
+    }
+};
+
+class OpenTextureButton: public GLButton {
+  public:
+    void DoAction()
+    {
+      if(!mParent)
+        return;
+      mParent->ActionOpenTexture();
     }
 };
 
@@ -796,6 +813,35 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   SetupCamera();
 }
 
+// Load a texture file
+void GLViewer::LoadTexture(const char * aFileName)
+{
+  // Load the texture
+  if(mTexHandle)
+    glDeleteTextures(1, &mTexHandle);
+  mTexHandle = 0;
+  if(mMesh->mTexCoords.size() == mMesh->mVertices.size())
+    InitTexture(aFileName);
+
+  // Setup texture parameters for the shader
+  if(mUseShader)
+  {
+    glUseProgram(mShaderProgram);
+
+    // Set the uUseTexture uniform
+    GLint useTexLoc = glGetUniformLocation(mShaderProgram, "uUseTexture");
+    if(useTexLoc >= 0)
+      glUniform1i(useTexLoc, glIsTexture(mTexHandle));
+
+    // Set the uTex uniform
+    GLint texLoc = glGetUniformLocation(mShaderProgram, "uTex");
+    if(texLoc >= 0)
+      glUniform1i(texLoc, 0);
+
+    glUseProgram(0);
+  }
+}
+
 // Draw an outline box.
 void GLViewer::DrawOutlineBox(int x1, int y1, int x2, int y2,
   float r, float g, float b, float a)
@@ -975,7 +1021,6 @@ void GLViewer::ActionOpenFile()
   od.mFilters.push_back(string("3D Studio (.3ds)|*.3ds"));
   od.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
   od.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
-  od.mFileName = mFileName;
   if(od.Show())
   {
     try
@@ -1014,6 +1059,31 @@ void GLViewer::ActionSaveFile()
     {
       Options opt;
       ExportMesh(sd.mFileName.c_str(), mMesh, opt);
+    }
+    catch(exception &e)
+    {
+      SysMessageBox mb;
+      mb.mMessageType = SysMessageBox::mtError;
+      mb.mCaption = "Error";
+      mb.mText = string(e.what());
+      mb.Show();
+    }
+  }
+}
+
+/// Open a texture file
+void GLViewer::ActionOpenTexture()
+{
+  SysOpenDialog od;
+  od.mCaption = string("Open Texture File");
+  od.mFilters.push_back(string("All supported texture files|*.jpg;*.jpeg"));
+  od.mFilters.push_back(string("JPEG|*.jpg;*.jpeg"));
+  if(od.Show())
+  {
+    try
+    {
+      LoadTexture(od.mFileName.c_str());
+      glutPostRedisplay();
     }
     catch(exception &e)
     {
@@ -1585,12 +1655,18 @@ void GLViewer::Run(int argc, char **argv)
     b2->SetGlyph(icon_save, 32, 32, 4);
     b2->mPosX = 60;
     b2->mPosY = 10;
-    GLButton * b3 = new HelpButton();
+    GLButton * b3 = new OpenTextureButton();
     mButtons.push_back(b3);
     b3->mParent = this;
-    b3->SetGlyph(icon_help, 32, 32, 4);
+    b3->SetGlyph(icon_texture, 32, 32, 4);
     b3->mPosX = 108;
     b3->mPosY = 10;
+    GLButton * b4 = new HelpButton();
+    mButtons.push_back(b4);
+    b4->mParent = this;
+    b4->SetGlyph(icon_help, 32, 32, 4);
+    b4->mPosX = 156;
+    b4->mPosY = 10;
 
     // Load the file
     if(argc >= 2)
