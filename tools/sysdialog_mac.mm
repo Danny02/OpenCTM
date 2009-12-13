@@ -97,9 +97,8 @@ bool SysOpenDialog::Show()
   [oPanel setAllowsMultipleSelection:NO];
   [oPanel setTitle:[NSString stringWithCString:mCaption.c_str() length:mCaption.size()]];
 
-  // Define filters (FIXME)
-  NSArray * fileTypes = [NSArray arrayWithObjects:@"ctm", @"3ds", @"stl", @"dae", @"obj", nil];
-  [oPanel setAllowedFileTypes:fileTypes];
+  // Define filters - FIXME!
+  // [oPanel setAllowedFileTypes:[NSArray arrayWithObjects:@"ctm", @"3ds", @"stl", @"dae", @"obj", nil]];
 
   // Display the dialog
   int dlgResult = [oPanel runModal];
@@ -133,9 +132,8 @@ bool SysSaveDialog::Show()
   [sPanel setCanCreateDirectories:YES];
   [sPanel setTitle:[NSString stringWithCString:mCaption.c_str() length:mCaption.size()]];
 
-  // Define filters (FIXME)
-  NSArray * fileTypes = [NSArray arrayWithObjects:@"ctm", @"3ds", @"stl", @"dae", @"obj", nil];
-  [sPanel setAllowedFileTypes:fileTypes];
+  // Define filters - FIXME!
+  // [oPanel setAllowedFileTypes:[NSArray arrayWithObjects:@"ctm", @"3ds", @"stl", @"dae", @"obj", nil]];
 
   // Display the dialog
   int dlgResult = [sPanel runModal];
