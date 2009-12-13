@@ -52,7 +52,7 @@ Legal notices:
 4. CHANGES
 ==========
 
-v1.0.2 - ????.??.??
+v1.0.2 - 2009.12.13
 -------------------
 - Added an OpenCTM exporter plugin for Maya [Jonas Innala].
 

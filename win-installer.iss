@@ -50,6 +50,7 @@ Source: "bindings\delphi\OpenCTM.pas"; DestDir: "{app}\Developer files"
 Source: "bindings\python\openctm.py"; DestDir: "{app}\Developer files"
 Source: "bindings\python\ctminfo.py"; DestDir: "{app}\Developer files"
 Source: "plugins\blender\*"; DestDir: "{app}\Plugins\Blender"
+Source: "plugins\maya\*"; DestDir: "{app}\Plugins\Maya"
 
 [Icons]
 Name: "{group}\Browse the OpenCTM folder"; Filename: "{app}"

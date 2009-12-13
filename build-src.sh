@@ -50,6 +50,8 @@ cp doc/APIReference/* $tmpdir/doc/APIReference/
 mkdir $tmpdir/plugins
 mkdir $tmpdir/plugins/blender
 cp plugins/blender/* $tmpdir/plugins/blender/
+mkdir $tmpdir/plugins/maya
+cp plugins/maya/* $tmpdir/plugins/maya/
 
 mkdir $tmpdir/bindings
 mkdir $tmpdir/bindings/delphi
