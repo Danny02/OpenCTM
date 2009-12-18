@@ -1,4 +1,4 @@
-# Makefile for zlib - for Linux
+# Makefile for zlib - for MinGW for Windows
 # Copyright (C) 1995-2005 Jean-loup Gailly.
 # For conditions of distribution and use, see copyright notice in zlib.h
 
@@ -6,7 +6,7 @@ CC=gcc
 CFLAGS=-c -O3 -W
 
 AR=ar rcs
-RM=rm -f
+RM=del /Q
 
 OBJS = adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
        zutil.o inflate.o infback.o inftrees.o inffast.o
