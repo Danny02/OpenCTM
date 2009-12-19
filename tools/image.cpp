@@ -25,9 +25,32 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
+#include <stdexcept>
 #include "image.h"
+#include "common.h"
+
+using namespace std;
 
 /// Load an image from a file
 void Image::LoadFromFile(const char * aFileName)
 {
+  string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
+  if((fileExt == string(".JPG")) || (fileExt == string(".JPEG")))
+    LoadJPEG(aFileName);
+  else if(fileExt == string(".PNG")))
+    LoadPNG(aFileName);
+  else
+    throw runtime_error("Unknown input file extension.");
+}
+
+/// Load image from a JPEG file.
+void Image::LoadJPEG(const char * aFileName)
+{
+  throw runtime_error("JPEG import is not yet implemented.");
+}
+
+/// Load image from a PNG file.
+void Image::LoadPNG(const char * aFileName)
+{
+  throw runtime_error("PNG import is not yet implemented.");
 }

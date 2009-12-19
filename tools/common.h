@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // Product:     OpenCTM tools
-// File:        image.h
-// Description: Interface for the Image class.
+// File:        common.h
+// Description: Miscellaneous helper functions.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2009 Marcus Geelnard
 //
@@ -25,42 +25,15 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
-#ifndef __IMAGE_H_
-#define __IMAGE_H_
+#ifndef __COMMON_H_
+#define __COMMON_H_
 
-#include <vector>
+#include <string>
 
-class Image {
-  private:
-    /// Load image from a JPEG file.
-    void LoadJPEG(const char * aFileName);
+// Convert a string to upper case.
+std::string UpperCase(const std::string &aString);
 
-    /// Load image from a PNG file.
-    void LoadPNG(const char * aFileName);
+// Extract the file extension of a file name.
+std::string ExtractFileExt(const std::string &aString);
 
-  public:
-    /// Constructor
-    Image()
-    {
-      mWidth = mHeight = 0;
-      mComponents = 4;
-    }
-
-    /// Load an image from a file
-    void LoadFromFile(const char * aFileName);
-
-    /// Image width (in pixels)
-    int mWidth;
-
-    /// Image height (in pixels)
-    int mHeight;
-
-    /// Number of components (1,3 or 4)
-    int mComponents;
-
-    /// Pixel data
-    std::vector<unsigned char> mData;
-};
-
-
-#endif // __IMAGE_H_
+#endif // __COMMON_H_

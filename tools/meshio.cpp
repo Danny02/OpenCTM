@@ -37,28 +37,10 @@
 #include "3ds.h"
 #include "dae.h"
 #include "obj.h"
+#include "common.h"
 
 using namespace std;
 
-
-// Convert a string to upper case.
-static string UpperCase(const string &aString)
-{
-  string result(aString);
-  for(unsigned int i = 0; i < result.size(); ++ i)
-    result[i] = toupper(result[i]);
-  return result;
-}
-
-// Extract the file extension of a file name.
-static string ExtractFileExt(const string &aString)
-{
-  string result = "";
-  size_t extPos = aString.rfind(".");
-  if(extPos != string::npos)
-    result = aString.substr(extPos);
-  return result;
-}
 
 /// Import a mesh from a file.
 void ImportMesh(const char * aFileName, Mesh * aMesh)

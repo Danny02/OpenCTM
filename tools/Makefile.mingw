@@ -40,18 +40,18 @@ MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.o ctmviewer.o ctmbench.o systimer.o sysdialog_win.o convoptions.o $(MESHOBJS) glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
+	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.o ctmviewer.o ctmbench.o common.o systimer.o sysdialog_win.o convoptions.o $(MESHOBJS) glew.o bin2c.exe phong_frag.h phong_vert.h ctmconv-res.o ctmviewer-res.o
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
 
 openctm.dll: $(OPENCTMDIR)\openctm.dll
 	copy $< $@
 
-ctmconv.exe: ctmconv.o systimer.o convoptions.o $(MESHOBJS) ctmconv-res.o $(TINYXMLDIR)/libtinyxml.a openctm.dll
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o systimer.o convoptions.o $(MESHOBJS) ctmconv-res.o -lopenctm -ltinyxml
+ctmconv.exe: ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) ctmconv-res.o $(TINYXMLDIR)/libtinyxml.a openctm.dll
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) ctmconv-res.o -lopenctm -ltinyxml
 
-ctmviewer.exe: ctmviewer.o systimer.o sysdialog_win.o convoptions.o $(MESHOBJS) glew.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a openctm.dll
-	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o systimer.o sysdialog_win.o convoptions.o $(MESHOBJS) glew.o ctmviewer-res.o -lopenctm -ltinyxml -ljpeg -lfreeglut -lopengl32 -lglu32
+ctmviewer.exe: ctmviewer.o common.o systimer.o sysdialog_win.o convoptions.o $(MESHOBJS) glew.o ctmviewer-res.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a openctm.dll
+	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o common.o systimer.o sysdialog_win.o convoptions.o $(MESHOBJS) glew.o ctmviewer-res.o -lopenctm -ltinyxml -ljpeg -lfreeglut -lopengl32 -lglu32
 
 ctmbench.exe: ctmbench.o systimer.o openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -lopenctm
@@ -62,11 +62,12 @@ ctmbench.exe: ctmbench.o systimer.o openctm.dll
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h mesh.h meshio.h
 ctmviewer.o: ctmviewer.cpp systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons/icon_open.h icons/icon_save.h icons/icon_help.h $(JPEGDIR)/libjpeg.a
 ctmbench.o: ctmbench.cpp systimer.h
+common.o: common.cpp common.h
 systimer.o: systimer.cpp systimer.h
 sysdialog_win.o: sysdialog_win.cpp sysdialog.h
 convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h
-meshio.o: meshio.cpp convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h
+meshio.o: meshio.cpp common.h convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h
 ctm.o: ctm.cpp ctm.h mesh.h convoptions.h
 ply.o: ply.cpp ply.h mesh.h
 stl.o: stl.cpp stl.h mesh.h
