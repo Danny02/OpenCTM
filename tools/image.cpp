@@ -26,6 +26,8 @@
 //-----------------------------------------------------------------------------
 
 #include <stdexcept>
+#include <cstdlib>
+#include <jpeglib.h>
 #include "image.h"
 #include "common.h"
 
@@ -37,7 +39,7 @@ void Image::LoadFromFile(const char * aFileName)
   string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
   if((fileExt == string(".JPG")) || (fileExt == string(".JPEG")))
     LoadJPEG(aFileName);
-  else if(fileExt == string(".PNG")))
+  else if(fileExt == string(".PNG"))
     LoadPNG(aFileName);
   else
     throw runtime_error("Unknown input file extension.");
@@ -46,7 +48,29 @@ void Image::LoadFromFile(const char * aFileName)
 /// Load image from a JPEG file.
 void Image::LoadJPEG(const char * aFileName)
 {
-  throw runtime_error("JPEG import is not yet implemented.");
+  FILE * inFile = fopen(aFileName, "rb");
+  if(inFile != NULL)
+  {
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_decompress(&cinfo);
+    jpeg_stdio_src(&cinfo, inFile);
+    jpeg_read_header(&cinfo, TRUE);
+    jpeg_start_decompress(&cinfo);
+    mWidth = cinfo.output_width;
+    mHeight = cinfo.output_height;
+    mComponents = cinfo.output_components;
+    mData.resize(mWidth * mHeight * mComponents);
+    for(int i = 0; i < mHeight; ++ i)
+    {
+      unsigned char * scanLines[1];
+      scanLines[0] = &mData[(mHeight - 1 - i) * mWidth * mComponents];
+      jpeg_read_scanlines(&cinfo, scanLines, 1);
+    }
+    jpeg_finish_decompress(&cinfo);
+    jpeg_destroy_decompress(&cinfo);
+  }
 }
 
 /// Load image from a PNG file.
