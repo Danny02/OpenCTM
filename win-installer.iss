@@ -5,17 +5,17 @@
 
 [Setup]
 AppName=OpenCTM
-AppVerName=OpenCTM 1.0.2
-VersionInfoVersion=1.0.2.0
+AppVerName=OpenCTM 1.0.3
+VersionInfoVersion=1.0.3.0
 AppPublisher=Marcus Geelnard
 AppPublisherURL=http://openctm.sourceforge.net/
 AppSupportURL=http://openctm.sourceforge.net/
 AppUpdatesURL=http://openctm.sourceforge.net/
-DefaultDirName={pf}\OpenCTM 1.0.2
-DefaultGroupName=OpenCTM 1.0.2
+DefaultDirName={pf}\OpenCTM 1.0.3
+DefaultGroupName=OpenCTM 1.0.3
 LicenseFile=LICENSE.txt
 OutputDir=.
-OutputBaseFilename=OpenCTM-1.0.2-setup
+OutputBaseFilename=OpenCTM-1.0.3-setup
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes

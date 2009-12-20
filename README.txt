@@ -52,6 +52,11 @@ Legal notices:
 4. CHANGES
 ==========
 
+v1.0.3 - ????.??.??
+-------------------
+- Added support for PNG format textures.
+
+
 v1.0.2 - 2009.12.13
 -------------------
 - Added an OpenCTM exporter plugin for Maya [Jonas Innala].

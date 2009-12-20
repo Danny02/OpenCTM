@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name of the distribution
-distname=OpenCTM-1.0.2
+distname=OpenCTM-1.0.3
 
 # Clean the source directories
 echo Cleaning up...
@@ -38,6 +38,10 @@ mkdir $tmpdir/tools/glew/GL
 cp tools/glew/GL/* $tmpdir/tools/glew/GL/
 mkdir $tmpdir/tools/tinyxml
 cp tools/tinyxml/* $tmpdir/tools/tinyxml/
+mkdir $tmpdir/tools/zlib
+cp tools/zlib/* $tmpdir/tools/zlib/
+mkdir $tmpdir/tools/pnglite
+cp tools/pnglite/* $tmpdir/tools/pnglite/
 
 mkdir $tmpdir/doc
 cp doc/DevelopersManual.pdf $tmpdir/doc/
