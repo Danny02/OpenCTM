@@ -18,7 +18,7 @@ libz.lib: $(OBJS)
 	$(AR) /OUT:$@ $(OBJS)
 
 clean:
-	$(RM) *.o libz.a
+	$(RM) *.obj libz.lib
 
 .c.obj:
 	$(CC) $(CFLAGS) /Fo$@ $<
