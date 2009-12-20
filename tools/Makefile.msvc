@@ -37,7 +37,7 @@ RC = rc
 
 MESHOBJS = mesh.obj meshio.obj ctm.obj ply.obj rply.obj stl.obj 3ds.obj dae.obj obj.obj
 CTMCONVOBJS = ctmconv.obj common.obj systimer.obj convoptions.obj $(MESHOBJS) ctmconv.res
-CTMVIEWEROBJS = ctmviewer.obj common.obj systimer.obj sysdialog_win.obj convoptions.obj glew.obj $(MESHOBJS) ctmviewer.res
+CTMVIEWEROBJS = ctmviewer.obj common.obj image.obj systimer.obj sysdialog_win.obj convoptions.obj glew.obj $(MESHOBJS) ctmviewer.res
 CTMBENCHOBJS = ctmbench.obj systimer.obj
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
@@ -63,9 +63,10 @@ ctmbench.exe: $(CTMBENCHOBJS) openctm.dll
 	$(CPP) $(CPPFLAGS) /Fo$@ $<
 
 ctmconv.obj: ctmconv.cpp systimer.h convoptions.h mesh.h meshio.h
-ctmviewer.obj: ctmviewer.cpp systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons\icon_open.h icons\icon_save.h icons\icon_help.h $(JPEGDIR)\libjpeg.lib
+ctmviewer.obj: ctmviewer.cpp image.h systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons\icon_open.h icons\icon_save.h icons\icon_help.h
 ctmbench.obj: ctmbench.cpp systimer.h
 common.obj: common.cpp common.h
+image.obj: image.cpp image.h common.h $(JPEGDIR)\libjpeg.lib
 systimer.obj: systimer.cpp systimer.h
 sysdialog_win.obj: sysdialog_win.cpp sysdialog.h
 convoptions.obj: convoptions.cpp convoptions.h

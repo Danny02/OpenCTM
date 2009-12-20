@@ -26,7 +26,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdexcept>
-#include <cstdlib>
+#include <cstdio>
 #include <jpeglib.h>
 #include "image.h"
 #include "common.h"
@@ -51,25 +51,35 @@ void Image::LoadJPEG(const char * aFileName)
   FILE * inFile = fopen(aFileName, "rb");
   if(inFile != NULL)
   {
+    // Init libjpeg resources
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_decompress(&cinfo);
     jpeg_stdio_src(&cinfo, inFile);
+
+    // Read JPEG header
     jpeg_read_header(&cinfo, TRUE);
     jpeg_start_decompress(&cinfo);
     mWidth = cinfo.output_width;
     mHeight = cinfo.output_height;
     mComponents = cinfo.output_components;
     mData.resize(mWidth * mHeight * mComponents);
+
+    // Read pixel data
     for(int i = 0; i < mHeight; ++ i)
     {
       unsigned char * scanLines[1];
       scanLines[0] = &mData[(mHeight - 1 - i) * mWidth * mComponents];
       jpeg_read_scanlines(&cinfo, scanLines, 1);
     }
+
+    // Finalize libjpeg resources
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
+
+    // Close input file
+    fclose(inFile);
   }
 }
 

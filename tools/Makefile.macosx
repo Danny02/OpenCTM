@@ -38,7 +38,7 @@ OCPPFLAGS = -c -O3 -W -Wall
 
 MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS)
-CTMVIEWEROBJS = ctmviewer.o common.o systimer.o sysdialog_mac.o convoptions.o glew.o $(MESHOBJS)
+CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_mac.o convoptions.o glew.o $(MESHOBJS)
 CTMBENCHOBJS = ctmbench.o systimer.o
 
 all: ctmconv ctmviewer ctmbench
@@ -67,9 +67,10 @@ ctmbench: $(CTMBENCHOBJS) $(OPENCTMDIR)/libopenctm.dylib
 	$(OCPP) $(OCPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h mesh.h meshio.h
-ctmviewer.o: ctmviewer.cpp systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons/icon_open.h icons/icon_save.h icons/icon_help.h $(JPEGDIR)/libjpeg.a
+ctmviewer.o: ctmviewer.cpp image.h systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons/icon_open.h icons/icon_save.h icons/icon_help.h
 ctmbench.o: ctmbench.cpp systimer.h
 common.o: common.cpp common.h
+image.o: image.cpp image.h common.h $(JPEGDIR)/libjpeg.a
 systimer.o: systimer.cpp systimer.h
 sysdialog_mac.o: sysdialog_mac.mm sysdialog.h
 convoptions.o: convoptions.cpp convoptions.h

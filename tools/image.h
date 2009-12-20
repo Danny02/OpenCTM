@@ -46,8 +46,31 @@ class Image {
       mComponents = 4;
     }
 
+    /// Clear the image
+    void Clear()
+    {
+      mWidth = mHeight = 0;
+      mComponents = 4;
+      mData.clear();
+    }
+
+    /// Set image dimensions
+    void SetSize(int aWidth, int aHeight, int aComponents)
+    {
+      mWidth = aWidth;
+      mHeight = aHeight;
+      mComponents = aComponents;
+      mData.resize(mWidth * mHeight * mComponents);
+    }
+
     /// Load an image from a file
     void LoadFromFile(const char * aFileName);
+
+    /// Check if the image is empty
+    bool IsEmpty()
+    {
+      return (mWidth == 0) || (mHeight == 0);
+    }
 
     /// Image width (in pixels)
     int mWidth;

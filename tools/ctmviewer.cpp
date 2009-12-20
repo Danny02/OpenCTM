@@ -38,12 +38,12 @@
 #else
   #include <GL/glut.h>
 #endif
-#include <jpeglib.h>
 #include <openctm.h>
 #include "mesh.h"
 #include "meshio.h"
 #include "sysdialog.h"
 #include "systimer.h"
+#include "image.h"
 
 using namespace std;
 
@@ -508,67 +508,64 @@ void GLViewer::InitShader()
 /// Initialize the texture.
 void GLViewer::InitTexture(const char * aFileName)
 {
-  unsigned char * data = 0;
-  int width = 256, height = 256, components = 1;
+  Image image;
 
-  // Load texture from a JPEG file
+  // Load texture from a file
   if(aFileName)
   {
-    FILE * inFile = fopen(aFileName, "rb");
-    if((inFile == NULL) && (mFilePath.size() > 0))
+    // Check if file exists, and determine actual file name (relative or absolute)
+    bool fileExists = false;
+    string name = string(aFileName);
+    FILE * inFile = fopen(name.c_str(), "rb");
+    if(inFile)
+      fileExists = true;
+    else if(mFilePath.size() > 0)
     {
       // Try the same path as the mesh file
-      string name = mFilePath + string(aFileName);
+      name = mFilePath + string(aFileName);
       inFile = fopen(name.c_str(), "rb");
+      if(inFile)
+        fileExists = true;
     }
-    if(inFile != NULL)
+    if(inFile)
+      fclose(inFile);
+
+    if(fileExists)
     {
       cout << "Loading texture (" << aFileName << ")..." << endl;
-      struct jpeg_decompress_struct cinfo;
-      struct jpeg_error_mgr jerr;
-      cinfo.err = jpeg_std_error(&jerr);
-      jpeg_create_decompress(&cinfo);
-      jpeg_stdio_src(&cinfo, inFile);
-      jpeg_read_header(&cinfo, TRUE);
-      jpeg_start_decompress(&cinfo);
-      width = cinfo.output_width;
-      height = cinfo.output_height;
-      components = cinfo.output_components;
-      data = new unsigned char[width * height * components];
-      for(int i = 0; i < height; ++ i)
+      try
       {
-        unsigned char * scanLines[1];
-        scanLines[0] = &data[(height - 1 - i) * width * components];
-        jpeg_read_scanlines(&cinfo, scanLines, 1);
+        image.LoadFromFile(name.c_str());
       }
-      jpeg_finish_decompress(&cinfo);
-      jpeg_destroy_decompress(&cinfo);
+      catch(exception &e)
+      {
+        cout << "Error loading texture: " << e.what() << endl;
+        image.Clear();
+      }
     }
   }
 
   // If no texture was loaded
-  if(!data)
+  if(image.IsEmpty())
   {
     cout << "Loading texture (dummy)..." << endl;
 
     // Create a default, synthetic texture
-    width = height = 256;
-    components = 1;
-    data = new unsigned char[width * height * components];
-    for(int y = 0; y < height; ++ y)
+    image.SetSize(256, 256, 1);
+    for(int y = 0; y < image.mHeight; ++ y)
     {
-      for(int x = 0; x < width; ++ x)
+      for(int x = 0; x < image.mWidth; ++ x)
       {
         if(((x & 0x000f) == 0) || ((y & 0x000f) == 0))
-          data[y * width + x] = 192;
+          image.mData[y * image.mWidth + x] = 192;
         else
-          data[y * width + x] = 255;
+          image.mData[y * image.mWidth + x] = 255;
       }
     }
   }
 
   // Upload the texture to OpenGL
-  if(data)
+  if(!image.IsEmpty())
     glGenTextures(1, &mTexHandle);
   else
     mTexHandle = 0;
@@ -576,9 +573,9 @@ void GLViewer::InitTexture(const char * aFileName)
   {
     // Determine the color format
     GLuint format;
-    if(components == 3)
+    if(image.mComponents == 3)
       format = GL_RGB;
-    else if(components == 4)
+    else if(image.mComponents == 4)
       format = GL_RGBA;
     else
       format = GL_LUMINANCE;
@@ -599,7 +596,7 @@ void GLViewer::InitTexture(const char * aFileName)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, format, GL_UNSIGNED_BYTE, (GLvoid *) data);
+    glTexImage2D(GL_TEXTURE_2D, 0, image.mComponents, image.mWidth, image.mHeight, 0, format, GL_UNSIGNED_BYTE, (GLvoid *) &image.mData[0]);
   }
 }
 
