@@ -36,25 +36,28 @@ CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I
 RC = rc
 
 MESHOBJS = mesh.obj meshio.obj ctm.obj ply.obj rply.obj stl.obj 3ds.obj dae.obj obj.obj
+CTMCONVOBJS = ctmconv.obj common.obj systimer.obj convoptions.obj $(MESHOBJS) ctmconv.res
+CTMVIEWEROBJS = ctmviewer.obj common.obj systimer.obj sysdialog_win.obj convoptions.obj glew.obj $(MESHOBJS) ctmviewer.res
+CTMBENCHOBJS = ctmbench.obj systimer.obj
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
 
 clean:
-	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe ctmconv.obj ctmviewer.obj ctmbench.obj common.obj systimer.obj sysdialog_win.obj convoptions.obj $(MESHOBJS) glew.obj bin2c.exe phong_frag.h phong_vert.h ctmconv.res ctmviewer.res
+	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c.exe phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) /fmakefile.vc cleanlib
 	cd $(TINYXMLDIR) && $(MAKE) /fMakefile.msvc clean
 
 openctm.dll: $(OPENCTMDIR)\openctm.dll
 	copy $(OPENCTMDIR)\openctm.dll openctm.dll
 
-ctmconv.exe: ctmconv.obj common.obj systimer.obj convoptions.obj $(MESHOBJS) ctmconv.res $(TINYXMLDIR)\tinyxml.lib openctm.dll
-	$(CPP) /nologo /Fe$@ ctmconv.obj common.obj systimer.obj convoptions.obj $(MESHOBJS) ctmconv.res /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) openctm.lib tinyxml.lib
+ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)\tinyxml.lib openctm.dll
+	$(CPP) /nologo /Fe$@ $(CTMCONVOBJS) /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) openctm.lib tinyxml.lib
 
-ctmviewer.exe: ctmviewer.obj common.obj systimer.obj sysdialog_win.obj convoptions.obj $(MESHOBJS) glew.obj ctmviewer.res $(JPEGDIR)\libjpeg.lib $(TINYXMLDIR)\tinyxml.lib openctm.dll
-	$(CPP) /nologo /Fe$@ ctmviewer.obj common.obj systimer.obj sysdialog_win.obj convoptions.obj $(MESHOBJS) glew.obj ctmviewer.res /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) /LIBPATH:$(JPEGDIR) openctm.lib tinyxml.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
+ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)\libjpeg.lib $(TINYXMLDIR)\tinyxml.lib openctm.dll
+	$(CPP) /nologo /Fe$@ $(CTMVIEWEROBJS) /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) /LIBPATH:$(JPEGDIR) openctm.lib tinyxml.lib glut.lib libjpeg.lib opengl32.lib glu32.lib
 
-ctmbench.exe: ctmbench.obj systimer.obj openctm.dll
-	$(CPP) /nologo /Fe$@ ctmbench.obj systimer.obj /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+ctmbench.exe: $(CTMBENCHOBJS) openctm.dll
+	$(CPP) /nologo /Fe$@ $(CTMBENCHOBJS) /link /LIBPATH:$(OPENCTMDIR) openctm.lib
 
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<

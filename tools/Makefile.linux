@@ -35,27 +35,30 @@ CPP = g++
 CPPFLAGS = -c -O3 -W -Wall `pkg-config --cflags gtk+-2.0` -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR)
 
 MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
+CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS)
+CTMVIEWEROBJS = ctmviewer.o common.o systimer.o sysdialog_gtk.o convoptions.o glew.o $(MESHOBJS)
+CTMBENCHOBJS = ctmbench.o systimer.o
 
 all: ctmconv ctmviewer ctmbench
 
 clean:
-	rm -f ctmconv ctmviewer ctmbench ctmconv.o ctmviewer.o ctmbench.o common.o systimer.o sysdialog_gtk.o convoptions.o $(MESHOBJS) glew.o bin2c phong_frag.h phong_vert.h
+	rm -f ctmconv ctmviewer ctmbench $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f makefile.linux clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux clean
 
 libopenctm.so: $(OPENCTMDIR)/libopenctm.so
 	cp $< $@
 
-ctmconv: ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) $(TINYXMLDIR)/libtinyxml.a libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) -Wl,-rpath,. -lopenctm -ltinyxml
+ctmconv: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -Wl,-rpath,. -lopenctm -ltinyxml
 
-ctmviewer: ctmviewer.o common.o systimer.o sysdialog_gtk.o convoptions.o $(MESHOBJS) glew.o $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) ctmviewer.o common.o systimer.o sysdialog_gtk.o convoptions.o $(MESHOBJS) glew.o -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut `pkg-config --libs gtk+-2.0`
+ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) $(CTMVIEWEROBJS) -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut `pkg-config --libs gtk+-2.0`
 
-ctmbench: ctmbench.o systimer.o libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) ctmbench.o systimer.o -Wl,-rpath,. -lopenctm
+ctmbench: $(CTMBENCHOBJS) libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -Wl,-rpath,. -lopenctm
 
-.cpp.o:
+%.o: %.cpp
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h mesh.h meshio.h
