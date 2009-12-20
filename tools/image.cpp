@@ -28,21 +28,31 @@
 #include <stdexcept>
 #include <cstdio>
 #include <jpeglib.h>
+#include <pnglite.h>
 #include "image.h"
 #include "common.h"
 
 using namespace std;
 
-/// Load an image from a file
-void Image::LoadFromFile(const char * aFileName)
+
+/// Flip the image vertically.
+void Image::FlipVertically()
 {
-  string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
-  if((fileExt == string(".JPG")) || (fileExt == string(".JPEG")))
-    LoadJPEG(aFileName);
-  else if(fileExt == string(".PNG"))
-    LoadPNG(aFileName);
-  else
-    throw runtime_error("Unknown input file extension.");
+  if((mWidth <= 0) || (mHeight <= 0))
+    return;
+
+  for(int y = 0; y < mHeight / 2; ++ y)
+  {
+    for(int x = 0; x < mWidth; ++ x)
+    {
+      for(int k = 0; k < mComponents; ++ k)
+      {
+        unsigned char tmp = mData[(y * mWidth + x) * mComponents + k];
+        mData[(y * mWidth + x) * mComponents + k] = mData[((mHeight - 1 - y) * mWidth + x) * mComponents + k];
+        mData[((mHeight - 1 - y) * mWidth + x) * mComponents + k] = tmp;
+      }
+    }
+  }
 }
 
 /// Load image from a JPEG file.
@@ -61,10 +71,7 @@ void Image::LoadJPEG(const char * aFileName)
     // Read JPEG header
     jpeg_read_header(&cinfo, TRUE);
     jpeg_start_decompress(&cinfo);
-    mWidth = cinfo.output_width;
-    mHeight = cinfo.output_height;
-    mComponents = cinfo.output_components;
-    mData.resize(mWidth * mHeight * mComponents);
+    SetSize(cinfo.output_width, cinfo.output_height, cinfo.output_components);
 
     // Read pixel data
     for(int i = 0; i < mHeight; ++ i)
@@ -86,5 +93,42 @@ void Image::LoadJPEG(const char * aFileName)
 /// Load image from a PNG file.
 void Image::LoadPNG(const char * aFileName)
 {
-  throw runtime_error("PNG import is not yet implemented.");
+  bool success = false;
+  png_t p;
+  png_init(0, 0);
+  if(png_open_file(&p, aFileName) == PNG_NO_ERROR)
+  {
+    if((p.depth == 8) && ((p.color_type == PNG_GREYSCALE) ||
+       (p.color_type == PNG_TRUECOLOR) ||
+       (p.color_type == PNG_TRUECOLOR_ALPHA)) && (p.width > 0) &&
+       (p.height > 0) && (p.bpp >= 1) && (p.bpp <= 4))
+    {
+      SetSize(p.width, p.height, p.bpp);
+      if(png_get_data(&p, &mData[0]) == PNG_NO_ERROR)
+      {
+        FlipVertically();
+        success = true;
+      }
+    }
+    png_close_file(&p);
+  }
+
+  // Did we have an error?
+  if(!success)
+  {
+    Clear();
+    throw runtime_error("Unable to load PNG file.");
+  }
+}
+
+/// Load an image from a file (any supported format).
+void Image::LoadFromFile(const char * aFileName)
+{
+  string fileExt = UpperCase(ExtractFileExt(string(aFileName)));
+  if((fileExt == string(".JPG")) || (fileExt == string(".JPEG")))
+    LoadJPEG(aFileName);
+  else if(fileExt == string(".PNG"))
+    LoadPNG(aFileName);
+  else
+    throw runtime_error("Unknown input file extension.");
 }

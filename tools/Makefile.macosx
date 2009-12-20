@@ -1,6 +1,6 @@
 ###############################################################################
 # Product:     OpenCTM tools
-# File:        Makefile.mingw
+# File:        Makefile.macosx
 # Description: Makefile for the OpenCTM tools, Mac OS X version
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
@@ -30,15 +30,17 @@ GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
 TINYXMLDIR = tinyxml
+ZLIBDIR = zlib
+PNGLITEDIR = pnglite
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR)
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR) -I$(ZLIBDIR) -I$(PNGLITEDIR)
 OCPP = g++ -x objective-c++
 OCPPFLAGS = -c -O3 -W -Wall
 
 MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS)
-CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_mac.o convoptions.o glew.o $(MESHOBJS)
+CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_mac.o convoptions.o glew.o pnglite.o $(MESHOBJS)
 CTMBENCHOBJS = ctmbench.o systimer.o
 
 all: ctmconv ctmviewer ctmbench
@@ -47,6 +49,7 @@ clean:
 	rm -f ctmconv ctmviewer ctmbench $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f makefile.macosx clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.macosx clean
+	cd $(ZLIBDIR) && $(MAKE) -f Makefile.macosx clean
 
 libopenctm.so: $(OPENCTMDIR)/libopenctm.so
 	cp $< $@
@@ -54,8 +57,8 @@ libopenctm.so: $(OPENCTMDIR)/libopenctm.so
 ctmconv: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm -ltinyxml
 
-ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
-	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -framework GLUT -framework OpenGL -framework Cocoa
+ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a $(OPENCTMDIR)/libopenctm.dylib
+	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lz -framework GLUT -framework OpenGL -framework Cocoa
 
 ctmbench: $(CTMBENCHOBJS) $(OPENCTMDIR)/libopenctm.dylib
 	$(CPP) -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm
@@ -95,11 +98,17 @@ bin2c: bin2c.cpp
 $(JPEGDIR)/libjpeg.a:
 	cd $(JPEGDIR) && $(MAKE) -f makefile.macosx libjpeg.a
 
+$(ZLIBDIR)/libz.a:
+	cd $(ZLIBDIR) && $(MAKE) -f Makefile.macosx
+
 glew.o: $(GLEWDIR)/glew.c
 	gcc -c -Os -W -I$(GLEWDIR) -o $@ $<
 
 rply.o: $(RPLYDIR)/rply.c
 	gcc -c -O2 -W -I$(RPLYDIR) -o $@ $<
+
+pnglite.o: $(PNGLITEDIR)/pnglite.c
+	gcc -c -O2 -W -I$(PNGLITEDIR) -o $@ $<
 
 $(TINYXMLDIR)/libtinyxml.a:
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.macosx

@@ -38,6 +38,9 @@ class Image {
     /// Load image from a PNG file.
     void LoadPNG(const char * aFileName);
 
+    /// Flip the image vertically.
+    void FlipVertically();
+
   public:
     /// Constructor
     Image()
@@ -46,7 +49,7 @@ class Image {
       mComponents = 4;
     }
 
-    /// Clear the image
+    /// Clear the image.
     void Clear()
     {
       mWidth = mHeight = 0;
@@ -54,7 +57,7 @@ class Image {
       mData.clear();
     }
 
-    /// Set image dimensions
+    /// Set image dimensions.
     void SetSize(int aWidth, int aHeight, int aComponents)
     {
       mWidth = aWidth;
@@ -63,22 +66,22 @@ class Image {
       mData.resize(mWidth * mHeight * mComponents);
     }
 
-    /// Load an image from a file
+    /// Load an image from a file (any supported format).
     void LoadFromFile(const char * aFileName);
 
-    /// Check if the image is empty
+    /// Check if the image is empty.
     bool IsEmpty()
     {
       return (mWidth == 0) || (mHeight == 0);
     }
 
-    /// Image width (in pixels)
+    /// Image width (in pixels).
     int mWidth;
 
-    /// Image height (in pixels)
+    /// Image height (in pixels).
     int mHeight;
 
-    /// Number of components (1,3 or 4)
+    /// Number of components (1, 3 or 4).
     int mComponents;
 
     /// Pixel data

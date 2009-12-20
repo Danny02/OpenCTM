@@ -1,6 +1,6 @@
 ###############################################################################
 # Product:     OpenCTM tools
-# File:        Makefile.mingw
+# File:        Makefile.linux
 # Description: Makefile for the OpenCTM tools, Linux version
 ###############################################################################
 # Copyright (c) 2009 Marcus Geelnard
@@ -30,13 +30,15 @@ GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
 TINYXMLDIR = tinyxml
+ZLIBDIR = zlib
+PNGLITEDIR = pnglite
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall `pkg-config --cflags gtk+-2.0` -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR)
+CPPFLAGS = -c -O3 -W -Wall `pkg-config --cflags gtk+-2.0` -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR) -I$(ZLIBDIR) -I$(PNGLITEDIR)
 
 MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS)
-CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_gtk.o convoptions.o glew.o $(MESHOBJS)
+CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_gtk.o convoptions.o glew.o pnglite.o $(MESHOBJS)
 CTMBENCHOBJS = ctmbench.o systimer.o
 
 all: ctmconv ctmviewer ctmbench
@@ -45,6 +47,7 @@ clean:
 	rm -f ctmconv ctmviewer ctmbench $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f makefile.linux clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux clean
+	cd $(ZLIBDIR) && $(MAKE) -f Makefile.linux clean
 
 libopenctm.so: $(OPENCTMDIR)/libopenctm.so
 	cp $< $@
@@ -52,8 +55,8 @@ libopenctm.so: $(OPENCTMDIR)/libopenctm.so
 ctmconv: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -Wl,-rpath,. -lopenctm -ltinyxml
 
-ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a libopenctm.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) $(CTMVIEWEROBJS) -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lglut `pkg-config --libs gtk+-2.0`
+ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a libopenctm.so
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -Wl,-rpath,. -lopenctm -ltinyxml -ljpeg -lz -lglut `pkg-config --libs gtk+-2.0`
 
 ctmbench: $(CTMBENCHOBJS) libopenctm.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -Wl,-rpath,. -lopenctm
@@ -90,11 +93,17 @@ bin2c: bin2c.cpp
 $(JPEGDIR)/libjpeg.a:
 	cd $(JPEGDIR) && $(MAKE) -f makefile.linux libjpeg.a
 
+$(ZLIBDIR)/libz.a:
+	cd $(ZLIBDIR) && $(MAKE) -f Makefile.linux
+
 glew.o: $(GLEWDIR)/glew.c
 	gcc -c -Os -W -I$(GLEWDIR) -o $@ $<
 
 rply.o: $(RPLYDIR)/rply.c
 	gcc -c -O2 -W -I$(RPLYDIR) -o $@ $<
+
+pnglite.o: $(PNGLITEDIR)/pnglite.c
+	gcc -c -O2 -W -I$(PNGLITEDIR) -o $@ $<
 
 $(TINYXMLDIR)/libtinyxml.a:
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.linux

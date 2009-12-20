@@ -1073,8 +1073,9 @@ void GLViewer::ActionOpenTexture()
 {
   SysOpenDialog od;
   od.mCaption = string("Open Texture File");
-  od.mFilters.push_back(string("All supported texture files|*.jpg;*.jpeg"));
+  od.mFilters.push_back(string("All supported texture files|*.jpg;*.jpeg;*.png"));
   od.mFilters.push_back(string("JPEG|*.jpg;*.jpeg"));
+  od.mFilters.push_back(string("PNG|*.png"));
   if(od.Show())
   {
     try

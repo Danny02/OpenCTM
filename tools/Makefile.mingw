@@ -30,14 +30,16 @@ GLEWDIR = glew
 JPEGDIR = jpeg
 RPLYDIR = rply
 TINYXMLDIR = tinyxml
+ZLIBDIR = zlib
+PNGLITEDIR = pnglite
 
 CPP = g++
-CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR) -DGLEW_STATIC
+CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR) -I$(ZLIBDIR) -I$(PNGLITEDIR) -DGLEW_STATIC
 RC = windres
 
 MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o
 CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) ctmconv-res.o
-CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_win.o convoptions.o glew.o $(MESHOBJS) ctmviewer-res.o
+CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_win.o convoptions.o glew.o pnglite.o $(MESHOBJS) ctmviewer-res.o
 CTMBENCHOBJS = ctmbench.o systimer.o
 
 all: ctmconv.exe ctmviewer.exe ctmbench.exe
@@ -46,6 +48,7 @@ clean:
 	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c.exe phong_frag.h phong_vert.h
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw clean
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
+	cd $(ZLIBDIR) && $(MAKE) -f Makefile.mingw clean
 
 openctm.dll: $(OPENCTMDIR)\openctm.dll
 	copy $< $@
@@ -53,8 +56,8 @@ openctm.dll: $(OPENCTMDIR)\openctm.dll
 ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm -ltinyxml
 
-ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a openctm.dll
-	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lfreeglut -lopengl32 -lglu32
+ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a openctm.dll
+	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lz -lfreeglut -lopengl32 -lglu32
 
 ctmbench.exe: $(CTMBENCHOBJS) openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm
@@ -97,11 +100,17 @@ ctmviewer-res.o: ctmviewer.rc icons\openctm.ico
 $(JPEGDIR)/libjpeg.a:
 	cd $(JPEGDIR) && $(MAKE) -f Makefile.mingw libjpeg.a
 
+$(ZLIBDIR)/libz.a:
+	cd $(ZLIBDIR) && $(MAKE) -f Makefile.mingw
+
 glew.o: $(GLEWDIR)/glew.c
 	gcc -c -Os -W -I$(GLEWDIR) -DGLEW_STATIC -o $@ $<
 
 rply.o: $(RPLYDIR)/rply.c
 	gcc -c -O2 -W -I$(RPLYDIR) -o $@ $<
+
+pnglite.o: $(PNGLITEDIR)/pnglite.c
+	gcc -c -O2 -W -I$(PNGLITEDIR) -o $@ $<
 
 $(TINYXMLDIR)/libtinyxml.a:
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw
