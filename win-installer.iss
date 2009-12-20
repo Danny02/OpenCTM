@@ -53,6 +53,7 @@ Source: "plugins\blender\*"; DestDir: "{app}\Plugins\Blender"
 Source: "plugins\maya\*"; DestDir: "{app}\Plugins\Maya"
 
 [Icons]
+Name: "{group}\3D Viewer"; Filename: "{app}\bin\ctmviewer.exe"; WorkingDir: "{app}\bin"
 Name: "{group}\Browse the OpenCTM folder"; Filename: "{app}"
 Name: "{group}\Developers Manual"; Filename: "{app}\Documentation\DevelopersManual.pdf"
 Name: "{group}\API Reference"; Filename: "{app}\Documentation\APIReference\index.html"

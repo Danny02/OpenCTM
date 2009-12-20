@@ -937,14 +937,14 @@ void GLViewer::Draw2DOverlay()
   glDisable(GL_DEPTH_TEST);
 
   // Render an info string
-  stringstream s;
-  s << mFileName << " (" << (mFileSize + 512) / 1024 << "KB)" << endl;
   if(mMesh)
   {
+    stringstream s;
+    s << mFileName << " (" << (mFileSize + 512) / 1024 << "KB)" << endl;
     s << mMesh->mVertices.size() << " vertices" << endl;
     s << mMesh->mIndices.size() / 3 << " triangles";
+    DrawString(s.str(), 10, mHeight - 50);
   }
-  DrawString(s.str(), 10, mHeight - 50);
 
   // Calculate buttons bounding box, and draw it as an outline box
   int x1 = 9999, y1 = 9999, x2 = 0, y2 = 0;
@@ -1040,7 +1040,15 @@ void GLViewer::ActionOpenFile()
 void GLViewer::ActionSaveFile()
 {
   if(!mMesh)
+  {
+    SysMessageBox mb;
+    mb.mMessageType = SysMessageBox::mtError;
+    mb.mCaption = "Save File";
+    mb.mText = string("No mesh has been loaded.");
+    mb.Show();
     return;
+  }
+
   SysSaveDialog sd;
   sd.mFilters.push_back(string("All files|*"));
   sd.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
@@ -1071,6 +1079,16 @@ void GLViewer::ActionSaveFile()
 /// Open a texture file
 void GLViewer::ActionOpenTexture()
 {
+  if(!mMesh || (mMesh->mTexCoords.size() < 1))
+  {
+    SysMessageBox mb;
+    mb.mMessageType = SysMessageBox::mtError;
+    mb.mCaption = "Open Texture File";
+    mb.mText = string("This mesh does not have any texture coordinates.");
+    mb.Show();
+    return;
+  }
+
   SysOpenDialog od;
   od.mCaption = string("Open Texture File");
   od.mFilters.push_back(string("All supported texture files|*.jpg;*.jpeg;*.png"));
@@ -1179,8 +1197,6 @@ void GLViewer::ActionHelp()
   helpText << "ctmviewer - OpenCTM file viewer" << endl;
   helpText << "Copyright (c) 2009 Marcus Geelnard" << endl << endl;
   helpText << "Keyboard actions:" << endl;
-  helpText << "  CTRL+O - Open file" << endl;
-  helpText << "  CTRL+S - Save file" << endl;
   helpText << "  W - Toggle wire frame view on/off" << endl;
   helpText << "  F - Fit model to the screen" << endl;
   helpText << "  Y - Set Y as the up axis (change camera view)" << endl;
@@ -1757,29 +1773,6 @@ void GLUTSpecialKeyDown(int key, int x, int y)
 /// Program entry.
 int main(int argc, char **argv)
 {
-  // Was the program invoked correctly?
-  if((argc < 2) || (argc > 3))
-  {
-    // ...usage
-    stringstream s;
-    s << "ctmviewer file [texturefile]" << endl;
-
-    // ...supported formats
-    s << endl << "Supported file formats:" << endl << endl;
-    list<string> formatList;
-    SupportedFormats(formatList);
-    for(list<string>::iterator i = formatList.begin(); i != formatList.end(); ++ i)
-      s << "  " << (*i) << endl;
-
-    // Show the message
-    SysMessageBox mb;
-    mb.mCaption = "Usage";
-    mb.mText = s.str();
-    mb.Show();
-
-    return 0;
-  }
-
   // Run the application class
   gGLViewer = new GLViewer;
   gGLViewer->Run(argc, argv);

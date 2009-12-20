@@ -54,7 +54,9 @@ Legal notices:
 
 v1.0.3 - ????.??.??
 -------------------
-- Added support for PNG format textures.
+- Added support for PNG format textures (ctmviewer).
+
+- Made it possible to run ctmviewer without arguments.
 
 
 v1.0.2 - 2009.12.13
