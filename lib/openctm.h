@@ -156,11 +156,11 @@ extern "C" {
 // Get system specific type definitions for sized integers. We use the C99
 // standard stdint.h for this.
 #ifdef _MSC_VER
-// MS Visual Studio does not support C99
-typedef int int32_t;
-typedef unsigned int uint32_t;
+  // MS Visual Studio does not support C99
+  typedef int int32_t;
+  typedef unsigned int uint32_t;
 #else
-#include <stdint.h>
+  #include <stdint.h>
 #endif
 
 
@@ -647,9 +647,9 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
 #endif
 
 
-// C++ extensions to the API
-#ifdef __cplusplus
-#include "openctmpp.h"
+// C++ extensions to the API (to disable C++ extensions, define OPENCTM_NO_CPP)
+#if defined(__cplusplus) && !defined(OPENCTM_NO_CPP)
+  #include "openctmpp.h"
 #endif
 
 #endif // __OPENCTM_H_

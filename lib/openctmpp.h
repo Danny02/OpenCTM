@@ -25,6 +25,9 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
+// To disable C++ extensions, define OPENCTM_NO_CPP
+#ifndef OPENCTM_NO_CPP
+
 #ifndef __OPENCTMPP_H_
 #define __OPENCTMPP_H_
 
@@ -370,3 +373,5 @@ class CTMexporter {
 };
 
 #endif // __OPENCTMPP_H_
+
+#endif // OPENCTM_NO_CPP
