@@ -56,6 +56,8 @@ v1.0.3 - ????.??.??
 -------------------
 - Added support for PNG format textures (ctmviewer).
 
+- Added experimental support for LightWave LWO files (ctmconv and ctmviewer).
+
 - Made it possible to run ctmviewer without arguments.
 
 

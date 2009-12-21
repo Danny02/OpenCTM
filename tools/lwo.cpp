@@ -31,13 +31,100 @@
 #include "lwo.h"
 
 #ifdef _MSC_VER
-typedef unsigned int uint32;
+  typedef unsigned int uint32;
 #else
-#include <stdint.h>
-typedef uint32_t uint32;
+  #include <stdint.h>
+  typedef uint32_t uint32;
 #endif
 
 using namespace std;
+
+
+//------------------------------------------------------------------------------
+// Helper functions for reading
+//------------------------------------------------------------------------------
+
+/// Read a 16-bit integer, endian independent.
+static uint32 ReadU2(istream &aStream)
+{
+  unsigned char buf[2];
+  aStream.read((char *) buf, 2);
+  return (((uint32) buf[0]) << 8) |
+         ((uint32) buf[1]);
+}
+
+/// Read a 32-bit integer, endian independent.
+static uint32 ReadU4(istream &aStream)
+{
+  unsigned char buf[4];
+  aStream.read((char *) buf, 4);
+  return (((uint32) buf[0]) << 24) |
+         (((uint32) buf[1]) << 16) |
+         (((uint32) buf[2]) << 8) |
+         ((uint32) buf[3]);
+}
+
+/// Read a 3 x 32-bit floating point vector, endian independent.
+static Vector3 ReadVEC12(istream &aStream)
+{
+  unsigned char buf[12];
+  Vector3 result;
+  aStream.read((char *) buf, 12);
+  union {
+    uint32 i;
+    float  f;
+  } val;
+  val.i = (((uint32) buf[0]) << 24) |
+          (((uint32) buf[1]) << 16) |
+          (((uint32) buf[2]) << 8) |
+          ((uint32) buf[3]);
+  result.x = val.f;
+  val.i = (((uint32) buf[4]) << 24) |
+          (((uint32) buf[5]) << 16) |
+          (((uint32) buf[6]) << 8) |
+          ((uint32) buf[7]);
+  result.y = val.f;
+  val.i = (((uint32) buf[8]) << 24) |
+          (((uint32) buf[9]) << 16) |
+          (((uint32) buf[10]) << 8) |
+          ((uint32) buf[11]);
+  result.z = val.f;
+  return result;
+}
+
+/// Read a non-terminated string from the stream (e.g. a chunk ID string).
+static string ReadString(istream &aStream, int aCount)
+{
+  string result;
+  result.resize(aCount);
+  aStream.read((char *) &result[0], aCount);
+  return result;
+}
+
+/// Read a zero terminated string from a stream.
+static string ReadStringZ(istream &aStream)
+{
+  return string(""); // FIXME
+}
+
+/// Read a polygon index (variable size) from a stream.
+static uint32 ReadPOLSIndex(istream &aStream, int * aBytesLeft)
+{
+  uint32 result = ReadU2(aStream);
+  if(result >= 0x0000ff00)
+  {
+    result = ((result & 255) << 16) | ReadU2(aStream);
+    *aBytesLeft -= 4;
+  }
+  else
+    *aBytesLeft -= 2;
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Helper functions for writing
+//------------------------------------------------------------------------------
 
 /// Write a pad byte if necessary (align chunks on even byte offsets)
 static void WritePadByte(ostream &aStream)
@@ -127,10 +214,132 @@ static uint32 CalcPOLSSize(Mesh * aMesh)
   return size;
 }
 
+
+//------------------------------------------------------------------------------
+// Public functions
+//------------------------------------------------------------------------------
+
 /// Import a mesh from an LWO file.
 void Import_LWO(const char * aFileName, Mesh * aMesh)
 {
-  throw runtime_error("LWO import has not yet been implemented.");
+  // Open the input file
+  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  if(f.fail())
+    throw runtime_error("Could not open input file.");
+
+  // File header
+  if(ReadString(f, 4) != string("FORM"))
+    throw runtime_error("Not a valid LWO file (missing FORM chunk).");
+  uint32 fileSize = ReadU4(f);
+  if(ReadString(f, 4) != string("LWO2"))
+    throw runtime_error("Not a valid LWO file (not LWO2 format).");
+
+  // Start with an empty mesh
+  aMesh->Clear();
+  uint32 pointCount = 0;
+  uint32 triangleCount = 0;
+  uint32 indexBias = 0;
+  bool havePoints = false;
+
+  // Iterate all chunks
+  while(!f.eof() && (f.tellg() < fileSize))
+  {
+    // Get chunk ID & size
+    string chunkID = ReadString(f, 4);
+    uint32 chunkSize = ReadU4(f);
+
+    // Was this a supported chunk?
+    if(chunkID == string("PNTS"))
+    {
+      // Check point count
+      uint32 newPoints = chunkSize / 12;
+      if((newPoints * 12) != chunkSize)
+        throw runtime_error("Not a valid LWO file (invalid PNTS chunk).");
+
+      // Read points
+      aMesh->mVertices.resize(pointCount + newPoints);
+      for(uint32 i = pointCount; i < (uint32) aMesh->mVertices.size(); ++ i)
+        aMesh->mVertices[i] = ReadVEC12(f);
+      indexBias = pointCount;
+      pointCount += newPoints;
+      havePoints = true;
+    }
+    else if(chunkID == string("POLS"))
+    {
+      // POLS before PNTS?
+      if(!havePoints)
+        throw runtime_error("Not a valid LWO file (POLS chunk before PNTS chunk).");
+
+      // Check that we have a FACE descriptor
+      if(ReadString(f, 4) == string("FACE"))
+      {
+        // Perpare for worst case triangle count (a single poly with only
+        // 16-bit indices)
+        uint32 maxTriCount = (chunkSize - 10) / 2;
+        vector<uint32> indices;
+        indices.resize(maxTriCount * 3);
+
+        // Read polygons
+        uint32 newTris = 0;
+        int bytesLeft = (int) chunkSize - 4;
+        while(bytesLeft > 0)
+        {
+          int polyNodes = (int) ReadU2(f);
+          bytesLeft -= 2;
+          if(polyNodes >= 3)
+          {
+            polyNodes -= 3;
+            uint32 idx[3];
+            idx[0] = ReadPOLSIndex(f, &bytesLeft);
+            idx[1] = ReadPOLSIndex(f, &bytesLeft);
+            idx[2] = ReadPOLSIndex(f, &bytesLeft);
+            while((polyNodes >= 0) && (bytesLeft >= 0))
+            {
+              indices[newTris * 3] = idx[0];
+              indices[newTris * 3 + 1] = idx[1];
+              indices[newTris * 3 + 2] = idx[2];
+              ++ newTris;
+              if(polyNodes > 0)
+              {
+                idx[1] = idx[2];
+                idx[2] = ReadPOLSIndex(f, &bytesLeft);
+              }
+              -- polyNodes;
+            }
+          }
+          else
+          {
+            // Skip polygons with less than 3 nodes
+            for(int i = 0; i < polyNodes; ++ i)
+              ReadPOLSIndex(f, &bytesLeft);
+          }
+        }
+
+        // Copy all the read indices to the mesh
+        aMesh->mIndices.resize((triangleCount + newTris) * 3);
+        for(uint32 i = 0; i < newTris; ++ i)
+        {
+          aMesh->mIndices[(i + triangleCount) * 3] = indices[i * 3] + indexBias;
+          aMesh->mIndices[(i + triangleCount) * 3 + 1] = indices[i * 3 + 1] + indexBias;
+          aMesh->mIndices[(i + triangleCount) * 3 + 2] = indices[i * 3 + 2] + indexBias;
+        }
+        triangleCount += newTris;
+      }
+      else
+      {
+        // We only support FACE type polygons - skip this chunk
+        f.seekg(((chunkSize + 1) & 0x7ffffffe) - 4, ios_base::cur);
+      }
+    }
+    else
+    {
+      // Just skip this chunk (always round to next nearest even offset)
+      f.seekg((chunkSize + 1) & 0x7ffffffe, ios_base::cur);
+    }
+  }
+
+  // Close the input file
+  f.close();
 }
 
 /// Export a mesh to an LWO file.
@@ -204,4 +413,7 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
     }
   }
   WritePadByte(f);
+
+  // Close the output file
+  f.close();
 }

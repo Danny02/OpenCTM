@@ -29,6 +29,7 @@ Name: associateply; Description: "&Associate Stanford PLY (.ply) files with the 
 Name: associate3ds; Description: "&Associate 3DStudio (.3ds) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associatedae; Description: "&Associate COLLADA (.dae) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associateobj; Description: "&Associate Wavefront (.obj) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
+Name: associatelwo; Description: "&Associate LightWave (.lwo) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: modifypath; Description: "&Add application directory to your system path"; GroupDescription: "Modify system paths:"
 
 [Files]
@@ -55,13 +56,13 @@ Source: "plugins\maya\*"; DestDir: "{app}\Plugins\Maya"
 [Icons]
 Name: "{group}\3D Viewer"; Filename: "{app}\bin\ctmviewer.exe"; WorkingDir: "{app}\bin"
 Name: "{group}\Browse the OpenCTM folder"; Filename: "{app}"
-Name: "{group}\Developers Manual"; Filename: "{app}\Documentation\DevelopersManual.pdf"
-Name: "{group}\API Reference"; Filename: "{app}\Documentation\APIReference\index.html"
-Name: "{group}\Format Specification"; Filename: "{app}\Documentation\FormatSpecification.pdf"
-Name: "{group}\3D Viewer Manual (ctmviewer)"; Filename: "{app}\Documentation\ctmviewer.html"
-Name: "{group}\File Converter Manual (ctmconv)"; Filename: "{app}\Documentation\ctmconv.html"
+Name: "{group}\Documentation\Developers Manual"; Filename: "{app}\Documentation\DevelopersManual.pdf"
+Name: "{group}\Documentation\API Reference"; Filename: "{app}\Documentation\APIReference\index.html"
+Name: "{group}\Documentation\Format Specification"; Filename: "{app}\Documentation\FormatSpecification.pdf"
+Name: "{group}\Documentation\3D Viewer Manual (ctmviewer)"; Filename: "{app}\Documentation\ctmviewer.html"
+Name: "{group}\Documentation\File Converter Manual (ctmconv)"; Filename: "{app}\Documentation\ctmconv.html"
+Name: "{group}\Documentation\License"; Filename: "{app}\Documentation\LICENSE.txt"
 Name: "{group}\README"; Filename: "{app}\Documentation\README.txt"
-Name: "{group}\License"; Filename: "{app}\Documentation\LICENSE.txt"
 Name: "{group}\{cm:UninstallProgram,OpenCTM}"; Filename: "{uninstallexe}"
 
 [Registry]
@@ -90,10 +91,15 @@ Root: HKCR; Subkey: "DAE_file"; ValueType: string; ValueName: ""; ValueData: "CO
 Root: HKCR; Subkey: "DAE_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatedae
 Root: HKCR; Subkey: "DAE_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatedae
 
-Root: HKCR; Subkey: ".obj"; ValueType: string; ValueName: ""; ValueData: "OBJ_file"; Flags: uninsdeletevalue; Tasks: associatedae
-Root: HKCR; Subkey: "OBJ_file"; ValueType: string; ValueName: ""; ValueData: "Wavefront OBJ file"; Flags: uninsdeletekey; Tasks: associatedae
-Root: HKCR; Subkey: "OBJ_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatedae
-Root: HKCR; Subkey: "OBJ_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatedae
+Root: HKCR; Subkey: ".obj"; ValueType: string; ValueName: ""; ValueData: "OBJ_file"; Flags: uninsdeletevalue; Tasks: associateobj
+Root: HKCR; Subkey: "OBJ_file"; ValueType: string; ValueName: ""; ValueData: "Wavefront OBJ file"; Flags: uninsdeletekey; Tasks: associateobj
+Root: HKCR; Subkey: "OBJ_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associateobj
+Root: HKCR; Subkey: "OBJ_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associateobj
+
+Root: HKCR; Subkey: ".lwo"; ValueType: string; ValueName: ""; ValueData: "LWO_file"; Flags: uninsdeletevalue; Tasks: associatelwo
+Root: HKCR; Subkey: "LWO_file"; ValueType: string; ValueName: ""; ValueData: "LightWave object file"; Flags: uninsdeletekey; Tasks: associatelwo
+Root: HKCR; Subkey: "LWO_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associatelwo
+Root: HKCR; Subkey: "LWO_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatelwo
 
 [Code]
 
