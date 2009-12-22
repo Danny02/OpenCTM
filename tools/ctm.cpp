@@ -121,7 +121,7 @@ void Export_CTM(const char * aFileName, Mesh * aMesh, Options &aOptions)
 
   // Define mesh
   CTMfloat * normals = 0;
-  if(aMesh->mNormals.size() > 0)
+  if((aMesh->mNormals.size() > 0) && !aOptions.mNoNormals)
     normals = &aMesh->mNormals[0].x;
   ctm.DefineMesh((CTMfloat *) &aMesh->mVertices[0].x, aMesh->mVertices.size(),
                  (const CTMuint*) &aMesh->mIndices[0], aMesh->mIndices.size() / 3,

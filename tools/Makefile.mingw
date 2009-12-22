@@ -37,7 +37,7 @@ CPP = g++
 CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXMLDIR) -I$(GLEWDIR) -I$(ZLIBDIR) -I$(PNGLITEDIR) -DGLEW_STATIC
 RC = windres
 
-MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o lwo.o
+MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o lwo.o off.o
 CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) ctmconv-res.o
 CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_win.o convoptions.o glew.o pnglite.o $(MESHOBJS) ctmviewer-res.o
 CTMBENCHOBJS = ctmbench.o systimer.o
@@ -57,7 +57,7 @@ ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm -ltinyxml
 
 ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a openctm.dll
-	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lz -lfreeglut -lopengl32 -lglu32
+	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lz -lfreeglut -lopengl32 -lglu32 -lcomdlg32
 
 ctmbench.exe: $(CTMBENCHOBJS) openctm.dll
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm
@@ -82,6 +82,7 @@ stl.o: stl.cpp stl.h mesh.h
 dae.o: dae.cpp dae.h mesh.h
 obj.o: obj.cpp obj.h mesh.h
 lwo.o: lwo.cpp lwo.h mesh.h
+off.o: off.cpp off.h mesh.h
 
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@

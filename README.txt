@@ -33,6 +33,8 @@ Here is an incomplete list of persons that deserve credit:
 - Diego Nehab (RPly - for loading PLY files)
 - Lev Povalahev, Marcelo E. Magallon, Milan Ikits (GLEW)
 - Thomas G. Lane, Guido Vollbeding (libjpeg)
+- Jean-loup Gailly, Mark Adler (zlib)
+- Daniel Karling (pnglite)
 
 During the development of OpenCTM, the following software has been used
 extensively:
@@ -58,7 +60,12 @@ v1.0.3 - ????.??.??
 
 - Added experimental support for LightWave LWO files (ctmconv and ctmviewer).
 
+- Added support for Princeton OFF files, e.g. as used by the Princeton Shape
+  Benchmark (ctmconv and ctmviewer).
+
 - Made it possible to run ctmviewer without arguments.
+
+- Improved the normal calculation algorithm (ctmviewer and ctmconv).
 
 
 v1.0.2 - 2009.12.13

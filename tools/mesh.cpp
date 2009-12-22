@@ -67,11 +67,15 @@ void Mesh::Clear()
   mNormals.clear();
   mColors.clear();
   mTexCoords.clear();
+  mOriginalNormals = true;
 }
 
 /// Calculate smooth per-vertex normals
 void Mesh::CalculateNormals()
 {
+  // The original normals are no longer preserved
+  mOriginalNormals = false;
+
   // Clear the smooth normals
   mNormals.resize(mVertices.size());
   for(unsigned int i = 0; i < mNormals.size(); ++ i)
@@ -81,10 +85,10 @@ void Mesh::CalculateNormals()
   unsigned int triCount = mIndices.size() / 3;
   for(unsigned int i = 0; i < triCount; ++ i)
   {
-    // Calculate the flat normal for this triangle
+    // Calculate the weighted flat normal for this triangle
     Vector3 v1 = mVertices[mIndices[i * 3 + 1]] - mVertices[mIndices[i * 3]];
     Vector3 v2 = mVertices[mIndices[i * 3 + 2]] - mVertices[mIndices[i * 3]];
-    Vector3 flatNormal = Normalize(Cross(v1, v2));
+    Vector3 flatNormal = Cross(v1, v2);
 
     // ...and add it to all three triangle vertices' smooth normals
     for(unsigned int j = 0; j < 3; ++ j)

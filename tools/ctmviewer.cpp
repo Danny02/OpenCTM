@@ -1011,7 +1011,7 @@ void GLViewer::UpdateFocus()
 void GLViewer::ActionOpenFile()
 {
   SysOpenDialog od;
-  od.mFilters.push_back(string("All supported 3D files|*.ctm;*.ply;*.stl;*.3ds;*.dae;*.obj;*.lwo"));
+  od.mFilters.push_back(string("All supported 3D files|*.ctm;*.ply;*.stl;*.3ds;*.dae;*.obj;*.lwo;*.off"));
   od.mFilters.push_back(string("OpenCTM (.ctm)|*.ctm"));
   od.mFilters.push_back(string("Stanford triangle format (.ply)|*.ply"));
   od.mFilters.push_back(string("Stereolitography (.stl)|*.stl"));
@@ -1019,6 +1019,7 @@ void GLViewer::ActionOpenFile()
   od.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
   od.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
   od.mFilters.push_back(string("LightWave object (.lwo)|*.lwo"));
+  od.mFilters.push_back(string("Princeton object file format (.off)|*.off"));
   if(od.Show())
   {
     try
@@ -1059,12 +1060,19 @@ void GLViewer::ActionSaveFile()
   sd.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
   sd.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
   sd.mFilters.push_back(string("LightWave object (.lwo)|*.lwo"));
+  sd.mFilters.push_back(string("Princeton object file format (.off)|*.off"));
   sd.mFileName = mFileName;
   if(sd.Show())
   {
     try
     {
       Options opt;
+
+      // Do not export normals that do not come from the original file
+      if(!mMesh->mOriginalNormals)
+        opt.mNoNormals = true;
+
+      // Export the mesh
       ExportMesh(sd.mFileName.c_str(), mMesh, opt);
     }
     catch(exception &e)

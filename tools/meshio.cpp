@@ -38,6 +38,7 @@
 #include "dae.h"
 #include "obj.h"
 #include "lwo.h"
+#include "off.h"
 #include "common.h"
 
 using namespace std;
@@ -61,6 +62,8 @@ void ImportMesh(const char * aFileName, Mesh * aMesh)
     Import_OBJ(aFileName, aMesh);
   else if(fileExt == string(".LWO"))
     Import_LWO(aFileName, aMesh);
+  else if(fileExt == string(".OFF"))
+    Import_OFF(aFileName, aMesh);
   else
     throw runtime_error("Unknown input file extension.");
 }
@@ -83,6 +86,8 @@ void ExportMesh(const char * aFileName, Mesh * aMesh, Options &aOptions)
     Export_OBJ(aFileName, aMesh);
   else if(fileExt == string(".LWO"))
     Export_LWO(aFileName, aMesh);
+  else if(fileExt == string(".OFF"))
+    Export_OFF(aFileName, aMesh);
   else
     throw runtime_error("Unknown output file extension.");
 }
@@ -97,4 +102,5 @@ void SupportedFormats(list<string> &aList)
   aList.push_back(string("COLLADA 1.4/1.5 (.dae)"));
   aList.push_back(string("Wavefront geometry file (.obj)"));
   aList.push_back(string("LightWave object (.lwo)"));
+  aList.push_back(string("Princeton object file format (.off)"));
 }

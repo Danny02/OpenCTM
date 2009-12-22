@@ -128,6 +128,12 @@ class Options;
 
 class Mesh {
   public:
+    /// Constructor
+    Mesh()
+    {
+      mOriginalNormals = true;
+    }
+
     /// Clear the mesh
     void Clear();
 
@@ -136,6 +142,10 @@ class Mesh {
 
     /// Calculate the bounding box for the mesh
     void BoundingBox(Vector3 &aMin, Vector3 &aMax);
+
+    /// Set to true if the mesh contains the original normals from the imported
+    /// file. This flag is set to false by the CalculateNormals() method.
+    bool mOriginalNormals;
 
     std::string mComment;
     std::string mTexFileName;

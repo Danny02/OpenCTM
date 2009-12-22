@@ -38,7 +38,7 @@ CPPFLAGS = -c -O3 -W -Wall -I$(OPENCTMDIR) -I$(RPLYDIR) -I$(JPEGDIR) -I$(TINYXML
 OCPP = g++ -x objective-c++
 OCPPFLAGS = -c -O3 -W -Wall
 
-MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o lwo.o
+MESHOBJS = mesh.o meshio.o ctm.o ply.o rply.o stl.o 3ds.o dae.o obj.o lwo.o off.o
 CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS)
 CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_mac.o convoptions.o glew.o pnglite.o $(MESHOBJS)
 CTMBENCHOBJS = ctmbench.o systimer.o
@@ -86,6 +86,7 @@ stl.o: stl.cpp stl.h mesh.h
 dae.o: dae.cpp dae.h mesh.h
 obj.o: obj.cpp obj.h mesh.h
 lwo.o: lwo.cpp lwo.h mesh.h
+off.o: off.cpp off.h mesh.h
 
 phong_vert.h: phong.vert bin2c
 	./bin2c phong.vert phongVertSrc > $@
