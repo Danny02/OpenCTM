@@ -44,6 +44,33 @@
 using namespace std;
 
 
+// Read the next line in a file (skip comments and empty lines)
+static void ReadNextLine(ifstream &aStream, string &aResult)
+{
+  while(true)
+  {
+    string line;
+    getline(aStream, line);
+    size_t l = line.size();
+    size_t p1 = 0, p2 = l - 1;
+
+    // Check for comment
+    size_t commentPos = line.find('#');
+    if(commentPos != string::npos)
+      p2 = commentPos - 1;
+
+    // Trim the string
+    while(((line[p1] == ' ') || (line[p1] == '\t')) && (p1 < p2))
+      ++ p1;
+    while(((line[p2] == ' ') || (line[p2] == '\t')) && (p2 > p1))
+      -- p2;
+
+    aResult = line.substr(p1, p2 - p1 + 1);
+    if((aResult.size() > 0) || aStream.eof())
+      return;
+  }
+}
+
 // Parse a 3 x float string as a Vector3
 static Vector3 ParseVector3(const string aString)
 {
@@ -73,10 +100,10 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
   istringstream sstr;
 
   // Read header
-  getline(f, line);
+  ReadNextLine(f, line);
   if(line != string("OFF"))
     throw runtime_error("Not a valid OFF format file (missing OFF signature).");
-  getline(f, line);
+  ReadNextLine(f, line);
   sstr.clear();
   sstr.str(line);
   sstr >> numVertices;
@@ -90,7 +117,7 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
   aMesh->mVertices.resize(numVertices);
   for(unsigned int i = 0; i < numVertices; ++ i)
   {
-    getline(f, line);
+    ReadNextLine(f, line);
     aMesh->mVertices[i] = ParseVector3(line);
   }
 
@@ -99,7 +126,7 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
   unsigned int idx[3];
   for(unsigned int i = 0; i < numFaces; ++ i)
   {
-    getline(f, line);
+    ReadNextLine(f, line);
     sstr.clear();
     sstr.str(line);
     int nodeCount;
