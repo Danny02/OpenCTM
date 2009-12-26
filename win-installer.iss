@@ -30,7 +30,7 @@ Name: associate3ds; Description: "&Associate 3DStudio (.3ds) files with the Open
 Name: associatedae; Description: "&Associate COLLADA (.dae) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associateobj; Description: "&Associate Wavefront (.obj) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: associatelwo; Description: "&Associate LightWave (.lwo) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
-Name: associateoff; Description: "&Associate Princeton OFF (.off) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
+Name: associateoff; Description: "&Associate Geomview OFF (.off) files with the OpenCTM viewer"; GroupDescription: "Associate files:"
 Name: modifypath; Description: "&Add application directory to your system path"; GroupDescription: "Modify system paths:"
 
 [Files]
@@ -103,7 +103,7 @@ Root: HKCR; Subkey: "LWO_file\DefaultIcon"; ValueType: string; ValueName: ""; Va
 Root: HKCR; Subkey: "LWO_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associatelwo
 
 Root: HKCR; Subkey: ".off"; ValueType: string; ValueName: ""; ValueData: "OFF_file"; Flags: uninsdeletevalue; Tasks: associateoff
-Root: HKCR; Subkey: "OFF_file"; ValueType: string; ValueName: ""; ValueData: "Princeton object file"; Flags: uninsdeletekey; Tasks: associateoff
+Root: HKCR; Subkey: "OFF_file"; ValueType: string; ValueName: ""; ValueData: "Geomview object file"; Flags: uninsdeletekey; Tasks: associateoff
 Root: HKCR; Subkey: "OFF_file\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\ctmviewer.exe,0"; Tasks: associateoff
 Root: HKCR; Subkey: "OFF_file\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\ctmviewer.exe"" ""%1"""; Tasks: associateoff
 

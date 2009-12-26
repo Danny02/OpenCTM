@@ -60,7 +60,7 @@ v1.0.3 - ????.??.??
 
 - Added experimental support for LightWave LWO files (ctmconv and ctmviewer).
 
-- Added support for Princeton OFF files, e.g. as used by the Princeton Shape
+- Added support for Geomview OFF files, e.g. as used by the Princeton Shape
   Benchmark (ctmconv and ctmviewer).
 
 - Made it possible to run ctmviewer without arguments.

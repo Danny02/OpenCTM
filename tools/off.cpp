@@ -26,10 +26,10 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// The "Object File Format" (OFF) is used by the Princeton Shape Benchmark data
-// set (http://shape.cs.princeton.edu/benchmark). The file format specification
-// can be found here:
-// http://shape.cs.princeton.edu/benchmark/documentation/off_format.html
+// The "Object File Format" (OFF) is, among other things, used by the Princeton
+// Shape Benchmark data set (http://shape.cs.princeton.edu/benchmark). The file
+// format specification can be found here:
+// http://people.sc.fsu.edu/~burkardt/data/off/off.html
 //-----------------------------------------------------------------------------
 
 #include <stdexcept>
@@ -71,15 +71,17 @@ static void ReadNextLine(ifstream &aStream, string &aResult)
   }
 }
 
-// Parse a 3 x float string as a Vector3
-static Vector3 ParseVector3(const string aString)
+// Parse a 7 x float string as a Vector3 and a Vector4 element
+static void ParseVeretex(const string aString, Vector3 * aCoord, Vector4 * aColor)
 {
-  Vector3 result;
   istringstream sstr(aString);
-  sstr >> result.x;
-  sstr >> result.y;
-  sstr >> result.z;
-  return result;
+  sstr >> aCoord->x;
+  sstr >> aCoord->y;
+  sstr >> aCoord->z;
+  sstr >> aColor->x;
+  sstr >> aColor->y;
+  sstr >> aColor->z;
+  sstr >> aColor->w;
 }
 
 /// Import a mesh from an OFF file.
@@ -115,11 +117,27 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
 
   // Read vertices
   aMesh->mVertices.resize(numVertices);
+  aMesh->mColors.resize(numVertices);
   for(unsigned int i = 0; i < numVertices; ++ i)
   {
     ReadNextLine(f, line);
-    aMesh->mVertices[i] = ParseVector3(line);
+    ParseVeretex(line, &aMesh->mVertices[i], &aMesh->mColors[i]);
   }
+
+  // Check if there were vertex colors
+  bool hasVertexColors = false;
+  Vector4 firstColor = aMesh->mColors[0];
+  for(unsigned int i = 1; i < numVertices; ++ i)
+  {
+    if((aMesh->mColors[i].x != firstColor.x) || (aMesh->mColors[i].y != firstColor.y) ||
+       (aMesh->mColors[i].z != firstColor.z) || (aMesh->mColors[i].w != firstColor.w))
+    {
+      hasVertexColors = true;
+      break;
+    }
+  }
+  if(!hasVertexColors)
+    aMesh->mColors.clear();
 
   // Read faces
   list<unsigned int> indices;
@@ -185,8 +203,14 @@ void Export_OFF(const char * aFileName, Mesh * aMesh)
   f << numVertices << " " << numFaces << " 0" << endl;
 
   // Write vertices
+  bool hasVertexColors = (aMesh->mColors.size() == aMesh->mVertices.size());
   for(unsigned int i = 0; i < numVertices; ++ i)
-    f << aMesh->mVertices[i].x << " " << aMesh->mVertices[i].y << " " << aMesh->mVertices[i].z << endl;
+  {
+    f << aMesh->mVertices[i].x << " " << aMesh->mVertices[i].y << " " << aMesh->mVertices[i].z;
+    if(hasVertexColors)
+      f << " " << aMesh->mColors[i].x << " " << aMesh->mColors[i].y << " " << aMesh->mColors[i].z << " " << aMesh->mColors[i].w;
+    f << endl;
+  }
 
   // Write faces
   for(unsigned int i = 0; i < numFaces; ++ i)
