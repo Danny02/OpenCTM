@@ -43,29 +43,46 @@
 
 using namespace std;
 
+// Trim heading and trailing white spaces
+static string TrimString(const string &aString)
+{
+  size_t l = aString.size();
+  size_t p1 = 0, p2 = l - 1;
+  while(((aString[p1] == ' ') || (aString[p1] == '\t')) && (p1 < p2))
+    ++ p1;
+  while(((aString[p2] == ' ') || (aString[p2] == '\t')) && (p2 > p1))
+    -- p2;
+  return aString.substr(p1, p2 - p1 + 1);
+}
 
 // Read the next line in a file (skip comments and empty lines)
-static void ReadNextLine(ifstream &aStream, string &aResult)
+static void ReadNextLine(ifstream &aStream, string &aResult, string &aComment)
 {
   while(true)
   {
+    // Read another line from the file
     string line;
     getline(aStream, line);
-    size_t l = line.size();
-    size_t p1 = 0, p2 = l - 1;
 
     // Check for comment
     size_t commentPos = line.find('#');
     if(commentPos != string::npos)
-      p2 = commentPos - 1;
+    {
+      string lineComment = TrimString(line.substr(commentPos + 1));
+      if(lineComment.size() > 0)
+      {
+        if(aComment.size() > 0)
+          aComment = aComment + string(" ") + lineComment;
+        else
+          aComment = lineComment;
+      }
+      line = line.substr(0, commentPos);
+    }
 
     // Trim the string
-    while(((line[p1] == ' ') || (line[p1] == '\t')) && (p1 < p2))
-      ++ p1;
-    while(((line[p2] == ' ') || (line[p2] == '\t')) && (p2 > p1))
-      -- p2;
+    aResult = TrimString(line);
 
-    aResult = line.substr(p1, p2 - p1 + 1);
+    // Non-empty line?
     if((aResult.size() > 0) || aStream.eof())
       return;
   }
@@ -98,14 +115,14 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
   // Some state variables that we need...
   unsigned int numVertices;
   unsigned int numFaces;
-  string line;
+  string line, comment;
   istringstream sstr;
 
   // Read header
-  ReadNextLine(f, line);
+  ReadNextLine(f, line, comment);
   if(line != string("OFF"))
     throw runtime_error("Not a valid OFF format file (missing OFF signature).");
-  ReadNextLine(f, line);
+  ReadNextLine(f, line, comment);
   sstr.clear();
   sstr.str(line);
   sstr >> numVertices;
@@ -120,7 +137,7 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
   aMesh->mColors.resize(numVertices);
   for(unsigned int i = 0; i < numVertices; ++ i)
   {
-    ReadNextLine(f, line);
+    ReadNextLine(f, line, comment);
     ParseVeretex(line, &aMesh->mVertices[i], &aMesh->mColors[i]);
   }
 
@@ -144,7 +161,7 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
   unsigned int idx[3];
   for(unsigned int i = 0; i < numFaces; ++ i)
   {
-    ReadNextLine(f, line);
+    ReadNextLine(f, line, comment);
     sstr.clear();
     sstr.str(line);
     int nodeCount;
@@ -181,6 +198,10 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
 
   // Close the input file
   f.close();
+
+  // Did we get a comment?
+  if(comment.size() > 0)
+    aMesh->mComment = comment;
 }
 
 /// Export a mesh to an OFF file.
@@ -200,6 +221,8 @@ void Export_OFF(const char * aFileName, Mesh * aMesh)
 
   // Write herader
   f << "OFF" << endl;
+  if(aMesh->mComment.size() > 0)
+    f << "# " << aMesh->mComment << endl;
   f << numVertices << " " << numFaces << " 0" << endl;
 
   // Write vertices
