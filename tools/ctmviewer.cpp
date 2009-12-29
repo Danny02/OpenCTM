@@ -608,9 +608,9 @@ void GLViewer::SetupLighting()
   // Set scene lighting properties
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-  ambient[0] = 0.08;
-  ambient[1] = 0.08;
-  ambient[2] = 0.08;
+  ambient[0] = 0.2;
+  ambient[1] = 0.2;
+  ambient[2] = 0.2;
   ambient[3] = 1.0;
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
@@ -625,9 +625,9 @@ void GLViewer::SetupLighting()
   ambient[2] = 0.0f;
   ambient[3] = 1.0f;
   glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-  diffuse[0] = 1.0f;
-  diffuse[1] = 1.0f;
-  diffuse[2] = 1.0f;
+  diffuse[0] = 0.8f;
+  diffuse[1] = 0.8f;
+  diffuse[2] = 0.8f;
   diffuse[3] = 1.0f;
   glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
   specular[0] = 1.0f;
@@ -1019,7 +1019,7 @@ void GLViewer::ActionOpenFile()
   od.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
   od.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
   od.mFilters.push_back(string("LightWave object (.lwo)|*.lwo"));
-  od.mFilters.push_back(string("Princeton object file format (.off)|*.off"));
+  od.mFilters.push_back(string("Geomview object file format (.off)|*.off"));
   if(od.Show())
   {
     try
@@ -1060,7 +1060,7 @@ void GLViewer::ActionSaveFile()
   sd.mFilters.push_back(string("COLLADA (.dae)|*.dae"));
   sd.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
   sd.mFilters.push_back(string("LightWave object (.lwo)|*.lwo"));
-  sd.mFilters.push_back(string("Princeton object file format (.off)|*.off"));
+  sd.mFilters.push_back(string("Geomview object file format (.off)|*.off"));
   sd.mFileName = mFileName;
   if(sd.Show())
   {

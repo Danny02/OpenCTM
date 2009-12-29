@@ -42,7 +42,8 @@ void main()
 		color *= texture2D(uTex, gl_TexCoord[0].st);
 
 	// Ambient term
-	vec4 ambient = color * gl_LightSource[0].ambient;
+//	vec4 ambient = color * gl_LightSource[0].ambient;
+	vec4 ambient = color * gl_LightModel.ambient;
 
 	// Diffuse term
 	vec3 lightDir = normalize(gl_LightSource[0].position.xyz - vPos);
