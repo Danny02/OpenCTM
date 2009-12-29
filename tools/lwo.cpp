@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <cstring>
+#include <string>
 #include "lwo.h"
 
 #ifdef _MSC_VER
@@ -62,6 +63,22 @@ static uint32 ReadU4(istream &aStream)
          (((uint32) buf[1]) << 16) |
          (((uint32) buf[2]) << 8) |
          ((uint32) buf[3]);
+}
+
+/// Read a 32-bit floating point scalar, endian independent.
+static float ReadF4(istream &aStream)
+{
+  unsigned char buf[4];
+  aStream.read((char *) buf, 4);
+  union {
+    uint32 i;
+    float  f;
+  } val;
+  val.i = (((uint32) buf[0]) << 24) |
+          (((uint32) buf[1]) << 16) |
+          (((uint32) buf[2]) << 8) |
+          ((uint32) buf[3]);
+  return val.f;
 }
 
 /// Read a 3 x 32-bit floating point vector, endian independent.
@@ -104,11 +121,15 @@ static string ReadString(istream &aStream, int aCount)
 /// Read a zero terminated string from a stream.
 static string ReadStringZ(istream &aStream)
 {
-  return string(""); // FIXME
+  string str;
+  getline(aStream, str, '\0');
+  if((str.size() & 1) == 0)
+    aStream.get();
+  return str;
 }
 
-/// Read a polygon index (variable size) from a stream.
-static uint32 ReadPOLSIndex(istream &aStream, int * aBytesLeft)
+/// Read a vertex index (variable size) from a stream.
+static uint32 ReadVX(istream &aStream, int * aBytesLeft)
 {
   uint32 result = ReadU2(aStream);
   if(result >= 0x0000ff00)
@@ -125,17 +146,6 @@ static uint32 ReadPOLSIndex(istream &aStream, int * aBytesLeft)
 //------------------------------------------------------------------------------
 // Helper functions for writing
 //------------------------------------------------------------------------------
-
-/// Write a pad byte if necessary (align chunks on even byte offsets)
-static void WritePadByte(ostream &aStream)
-{
-  if(aStream.tellp() & 1)
-  {
-    unsigned char buf[1];
-    buf[0] = 0;
-    aStream.write((char *) buf, 1);
-  }
-}
 
 /// Write a 16-bit integer, endian independent.
 static void WriteU2(ostream &aStream, uint32 aValue)
@@ -154,6 +164,22 @@ static void WriteU4(ostream &aStream, uint32 aValue)
   buf[1] = (aValue >> 16) & 255;
   buf[2] = (aValue >> 8) & 255;
   buf[3] = aValue & 255;
+  aStream.write((char *) buf, 4);
+}
+
+/// Write a 32-bit floating point scalar, endian independent.
+static void WriteF4(ostream &aStream, float aValue)
+{
+  unsigned char buf[4];
+  union {
+    uint32 i;
+    float  f;
+  } val;
+  val.f = aValue;
+  buf[0] = (val.i >> 24) & 255;
+  buf[1] = (val.i >> 16) & 255;
+  buf[2] = (val.i >> 8) & 255;
+  buf[3] = val.i & 255;
   aStream.write((char *) buf, 4);
 }
 
@@ -193,8 +219,22 @@ static void WriteString(ostream &aStream, const char * aString)
 /// Write a zero terminated string to a stream.
 static void WriteStringZ(ostream &aStream, const char * aString)
 {
-  int len = strlen(aString);
-  aStream.write(aString, len + 1);
+  int len = strlen(aString) + 1;
+  aStream.write(aString, len);
+  if(len & 1)
+  {
+    char zero = 0;
+    aStream.write(&zero, 1);
+  }
+}
+
+/// Write a vertex index (variable size) to a stream.
+static void WriteVX(ostream &aStream, uint32 aIndex)
+{
+  if(aIndex < 0x0000ff00)
+    WriteU2(aStream, aIndex);
+  else
+    WriteU4(aStream, aIndex + 0xff000000);
 }
 
 /// Calculate the size of a POLS chunk - take variable size indices into
@@ -211,6 +251,17 @@ static uint32 CalcPOLSSize(Mesh * aMesh)
     else
       size += 4;
   }
+  return size;
+}
+
+/// Calculate the size of a VMAP chunk - take variable size indices into
+/// account...
+static uint32 CalcVMAPSize(Mesh * aMesh, uint32 aDimension)
+{
+  uint32 size = 8 + aMesh->mVertices.size() * (2 + 4 * aDimension);
+  uint32 maxIdx = aMesh->mVertices.size() - 1;
+  if(maxIdx >= 0x0000ff00)
+    size += (maxIdx - 0x0000feff) * 2;
   return size;
 }
 
@@ -241,6 +292,9 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
   uint32 indexBias = 0;
   bool havePoints = false;
 
+  // Current pivot point (based on current layer)
+  Vector3 pivot(0.0f, 0.0f, 0.0f);
+
   // Iterate all chunks
   while(!f.eof() && (f.tellg() < fileSize))
   {
@@ -249,17 +303,36 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
     uint32 chunkSize = ReadU4(f);
 
     // Was this a supported chunk?
-    if(chunkID == string("PNTS"))
+    if(chunkID == string("TEXT"))
+    {
+      // Read file comment
+      aMesh->mComment = string(ReadStringZ(f));
+    }
+    else if(chunkID == string("LAYR"))
+    {
+      size_t oldPos = f.tellg();
+
+      // Read layer information
+      ReadU2(f);            // number
+      ReadU2(f);            // flags
+      pivot = ReadVEC12(f); // pivot
+      ReadStringZ(f);       // name
+
+      size_t pos = f.tellg();
+      if((pos - oldPos) < chunkSize)
+        ReadU2(f);          // parent (optional)
+    }
+    else if(chunkID == string("PNTS"))
     {
       // Check point count
       uint32 newPoints = chunkSize / 12;
       if((newPoints * 12) != chunkSize)
         throw runtime_error("Not a valid LWO file (invalid PNTS chunk).");
 
-      // Read points
+      // Read points (relative to current pivot point)
       aMesh->mVertices.resize(pointCount + newPoints);
       for(uint32 i = pointCount; i < (uint32) aMesh->mVertices.size(); ++ i)
-        aMesh->mVertices[i] = ReadVEC12(f);
+        aMesh->mVertices[i] = ReadVEC12(f) + pivot;
       indexBias = pointCount;
       pointCount += newPoints;
       havePoints = true;
@@ -290,9 +363,9 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
           {
             polyNodes -= 3;
             uint32 idx[3];
-            idx[0] = ReadPOLSIndex(f, &bytesLeft);
-            idx[1] = ReadPOLSIndex(f, &bytesLeft);
-            idx[2] = ReadPOLSIndex(f, &bytesLeft);
+            idx[0] = ReadVX(f, &bytesLeft);
+            idx[1] = ReadVX(f, &bytesLeft);
+            idx[2] = ReadVX(f, &bytesLeft);
             while((polyNodes >= 0) && (bytesLeft >= 0))
             {
               indices[newTris * 3] = idx[0];
@@ -302,7 +375,7 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
               if(polyNodes > 0)
               {
                 idx[1] = idx[2];
-                idx[2] = ReadPOLSIndex(f, &bytesLeft);
+                idx[2] = ReadVX(f, &bytesLeft);
               }
               -- polyNodes;
             }
@@ -311,7 +384,7 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
           {
             // Skip polygons with less than 3 nodes
             for(int i = 0; i < polyNodes; ++ i)
-              ReadPOLSIndex(f, &bytesLeft);
+              ReadVX(f, &bytesLeft);
           }
         }
 
@@ -349,16 +422,33 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   if(aMesh->mVertices.size() > 0x00ffffff)
     throw runtime_error("Too large mesh (not supported by the LWO file format).");
 
-  // Calculate output file size
-  uint32 pntsSize = (uint32) (aMesh->mVertices.size() * 12);
+  // Mesh properties
+  bool hasComment = (aMesh->mComment.size() > 0);
+  bool hasUVs = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
+  bool hasColors = (aMesh->mColors.size() == aMesh->mVertices.size());
+
+  // Calculate the sizes of the individual chunks
+  uint32 textSize = aMesh->mComment.size() + 1;
+  if(textSize & 1) ++ textSize;
   uint32 tagsSize = 8;
   uint32 layrSize = 18;
+  uint32 pntsSize = (uint32) (aMesh->mVertices.size() * 12);
+  uint32 txuvSize = CalcVMAPSize(aMesh, 2);
+  uint32 rgbaSize = CalcVMAPSize(aMesh, 4);
   uint32 polsSize = CalcPOLSSize(aMesh);
+
+  // Calculate output file size
   uint32 fileSize = 4 +
                     8 + tagsSize +
                     8 + layrSize +
                     8 + pntsSize +
                     8 + polsSize;
+  if(hasComment)
+    fileSize += 8 + textSize;
+  if(hasUVs)
+    fileSize += 8 + txuvSize;
+  if(hasColors)
+    fileSize += 8 + rgbaSize;
 
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);
@@ -370,11 +460,18 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   WriteU4(f, fileSize);      // File size (excluding FORM chunk header)
   WriteString(f, "LWO2");
 
+  // TEXT chunk
+  if(hasComment)
+  {
+    WriteString(f, "TEXT");
+    WriteU4(f, textSize);
+    WriteStringZ(f, aMesh->mComment.c_str());
+  }
+
   // TAGS chunk
   WriteString(f, "TAGS");
   WriteU4(f, tagsSize);
   WriteStringZ(f, "Default");
-  WritePadByte(f);
 
   // LAYR chunk
   WriteString(f, "LAYR");
@@ -383,14 +480,46 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   WriteU2(f, 0);                            // flags
   WriteVEC12(f, Vector3(0.0f, 0.0f, 0.0f)); // pivot
   WriteStringZ(f, "");                      // name
-  WritePadByte(f);
 
   // PNTS chunk
   WriteString(f, "PNTS");
   WriteU4(f, pntsSize);
   for(uint32 i = 0; i < (uint32) aMesh->mVertices.size(); ++ i)
     WriteVEC12(f, aMesh->mVertices[i]);
-  WritePadByte(f);
+
+  // VMAP:TXUV chunk (optional)
+  if(hasUVs)
+  {
+    WriteString(f, "VMAP");
+    WriteU4(f, txuvSize);
+    WriteString(f, "TXUV"); // type
+    WriteU2(f, 2);          // dimension
+    WriteStringZ(f, "");    // name
+    for(uint32 i = 0; i < (uint32) aMesh->mTexCoords.size(); ++ i)
+    {
+      WriteVX(f, i);
+      WriteF4(f, aMesh->mTexCoords[i].u);
+      WriteF4(f, aMesh->mTexCoords[i].v);
+    }
+  }
+
+  // VMAP:RGBA chunk (optional)
+  if(hasColors)
+  {
+    WriteString(f, "VMAP");
+    WriteU4(f, rgbaSize);
+    WriteString(f, "RGBA"); // type
+    WriteU2(f, 4);          // dimension
+    WriteStringZ(f, "");    // name
+    for(uint32 i = 0; i < (uint32) aMesh->mColors.size(); ++ i)
+    {
+      WriteVX(f, i);
+      WriteF4(f, aMesh->mColors[i].x);
+      WriteF4(f, aMesh->mColors[i].y);
+      WriteF4(f, aMesh->mColors[i].z);
+      WriteF4(f, aMesh->mColors[i].w);
+    }
+  }
 
   // POLS chunk
   WriteString(f, "POLS");
@@ -404,15 +533,8 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
 
     // Write polygon node indices
     for(int j = 0; j < 3; ++ j)
-    {
-      uint32 idx = aMesh->mIndices[i * 3 + j];
-      if(idx < 0x0000ff00)
-        WriteU2(f, idx);
-      else
-        WriteU4(f, idx + 0xff000000);
-    }
+      WriteVX(f, aMesh->mIndices[i * 3 + j]);
   }
-  WritePadByte(f);
 
   // Close the output file
   f.close();
