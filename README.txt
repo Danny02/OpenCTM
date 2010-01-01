@@ -63,6 +63,8 @@ v1.0.3 - ????.??.??
 - Added support for Geomview OFF files, e.g. as used by the Princeton Shape
   Benchmark (ctmconv and ctmviewer).
 
+- Improved the OBJ file loader (ctmviewer and ctmconv).
+
 - Made it possible to run ctmviewer without arguments.
 
 - Improved the normal calculation algorithm (ctmviewer and ctmconv).

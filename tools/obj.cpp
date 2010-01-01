@@ -67,8 +67,12 @@ class OBJFace {
     // Contruct a face (one triangle) from an OBJ face description string
     OBJFace(const string aStr)
     {
-      // Extract three face corners (one triangle)
+      // Start by finding the first non-whitespace char (left-trim)
       unsigned int pos = 0;
+      while((pos < aStr.size()) && (aStr[pos] == ' '))
+        ++ pos;
+
+      // Extract three face corners (one triangle)
       while((pos < aStr.size()) && (aStr[pos] != ' '))
       {
         // Extract three /-separated strings (v/vt/vn)
@@ -148,8 +152,17 @@ void Import_OBJ(const char * aFileName, Mesh * aMesh)
   // Parse the file
   while(!inFile.eof())
   {
+    // Read one line from the file (concatenate lines that end with "\")
     string line;
     getline(inFile, line);
+    while((line.size() > 0) && (line[line.size() - 1] == '\\') && !inFile.eof())
+    {
+      string nextLine;
+      getline(inFile, nextLine);
+      line = line.substr(0, line.size() - 1) + string(" ") + nextLine;
+    }
+
+    // Parse the line, if it is non-empty
     if(line.size() >= 1)
     {
       if(line.substr(0, 2) == string("v "))
@@ -180,9 +193,8 @@ void Import_OBJ(const char * aFileName, Mesh * aMesh)
   for(list<OBJFace>::iterator i = faces.begin(); i != faces.end(); ++ i)
   {
     int nodeCount = (*i).mNodes.size();
-    if(nodeCount < 3)
-      throw runtime_error("Faces must have at least three nodes.");
-    triCount += (nodeCount - 2);
+    if(nodeCount >= 3)
+      triCount += (nodeCount - 2);
   }
   aMesh->mIndices.resize(triCount * 3);
 
