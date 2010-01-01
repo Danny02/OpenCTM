@@ -255,10 +255,10 @@ static uint32 CalcPOLSSize(Mesh * aMesh)
 }
 
 /// Calculate the size of a VMAP chunk - take variable size indices into
-/// account...
+/// account, but exclude the name string (at least two bytes)...
 static uint32 CalcVMAPSize(Mesh * aMesh, uint32 aDimension)
 {
-  uint32 size = 8 + aMesh->mVertices.size() * (2 + 4 * aDimension);
+  uint32 size = 6 + aMesh->mVertices.size() * (2 + 4 * aDimension);
   uint32 maxIdx = aMesh->mVertices.size() - 1;
   if(maxIdx >= 0x0000ff00)
     size += (maxIdx - 0x0000feff) * 2;
@@ -300,7 +300,10 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
   {
     // Get chunk ID & size
     string chunkID = ReadString(f, 4);
-    uint32 chunkSize = ReadU4(f);
+    uint32 chunkSize = (ReadU4(f) + 1) & 0xfffffffe;
+
+    // Get file position of the chunk start
+    size_t chunkStart = f.tellg();
 
     // Was this a supported chunk?
     if(chunkID == string("TEXT"))
@@ -310,8 +313,6 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
     }
     else if(chunkID == string("LAYR"))
     {
-      size_t oldPos = f.tellg();
-
       // Read layer information
       ReadU2(f);            // number
       ReadU2(f);            // flags
@@ -319,7 +320,7 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
       ReadStringZ(f);       // name
 
       size_t pos = f.tellg();
-      if((pos - oldPos) < chunkSize)
+      if((pos - chunkStart) < chunkSize)
         ReadU2(f);          // parent (optional)
     }
     else if(chunkID == string("PNTS"))
@@ -404,11 +405,99 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
         f.seekg(((chunkSize + 1) & 0x7ffffffe) - 4, ios_base::cur);
       }
     }
+    else if((chunkID == string("VMAP")) || (chunkID == string("VMAD")))
+    {
+      bool dynamic = (chunkID == string("VMAD"));
+      string type = ReadString(f, 4);
+      uint32 dimension = ReadU2(f);
+      ReadStringZ(f); // Ignore the name
+
+      // How many bytes are currently left to read in this chunk?
+      int bytesLeft = (int) chunkSize - ((int) f.tellg() - (int) chunkStart);
+
+      if((type == string("RGB ")) || (type == string("RGBA")))
+      {
+        // Resize the mesh colors array
+        uint32 oldSize = aMesh->mColors.size();
+        aMesh->mColors.resize(pointCount);
+        for(uint32 i = oldSize; i < pointCount; ++ i)
+          aMesh->mColors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        // Read all the colors
+        while(bytesLeft > 0)
+        {
+          uint32 idx = ReadVX(f, &bytesLeft) + indexBias;
+          if(dynamic)
+            ReadVX(f, &bytesLeft); // ignore the face index for VMAD...
+          Vector4 col;
+          col.x = ReadF4(f);
+          col.y = ReadF4(f);
+          col.z = ReadF4(f);
+          if(dimension == 4)
+          {
+            col.w = ReadF4(f);
+            bytesLeft -= 16;
+          }
+          else
+          {
+            col.w = 1.0f;
+            bytesLeft -= 12;
+          }
+          if(idx < aMesh->mColors.size())
+            aMesh->mColors[idx] = col;
+        }
+      }
+      else if((type == string("TXUV")))
+      {
+        // Resize the mesh UV array
+        uint32 oldSize = aMesh->mTexCoords.size();
+        aMesh->mTexCoords.resize(pointCount);
+        for(uint32 i = oldSize; i < pointCount; ++ i)
+          aMesh->mTexCoords[i] = Vector2(0.0f, 0.0f);
+
+        // Read all the texture coordinates
+        while(bytesLeft > 0)
+        {
+          uint32 idx = ReadVX(f, &bytesLeft) + indexBias;
+          if(dynamic)
+            ReadVX(f, &bytesLeft); // ignore the face index for VMAD...
+          Vector2 texCoord;
+          texCoord.u = ReadF4(f);
+          texCoord.v = ReadF4(f);
+          bytesLeft -= 8;
+          if(idx < aMesh->mTexCoords.size())
+            aMesh->mTexCoords[idx] = texCoord;
+        }
+      }
+      else
+      {
+        // We only support RGB/RGBA & TXUV type VMAPs - skip this chunk
+        f.seekg(bytesLeft, ios_base::cur);
+      }
+    }
     else
     {
       // Just skip this chunk (always round to next nearest even offset)
       f.seekg((chunkSize + 1) & 0x7ffffffe, ios_base::cur);
     }
+  }
+
+  // Post-adjustment: color array (if any)
+  if((aMesh->mColors.size() > 0) && (aMesh->mColors.size() < pointCount))
+  {
+    uint32 oldSize = aMesh->mColors.size();
+    aMesh->mColors.resize(pointCount);
+    for(uint32 i = oldSize; i < pointCount; ++ i)
+      aMesh->mColors[i] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+  }
+
+  // Post-adjustment: texture coordinate array (if any)
+  if((aMesh->mTexCoords.size() > 0) && (aMesh->mTexCoords.size() < pointCount))
+  {
+    uint32 oldSize = aMesh->mTexCoords.size();
+    aMesh->mTexCoords.resize(pointCount);
+    for(uint32 i = oldSize; i < pointCount; ++ i)
+      aMesh->mTexCoords[i] = Vector2(0.0f, 0.0f);
   }
 
   // Close the input file
@@ -431,10 +520,10 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   uint32 textSize = aMesh->mComment.size() + 1;
   if(textSize & 1) ++ textSize;
   uint32 tagsSize = 8;
-  uint32 layrSize = 18;
+  uint32 layrSize = 24;
   uint32 pntsSize = (uint32) (aMesh->mVertices.size() * 12);
-  uint32 txuvSize = CalcVMAPSize(aMesh, 2);
-  uint32 rgbaSize = CalcVMAPSize(aMesh, 4);
+  uint32 txuvSize = CalcVMAPSize(aMesh, 2) + 20;
+  uint32 rgbaSize = CalcVMAPSize(aMesh, 4) + 14;
   uint32 polsSize = CalcPOLSSize(aMesh);
 
   // Calculate output file size
@@ -479,7 +568,7 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   WriteU2(f, 0);                            // number
   WriteU2(f, 0);                            // flags
   WriteVEC12(f, Vector3(0.0f, 0.0f, 0.0f)); // pivot
-  WriteStringZ(f, "");                      // name
+  WriteStringZ(f, "Layer 1");               // name
 
   // PNTS chunk
   WriteString(f, "PNTS");
@@ -492,9 +581,9 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   {
     WriteString(f, "VMAP");
     WriteU4(f, txuvSize);
-    WriteString(f, "TXUV"); // type
-    WriteU2(f, 2);          // dimension
-    WriteStringZ(f, "");    // name
+    WriteString(f, "TXUV");                 // type
+    WriteU2(f, 2);                          // dimension
+    WriteStringZ(f, "Texture coordaintes"); // name
     for(uint32 i = 0; i < (uint32) aMesh->mTexCoords.size(); ++ i)
     {
       WriteVX(f, i);
@@ -508,9 +597,9 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   {
     WriteString(f, "VMAP");
     WriteU4(f, rgbaSize);
-    WriteString(f, "RGBA"); // type
-    WriteU2(f, 4);          // dimension
-    WriteStringZ(f, "");    // name
+    WriteString(f, "RGBA");           // type
+    WriteU2(f, 4);                    // dimension
+    WriteStringZ(f, "Vertex colors"); // name
     for(uint32 i = 0; i < (uint32) aMesh->mColors.size(); ++ i)
     {
       WriteVX(f, i);

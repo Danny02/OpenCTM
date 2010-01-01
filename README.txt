@@ -58,7 +58,7 @@ v1.0.3 - ????.??.??
 -------------------
 - Added support for PNG format textures (ctmviewer).
 
-- Added experimental support for LightWave LWO files (ctmconv and ctmviewer).
+- Added support for LightWave LWO files (ctmconv and ctmviewer).
 
 - Added support for Geomview OFF files, e.g. as used by the Princeton Shape
   Benchmark (ctmconv and ctmviewer).
