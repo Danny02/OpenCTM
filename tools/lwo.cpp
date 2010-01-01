@@ -82,6 +82,8 @@ static float ReadF4(istream &aStream)
 }
 
 /// Read a 3 x 32-bit floating point vector, endian independent.
+/// Note: We flip the Y & Z axes, to go from our right handed to LightWaves
+/// left handed coordinate system.
 static Vector3 ReadVEC12(istream &aStream)
 {
   unsigned char buf[12];
@@ -100,12 +102,12 @@ static Vector3 ReadVEC12(istream &aStream)
           (((uint32) buf[5]) << 16) |
           (((uint32) buf[6]) << 8) |
           ((uint32) buf[7]);
-  result.y = val.f;
+  result.z = val.f;
   val.i = (((uint32) buf[8]) << 24) |
           (((uint32) buf[9]) << 16) |
           (((uint32) buf[10]) << 8) |
           ((uint32) buf[11]);
-  result.z = val.f;
+  result.y = val.f;
   return result;
 }
 
@@ -184,6 +186,8 @@ static void WriteF4(ostream &aStream, float aValue)
 }
 
 /// Write a 3 x 32-bit floating point vector, endian independent.
+/// Note: We flip the Y & Z axes, to go from our right handed to LightWaves
+/// left handed coordinate system.
 static void WriteVEC12(ostream &aStream, Vector3 aValue)
 {
   unsigned char buf[12];
@@ -196,12 +200,12 @@ static void WriteVEC12(ostream &aStream, Vector3 aValue)
   buf[1] = (val.i >> 16) & 255;
   buf[2] = (val.i >> 8) & 255;
   buf[3] = val.i & 255;
-  val.f = aValue.y;
+  val.f = aValue.z;
   buf[4] = (val.i >> 24) & 255;
   buf[5] = (val.i >> 16) & 255;
   buf[6] = (val.i >> 8) & 255;
   buf[7] = val.i & 255;
-  val.f = aValue.z;
+  val.f = aValue.y;
   buf[8] = (val.i >> 24) & 255;
   buf[9] = (val.i >> 16) & 255;
   buf[10] = (val.i >> 8) & 255;
@@ -298,7 +302,8 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
   // Iterate all chunks
   while(!f.eof() && (f.tellg() < fileSize))
   {
-    // Get chunk ID & size
+    // Get chunk ID & size (round size to next nearest even size - all chunks
+    // are word aligned)
     string chunkID = ReadString(f, 4);
     uint32 chunkSize = (ReadU4(f) + 1) & 0xfffffffe;
 
@@ -344,8 +349,9 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
       if(!havePoints)
         throw runtime_error("Not a valid LWO file (POLS chunk before PNTS chunk).");
 
-      // Check that we have a FACE descriptor
-      if(ReadString(f, 4) == string("FACE"))
+      // Check that we have a FACE or PTCH descriptor.
+      string type = ReadString(f, 4);
+      if((type == string("FACE")) || (type == string("PTCH")))
       {
         // Perpare for worst case triangle count (a single poly with only
         // 16-bit indices)
@@ -358,7 +364,7 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
         int bytesLeft = (int) chunkSize - 4;
         while(bytesLeft > 0)
         {
-          int polyNodes = (int) ReadU2(f);
+          int polyNodes = (int) ReadU2(f) & 1023;
           bytesLeft -= 2;
           if(polyNodes >= 3)
           {
@@ -401,8 +407,8 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
       }
       else
       {
-        // We only support FACE type polygons - skip this chunk
-        f.seekg(((chunkSize + 1) & 0x7ffffffe) - 4, ios_base::cur);
+        // We only support FACE/PTCH type polygons - skip this chunk
+        f.seekg(chunkSize - 4, ios_base::cur);
       }
     }
     else if((chunkID == string("VMAP")) || (chunkID == string("VMAD")))
@@ -477,8 +483,8 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
     }
     else
     {
-      // Just skip this chunk (always round to next nearest even offset)
-      f.seekg((chunkSize + 1) & 0x7ffffffe, ios_base::cur);
+      // Just skip this chunk
+      f.seekg(chunkSize, ios_base::cur);
     }
   }
 
