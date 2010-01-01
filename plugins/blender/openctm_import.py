@@ -25,7 +25,7 @@ This script imports OpenCTM files into Blender. It supports normals,
 colours, and UV coordinates per vertex.
 """
 
-# Copyright (C) 2009: Marcus Geelnard
+# Copyright (C) 2009-2010: Marcus Geelnard
 #
 # This program is released to the public domain.
 #

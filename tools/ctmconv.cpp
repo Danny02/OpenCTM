@@ -5,7 +5,7 @@
 //              convert various 3D file formats to and from the OpenCTM file
 //              format, and also for conversion between other formats.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009 Marcus Geelnard
+// Copyright (c) 2009-2010 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages

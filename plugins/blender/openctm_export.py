@@ -25,7 +25,7 @@ colours, and UV coordinates per vertex. Only one mesh can be exported
 at a time.
 """
 
-# Copyright (C) 2009: Marcus Geelnard
+# Copyright (C) 2009-2010: Marcus Geelnard
 #
 # This program is released to the public domain.
 #

@@ -3,7 +3,7 @@
 // File:        dae.h
 // Description: Interface for the DAE (Collada) file format importer/exporter.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009 Marcus Geelnard
+// Copyright (c) 2009-2010 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages

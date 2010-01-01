@@ -5,7 +5,7 @@
 //              in an interactive OpenGL window. Files in other supported
 //              formats can also be viewed.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009 Marcus Geelnard
+// Copyright (c) 2009-2010 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -1205,7 +1205,7 @@ void GLViewer::ActionHelp()
 {
   stringstream helpText;
   helpText << "ctmviewer - OpenCTM file viewer" << endl;
-  helpText << "Copyright (c) 2009 Marcus Geelnard" << endl << endl;
+  helpText << "Copyright (c) 2009-2010 Marcus Geelnard" << endl << endl;
   helpText << "Keyboard actions:" << endl;
   helpText << "  W - Toggle wire frame view on/off" << endl;
   helpText << "  F - Fit model to the screen" << endl;

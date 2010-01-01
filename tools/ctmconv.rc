@@ -15,7 +15,7 @@
 				VALUE "FileDescription", "OpenCTM 3D file converter"
 				VALUE "ProductName", "ctmconv"
 				VALUE "OriginalFilename", "ctmconv.exe"
-				VALUE "LegalCopyright", "© 2009 Marcus Geelnard"
+				VALUE "LegalCopyright", "© 2009-2010 Marcus Geelnard"
 				VALUE "License", "This software is released under the zlib/libpng license."
 			END
 		END
