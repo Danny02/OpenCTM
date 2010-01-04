@@ -48,9 +48,9 @@ static string TrimString(const string &aString)
 {
   size_t l = aString.size();
   size_t p1 = 0, p2 = l - 1;
-  while(((aString[p1] == ' ') || (aString[p1] == '\t')) && (p1 < p2))
+  while((p1 < p2) && ((aString[p1] == ' ') || (aString[p1] == '\t')))
     ++ p1;
-  while(((aString[p2] == ' ') || (aString[p2] == '\t')) && (p2 > p1))
+  while((p2 > p1) && ((aString[p2] == ' ') || (aString[p2] == '\t')))
     -- p2;
   return aString.substr(p1, p2 - p1 + 1);
 }
