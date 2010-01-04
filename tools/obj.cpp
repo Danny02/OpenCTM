@@ -67,18 +67,21 @@ class OBJFace {
     // Contruct a face (one triangle) from an OBJ face description string
     OBJFace(const string aStr)
     {
-      // Start by finding the first non-whitespace char (left-trim)
-      unsigned int pos = 0;
-      while((pos < aStr.size()) && (aStr[pos] == ' '))
+      // Start by finding the first and last non-whitespace char (trim)
+      size_t l = aStr.size();
+      size_t pos = 0, strEnd = l - 1;
+      while((pos < strEnd) && ((aStr[pos] == ' ') || (aStr[pos] == '\t')))
         ++ pos;
+      while((strEnd > pos) && ((aStr[strEnd] == ' ') || (aStr[strEnd] == '\t')))
+        -- strEnd;
 
       // Extract three face corners (one triangle)
-      while((pos < aStr.size()) && (aStr[pos] != ' '))
+      while((pos <= strEnd) && (aStr[pos] != ' ') && (aStr[pos] != '\t'))
       {
         // Extract three /-separated strings (v/vt/vn)
         string v_s[3];
         int j = 0;
-        while((pos < aStr.size()) && (aStr[pos] != ' '))
+        while((pos <= strEnd) && (aStr[pos] != ' ') && (aStr[pos] != '\t') && (j < 3))
         {
           if(aStr[pos] != '/')
             v_s[j] += aStr[pos];
@@ -86,7 +89,10 @@ class OBJFace {
             ++ j;
           ++ pos;
         }
-        ++ pos;
+
+        // Skip whitespaces
+        while((pos <= strEnd) && ((aStr[pos] == ' ') || (aStr[pos] == '\t')))
+          ++ pos;
 
         // Convert the strings to integers
         mNodes.push_back(OBJFaceNode());
@@ -102,6 +108,8 @@ class OBJFace {
               value --;
             else if(value < 0)
               throw runtime_error("Negative vertex references in OBJ files are not supported.");
+            else
+              throw runtime_error("Invalid index (zero) in OBJ file.");
           }
           n.Set(j, value);
         }
@@ -139,7 +147,7 @@ void Import_OBJ(const char * aFileName, Mesh * aMesh)
   aMesh->Clear();
 
   // Open the input file
-  ifstream inFile(aFileName, ios_base::in | ios_base::binary);
+  ifstream inFile(aFileName, ios_base::in);
   if(inFile.fail())
     throw runtime_error("Could not open input file.");
 
@@ -258,7 +266,7 @@ void Import_OBJ(const char * aFileName, Mesh * aMesh)
 void Export_OBJ(const char * aFileName, Mesh * aMesh)
 {
   // Open the output file
-  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  ofstream f(aFileName, ios_base::out);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 
