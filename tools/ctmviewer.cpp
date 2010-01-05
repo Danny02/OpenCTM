@@ -1061,6 +1061,7 @@ void GLViewer::ActionSaveFile()
   sd.mFilters.push_back(string("Wavefront geometry file (.obj)|*.obj"));
   sd.mFilters.push_back(string("LightWave object (.lwo)|*.lwo"));
   sd.mFilters.push_back(string("Geomview object file format (.off)|*.off"));
+  sd.mFilters.push_back(string("VRML 2.0 (.wrl)|*.wrl"));
   sd.mFileName = mFileName;
   if(sd.Show())
   {

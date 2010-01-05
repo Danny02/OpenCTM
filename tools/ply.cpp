@@ -35,6 +35,7 @@
 #include <clocale>
 #include <rply.h>
 #include "ply.h"
+#include "common.h"
 
 using namespace std;
 
@@ -246,7 +247,18 @@ void Export_PLY(const char * aFileName, Mesh * aMesh)
   f << "ply" << endl;
   f << "format ascii 1.0" << endl;
   if(aMesh->mComment.size() > 0)
-    f << "comment " << aMesh->mComment << endl;
+  {
+    stringstream sstr(aMesh->mComment);
+    sstr.seekg(0);
+    while(!sstr.eof())
+    {
+      string line;
+      getline(sstr, line);
+      line = TrimString(line);
+      if(line.size() > 0)
+        f << "comment " << line << endl;
+    }
+  }
   f << "element vertex " << aMesh->mVertices.size() << endl;
   f << "property float x" << endl;
   f << "property float y" << endl;
@@ -276,19 +288,19 @@ void Export_PLY(const char * aFileName, Mesh * aMesh)
   for(unsigned int i = 0; i < aMesh->mVertices.size(); ++ i)
   {
     f << aMesh->mVertices[i].x << " " <<
-               aMesh->mVertices[i].y << " " <<
-               aMesh->mVertices[i].z;
+         aMesh->mVertices[i].y << " " <<
+         aMesh->mVertices[i].z;
     if(aMesh->mTexCoords.size() > 0)
       f << " " << aMesh->mTexCoords[i].u << " " <<
-                        aMesh->mTexCoords[i].v;
+                  aMesh->mTexCoords[i].v;
     if(aMesh->mNormals.size() > 0)
       f << " " << aMesh->mNormals[i].x << " " <<
-                        aMesh->mNormals[i].y << " " <<
-                        aMesh->mNormals[i].z;
+                  aMesh->mNormals[i].y << " " <<
+                  aMesh->mNormals[i].z;
     if(aMesh->mColors.size() > 0)
       f << " " << int(floorf(255.0f * aMesh->mColors[i].x + 0.5f)) << " " <<
-                        int(floorf(255.0f * aMesh->mColors[i].y + 0.5f)) << " " <<
-                        int(floorf(255.0f * aMesh->mColors[i].z + 0.5f));
+                  int(floorf(255.0f * aMesh->mColors[i].y + 0.5f)) << " " <<
+                  int(floorf(255.0f * aMesh->mColors[i].z + 0.5f));
     f << endl;
   }
 

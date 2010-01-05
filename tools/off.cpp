@@ -40,20 +40,9 @@
 #include <vector>
 #include <list>
 #include "off.h"
+#include "common.h"
 
 using namespace std;
-
-// Trim heading and trailing white spaces
-static string TrimString(const string &aString)
-{
-  size_t l = aString.size();
-  size_t p1 = 0, p2 = l - 1;
-  while((p1 < p2) && ((aString[p1] == ' ') || (aString[p1] == '\t')))
-    ++ p1;
-  while((p2 > p1) && ((aString[p2] == ' ') || (aString[p2] == '\t')))
-    -- p2;
-  return aString.substr(p1, p2 - p1 + 1);
-}
 
 // Read the next line in a file (skip comments and empty lines)
 static void ReadNextLine(ifstream &aStream, string &aResult, string &aComment)
@@ -219,10 +208,26 @@ void Export_OFF(const char * aFileName, Mesh * aMesh)
   // Set floating point precision
   f << setprecision(8);
 
-  // Write herader
+  // Write OFF file header ID
   f << "OFF" << endl;
+
+  // Write comment
   if(aMesh->mComment.size() > 0)
-    f << "# " << aMesh->mComment << endl;
+  {
+    stringstream sstr(aMesh->mComment);
+    sstr.seekg(0);
+    while(!sstr.eof())
+    {
+      string line;
+      getline(sstr, line);
+      line = TrimString(line);
+      if(line.size() > 0)
+        f << "# " << line << endl;
+    }
+  }
+  f << endl;
+
+  // Write mesh information
   f << numVertices << " " << numFaces << " 0" << endl;
 
   // Write vertices

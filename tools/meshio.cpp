@@ -39,6 +39,7 @@
 #include "obj.h"
 #include "lwo.h"
 #include "off.h"
+#include "wrl.h"
 #include "common.h"
 
 using namespace std;
@@ -64,6 +65,8 @@ void ImportMesh(const char * aFileName, Mesh * aMesh)
     Import_LWO(aFileName, aMesh);
   else if(fileExt == string(".OFF"))
     Import_OFF(aFileName, aMesh);
+  else if(fileExt == string(".WRL"))
+    Import_WRL(aFileName, aMesh);
   else
     throw runtime_error("Unknown input file extension.");
 }
@@ -88,6 +91,8 @@ void ExportMesh(const char * aFileName, Mesh * aMesh, Options &aOptions)
     Export_LWO(aFileName, aMesh);
   else if(fileExt == string(".OFF"))
     Export_OFF(aFileName, aMesh);
+  else if(fileExt == string(".WRL"))
+    Export_WRL(aFileName, aMesh);
   else
     throw runtime_error("Unknown output file extension.");
 }
@@ -103,4 +108,5 @@ void SupportedFormats(list<string> &aList)
   aList.push_back(string("Wavefront geometry file (.obj)"));
   aList.push_back(string("LightWave object (.lwo)"));
   aList.push_back(string("Geomview object file format (.off)"));
+  aList.push_back(string("VRML 2.0 (.wrl) - export only"));
 }

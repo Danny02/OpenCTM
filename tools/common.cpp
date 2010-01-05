@@ -38,6 +38,18 @@ string UpperCase(const string &aString)
   return result;
 }
 
+// Trim heading and trailing white spaces of a string
+string TrimString(const string &aString)
+{
+  size_t l = aString.size();
+  size_t p1 = 0, p2 = l - 1;
+  while((p1 < p2) && IsWhiteSpace(aString[p1]))
+    ++ p1;
+  while((p2 > p1) && IsWhiteSpace(aString[p2]))
+    -- p2;
+  return aString.substr(p1, p2 - p1 + 1);
+}
+
 // Extract the file extension of a file name.
 string ExtractFileExt(const string &aString)
 {
@@ -46,4 +58,16 @@ string ExtractFileExt(const string &aString)
   if(extPos != string::npos)
     result = aString.substr(extPos);
   return result;
+}
+
+// Check if a character is an end-of-line marker or not
+bool IsEOL(const char c)
+{
+  return (c == '\n') || (c == '\r');
+}
+
+// Check if a character is a white space or not
+bool IsWhiteSpace(const char c)
+{
+  return (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r');
 }

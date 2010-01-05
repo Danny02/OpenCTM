@@ -3,7 +3,7 @@
 # File:        Makefile.msvc
 # Description: Makefile for the OpenCTM tools, MS Visual Studio version
 ###############################################################################
-# Copyright (c) 2009 Marcus Geelnard
+# Copyright (c) 2009-2010 Marcus Geelnard
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@ CPP = cl
 CPPFLAGS = /nologo /c /Ox /W3 /EHsc /I$(OPENCTMDIR) /I$(RPLYDIR) /I$(JPEGDIR) /I$(TINYXMLDIR) /I$(GLEWDIR) /I$(ZLIBDIR) /I$(PNGLITEDIR) /DGLEW_STATIC /D_CRT_SECURE_NO_WARNINGS
 RC = rc
 
-MESHOBJS = mesh.obj meshio.obj ctm.obj ply.obj rply.obj stl.obj 3ds.obj dae.obj obj.obj lwo.obj off.obj
+MESHOBJS = mesh.obj meshio.obj ctm.obj ply.obj rply.obj stl.obj 3ds.obj dae.obj obj.obj lwo.obj off.obj wrl.obj
 CTMCONVOBJS = ctmconv.obj common.obj systimer.obj convoptions.obj $(MESHOBJS) ctmconv.res
 CTMVIEWEROBJS = ctmviewer.obj common.obj image.obj systimer.obj sysdialog_win.obj convoptions.obj glew.obj pnglite.obj $(MESHOBJS) ctmviewer.res
 CTMBENCHOBJS = ctmbench.obj systimer.obj
@@ -74,15 +74,16 @@ systimer.obj: systimer.cpp systimer.h
 sysdialog_win.obj: sysdialog_win.cpp sysdialog.h
 convoptions.obj: convoptions.cpp convoptions.h
 mesh.obj: mesh.cpp mesh.h convoptions.h
-meshio.obj: meshio.cpp common.h convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h lwo.h
+meshio.obj: meshio.cpp common.h convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h lwo.h off.h wrl.h
 ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h
-ply.obj: ply.cpp ply.h mesh.h
+ply.obj: ply.cpp ply.h mesh.h common.h
 stl.obj: stl.cpp stl.h mesh.h
 3ds.obj: 3ds.cpp 3ds.h mesh.h
 dae.obj: dae.cpp dae.h mesh.h
-obj.obj: obj.cpp obj.h mesh.h
+obj.obj: obj.cpp obj.h mesh.h common.h
 lwo.obj: lwo.cpp lwo.h mesh.h
-off.obj: off.cpp off.h mesh.h
+off.obj: off.cpp off.h mesh.h common.h
+wrl.obj: wrl.cpp wrl.h mesh.h common.h
 
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@

@@ -33,6 +33,7 @@
 #include <vector>
 #include <list>
 #include "obj.h"
+#include "common.h"
 
 using namespace std;
 
@@ -278,8 +279,18 @@ void Export_OBJ(const char * aFileName, Mesh * aMesh)
 
   // Write comment
   if(aMesh->mComment.size() > 0)
-    f << "# " << aMesh->mComment << endl;
-  f << "# Generator: ctmconv" << endl;
+  {
+    stringstream sstr(aMesh->mComment);
+    sstr.seekg(0);
+    while(!sstr.eof())
+    {
+      string line;
+      getline(sstr, line);
+      line = TrimString(line);
+      if(line.size() > 0)
+        f << "# " << line << endl;
+    }
+  }
 
   // Write vertices
   for(unsigned int i = 0; i < aMesh->mVertices.size(); ++ i)

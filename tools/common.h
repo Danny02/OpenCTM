@@ -33,7 +33,16 @@
 // Convert a string to upper case.
 std::string UpperCase(const std::string &aString);
 
+// Trim heading and trailing white spaces of a string
+std::string TrimString(const std::string &aString);
+
 // Extract the file extension of a file name.
 std::string ExtractFileExt(const std::string &aString);
+
+// Check if a character is an end-of-line marker or not
+bool IsEOL(const char c);
+
+// Check if a character is a white space or not
+bool IsWhiteSpace(const char c);
 
 #endif // __COMMON_H_
