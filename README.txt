@@ -29,6 +29,7 @@ Here is an incomplete list of persons that deserve credit:
 
 - Igor Pavlov (LZMA library)
 - Jonas Innala (COLLADA importer, Maya exporter plugin)
+- Ilian Dinev (help with the OpenCTM file format design and the LWO loader)
 - Lee Thomason (TinyXML)
 - Diego Nehab (RPly - for loading PLY files)
 - Lev Povalahev, Marcelo E. Magallon, Milan Ikits (GLEW)
@@ -65,7 +66,9 @@ v1.0.3 - 2010.??.??
 
 - Improved the OBJ file loader (ctmviewer and ctmconv).
 
-- Made it possible to run ctmviewer without arguments.
+- Experimental support for VRML 2.0 files - export only (ctmconv and ctmviewer).
+
+- Made it possible to run ctmviewer without command line arguments.
 
 - Improved the normal calculation algorithm (ctmviewer and ctmconv).
 
