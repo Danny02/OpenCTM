@@ -50,6 +50,30 @@ string TrimString(const string &aString)
   return aString.substr(p1, p2 - p1 + 1);
 }
 
+// Extract the file name of a file path (excluding the path).
+string ExtractFileName(const string &aString)
+{
+  string result = "";
+  size_t pathPos = aString.rfind("/");
+  if(pathPos == string::npos)
+    pathPos = aString.rfind("\\");
+  if(pathPos != string::npos)
+    result = aString.substr(pathPos + 1);
+  return result;
+}
+
+// Extract the file path of a file path (excluding the file name).
+string ExtractFilePath(const string &aString)
+{
+  string result = "";
+  size_t pathPos = aString.rfind("/");
+  if(pathPos == string::npos)
+    pathPos = aString.rfind("\\");
+  if(pathPos != string::npos)
+    result = aString.substr(0, pathPos);
+  return result;
+}
+
 // Extract the file extension of a file name.
 string ExtractFileExt(const string &aString)
 {

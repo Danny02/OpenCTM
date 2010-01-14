@@ -36,6 +36,12 @@ std::string UpperCase(const std::string &aString);
 // Trim heading and trailing white spaces of a string
 std::string TrimString(const std::string &aString);
 
+// Extract the file name of a file path (excluding the path).
+std::string ExtractFileName(const std::string &aString);
+
+// Extract the file path of a file path (excluding the file name).
+std::string ExtractFilePath(const std::string &aString);
+
 // Extract the file extension of a file name.
 std::string ExtractFileExt(const std::string &aString);
 

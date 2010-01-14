@@ -44,6 +44,7 @@
 #include "sysdialog.h"
 #include "systimer.h"
 #include "image.h"
+#include "common.h"
 
 using namespace std;
 
@@ -736,17 +737,8 @@ void GLViewer::LoadFile(const char * aFileName, const char * aOverrideTexture)
   cout << "done (" << int(mTimer.PopDelta() * 1000.0 + 0.5) << " ms)" << endl;
 
   // Get the file name (excluding the path), and the path (excluding the file name)
-  mFileName = string(aFileName);
-  size_t lastSlash = mFileName.rfind("/");
-  if(lastSlash == string::npos)
-    lastSlash = mFileName.rfind("\\");
-  if(lastSlash != string::npos)
-  {
-    mFilePath = mFileName.substr(0, lastSlash + 1);
-    mFileName = mFileName.substr(lastSlash + 1);
-  }
-  else
-    mFilePath = string("");
+  mFileName = ExtractFileName(string(aFileName));
+  mFilePath = ExtractFilePath(string(aFileName));
 
   // The temporary file size is now the official file size...
   mFileSize = tmpFileSize;
@@ -1110,6 +1102,7 @@ void GLViewer::ActionOpenTexture()
     try
     {
       LoadTexture(od.mFileName.c_str());
+      mMesh->mTexFileName = ExtractFileName(od.mFileName);
       glutPostRedisplay();
     }
     catch(exception &e)

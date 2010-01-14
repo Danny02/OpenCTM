@@ -65,7 +65,7 @@ ctmbench: $(CTMBENCHOBJS) libopenctm.so
 	$(CPP) $(CPPFLAGS) -o $@ $<
 
 ctmconv.o: ctmconv.cpp systimer.h convoptions.h mesh.h meshio.h
-ctmviewer.o: ctmviewer.cpp image.h systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons/icon_open.h icons/icon_save.h icons/icon_help.h
+ctmviewer.o: ctmviewer.cpp common.h image.h systimer.h sysdialog.h mesh.h meshio.h phong_vert.h phong_frag.h icons/icon_open.h icons/icon_save.h icons/icon_help.h
 ctmbench.o: ctmbench.cpp systimer.h
 common.o: common.cpp common.h
 image.o: image.cpp image.h common.h $(JPEGDIR)/libjpeg.a
