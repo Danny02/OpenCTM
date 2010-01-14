@@ -3,7 +3,7 @@
 // File:        mesh.h
 // Description: Interface for the 3D triangle mesh class.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009 Marcus Geelnard
+// Copyright (c) 2009-2010 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -128,6 +128,13 @@ class Options;
 
 class Mesh {
   public:
+    /// Normal calculation algorithm
+    enum NormalCalcAlgo {
+      ncaAuto,     ///< Auto detect optimal algorithm
+      ncaOrganic,  ///< Optimized for "organic" models (e.g. scanned objects)
+      ncaCAD       ///< Optimized for CAD models (varying triangle sizes etc)
+    };
+
     /// Constructor
     Mesh()
     {
@@ -138,7 +145,7 @@ class Mesh {
     void Clear();
 
     /// Calculate smooth per-vertex normals
-    void CalculateNormals();
+    void CalculateNormals(NormalCalcAlgo aAlgo = ncaAuto);
 
     /// Calculate the bounding box for the mesh
     void BoundingBox(Vector3 &aMin, Vector3 &aMax);
@@ -154,6 +161,10 @@ class Mesh {
     std::vector<Vector3> mNormals;
     std::vector<Vector4> mColors;
     std::vector<Vector2> mTexCoords;
+
+  private:
+    /// Automatic detection of the optimal normal calculation method
+    NormalCalcAlgo DetectNormalCalculationMethod();
 };
 
 

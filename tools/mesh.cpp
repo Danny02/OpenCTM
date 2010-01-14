@@ -3,7 +3,7 @@
 // File:        mesh.cpp
 // Description: Implementation of the 3D triangle mesh class.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009 Marcus Geelnard
+// Copyright (c) 2009-2010 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -70,9 +70,96 @@ void Mesh::Clear()
   mOriginalNormals = true;
 }
 
-/// Calculate smooth per-vertex normals
-void Mesh::CalculateNormals()
+/// Automatic detection of the optimal normal calculation method
+Mesh::NormalCalcAlgo Mesh::DetectNormalCalculationMethod()
 {
+  unsigned int triCount = mIndices.size() / 3;
+  unsigned int vertexCount = mVertices.size();
+
+  // Calculate the mean edge length
+  double meanEdgeLen = 0;
+  for(unsigned int i = 0; i < triCount; ++ i)
+  {
+    meanEdgeLen += (mVertices[mIndices[i * 3 + 1]] - mVertices[mIndices[i * 3]]).Abs();
+    meanEdgeLen += (mVertices[mIndices[i * 3 + 2]] - mVertices[mIndices[i * 3 + 1]]).Abs();
+    meanEdgeLen += (mVertices[mIndices[i * 3]] - mVertices[mIndices[i * 3 + 2]]).Abs();
+  }
+  if(triCount > 0)
+    meanEdgeLen = meanEdgeLen / (3 * triCount);
+
+  // Calculate the standard deviation of the edge length
+  double stdDevEdgeLen = 0;
+  for(unsigned int i = 0; i < triCount; ++ i)
+  {
+    double len = (mVertices[mIndices[i * 3 + 1]] - mVertices[mIndices[i * 3]]).Abs();
+    stdDevEdgeLen += (len - meanEdgeLen) * (len - meanEdgeLen);
+    len = (mVertices[mIndices[i * 3 + 2]] - mVertices[mIndices[i * 3 + 1]]).Abs();
+    stdDevEdgeLen += (len - meanEdgeLen) * (len - meanEdgeLen);
+    len = (mVertices[mIndices[i * 3]] - mVertices[mIndices[i * 3 + 2]]).Abs();
+    stdDevEdgeLen += (len - meanEdgeLen) * (len - meanEdgeLen);
+  }
+  if(triCount > 0)
+    stdDevEdgeLen = sqrt(stdDevEdgeLen / (3 * triCount));
+
+  // Calculate the number of triangles that connect to each vertex
+  vector<int> connectCount;
+  connectCount.resize(vertexCount);
+  for(unsigned int i = 0; i < vertexCount; ++ i)
+    connectCount[i] = 0;
+  for(unsigned int i = 0; i < mIndices.size(); ++ i)
+  {
+    unsigned int idx = mIndices[i];
+    if(idx < vertexCount)
+      ++ connectCount[idx];
+  }
+
+  // First analysis: how much variation is there in the triangle edge lengths?
+  double edgeVariation = 0.0;
+  if(meanEdgeLen > 0.0)
+    edgeVariation = stdDevEdgeLen / meanEdgeLen;
+
+  // Calculate the mean number of triangle connections
+  double meanConnectCount = 0;
+  for(unsigned int i = 0; i < vertexCount; ++ i)
+    meanConnectCount += connectCount[i];
+  if(vertexCount > 0)
+    meanConnectCount = meanConnectCount / vertexCount;
+
+  // Calculate the standard deviation of the number of triangle connections
+  double stdDevConnectCount = 0;
+  for(unsigned int i = 0; i < vertexCount; ++ i)
+    stdDevConnectCount += (connectCount[i] - meanConnectCount) * (connectCount[i] - meanConnectCount);
+  if(vertexCount > 0)
+    stdDevConnectCount = sqrt(stdDevConnectCount / vertexCount);
+
+  // Second analysis: how much variation is there in the number of connections
+  // per vertex?
+  double connectVariation = 0.0;
+  if(meanConnectCount > 0.0)
+    connectVariation = stdDevConnectCount / meanConnectCount;
+
+  // Normalize the different measures to their respective threshold values
+  edgeVariation /= 0.7;
+  connectVariation /= 0.3;
+
+  // Is this a CAD-like object or a organic-like object?
+  NormalCalcAlgo algo = ncaOrganic;
+  if(edgeVariation * connectVariation > 1.0)
+    algo = ncaCAD;
+
+  return algo;
+}
+
+/// Calculate smooth per-vertex normals
+void Mesh::CalculateNormals(NormalCalcAlgo aAlgo)
+{
+  // Determine which normal calculation algorithm to use
+  NormalCalcAlgo algo;
+  if(aAlgo == ncaAuto)
+    algo = DetectNormalCalculationMethod();
+  else
+    algo = aAlgo;
+
   // The original normals are no longer preserved
   mOriginalNormals = false;
 
@@ -89,6 +176,8 @@ void Mesh::CalculateNormals()
     Vector3 v1 = mVertices[mIndices[i * 3 + 1]] - mVertices[mIndices[i * 3]];
     Vector3 v2 = mVertices[mIndices[i * 3 + 2]] - mVertices[mIndices[i * 3]];
     Vector3 flatNormal = Cross(v1, v2);
+    if(algo == ncaOrganic)
+      flatNormal = Normalize(flatNormal);
 
     // ...and add it to all three triangle vertices' smooth normals
     for(unsigned int j = 0; j < 3; ++ j)
