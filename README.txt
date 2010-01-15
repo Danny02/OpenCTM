@@ -55,7 +55,7 @@ Legal notices:
 4. CHANGES
 ==========
 
-v1.0.3 - 2010.??.??
+v1.0.3 - 2010.01.15
 -------------------
 - Added support for PNG format textures (ctmviewer).
 
