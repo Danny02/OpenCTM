@@ -230,10 +230,15 @@ void Import_PLY(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export a PLY file to a file.
-void Export_PLY(const char * aFileName, Mesh * aMesh)
+void Export_PLY(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Start by ensuring that we use proper locale settings for the file format
   setlocale(LC_NUMERIC, "C");
+
+  // What should we export?
+  bool exportTexCoords = aMesh->HasTexCoords() && !aOptions.mNoTexCoords;
+  bool exportNormals = aMesh->HasNormals() && !aOptions.mNoNormals;
+  bool exportColors = aMesh->HasColors() && !aOptions.mNoColors;
 
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);
@@ -263,18 +268,18 @@ void Export_PLY(const char * aFileName, Mesh * aMesh)
   f << "property float x" << endl;
   f << "property float y" << endl;
   f << "property float z" << endl;
-  if(aMesh->mTexCoords.size() > 0)
+  if(exportTexCoords)
   {
     f << "property float s" << endl;
     f << "property float t" << endl;
   }
-  if(aMesh->mNormals.size() > 0)
+  if(exportNormals)
   {
     f << "property float nx" << endl;
     f << "property float ny" << endl;
     f << "property float nz" << endl;
   }
-  if(aMesh->mColors.size() > 0)
+  if(exportColors)
   {
     f << "property uchar red" << endl;
     f << "property uchar green" << endl;
@@ -290,14 +295,14 @@ void Export_PLY(const char * aFileName, Mesh * aMesh)
     f << aMesh->mVertices[i].x << " " <<
          aMesh->mVertices[i].y << " " <<
          aMesh->mVertices[i].z;
-    if(aMesh->mTexCoords.size() > 0)
+    if(exportTexCoords)
       f << " " << aMesh->mTexCoords[i].u << " " <<
                   aMesh->mTexCoords[i].v;
-    if(aMesh->mNormals.size() > 0)
+    if(exportNormals)
       f << " " << aMesh->mNormals[i].x << " " <<
                   aMesh->mNormals[i].y << " " <<
                   aMesh->mNormals[i].z;
-    if(aMesh->mColors.size() > 0)
+    if(exportColors)
       f << " " << int(floorf(255.0f * aMesh->mColors[i].x + 0.5f)) << " " <<
                   int(floorf(255.0f * aMesh->mColors[i].y + 0.5f)) << " " <<
                   int(floorf(255.0f * aMesh->mColors[i].z + 0.5f));

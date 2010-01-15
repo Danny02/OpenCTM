@@ -223,7 +223,7 @@ void Import_WRL(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export a mesh to a VRML 2.0 file.
-void Export_WRL(const char * aFileName, Mesh * aMesh)
+void Export_WRL(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out);

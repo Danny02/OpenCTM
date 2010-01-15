@@ -504,10 +504,14 @@ static string MakeISO8601DateTime(void)
 }
 
 /// Export a DAE file to a file.
-void Export_DAE(const char * aFileName, Mesh * aMesh)
+void Export_DAE(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Start by ensuring that we use proper locale settings for the file format
   setlocale(LC_NUMERIC, "C");
+
+  // What should we export?
+  bool exportTexCoords = aMesh->HasTexCoords() && !aOptions.mNoTexCoords;
+  bool exportNormals = aMesh->HasNormals() && !aOptions.mNoNormals;
 
   TiXmlDocument xmlDoc;
   TiXmlElement * elem;
@@ -582,8 +586,7 @@ void Export_DAE(const char * aFileName, Mesh * aMesh)
   elem->SetAttribute("type", "float");
 
   // Normals
-  bool hasNormals = (aMesh->mNormals.size() == aMesh->mVertices.size());
-  if(hasNormals)
+  if(exportNormals)
   {
     TiXmlElement * source_normal = new TiXmlElement("source");
     mesh->LinkEndChild(source_normal);
@@ -617,8 +620,7 @@ void Export_DAE(const char * aFileName, Mesh * aMesh)
   }
 
   // UV map
-  bool hasTexCoords = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
-  if(hasTexCoords)
+  if(exportTexCoords)
   {
     TiXmlElement * source_map1 = new TiXmlElement("source");
     mesh->LinkEndChild(source_map1);
@@ -667,7 +669,7 @@ void Export_DAE(const char * aFileName, Mesh * aMesh)
   elem->SetAttribute("semantic", "VERTEX");
   elem->SetAttribute("source", "#Mesh-1-vertices");
   ++ triangleInputCount;
-  if(hasNormals)
+  if(exportNormals)
   {
     elem = new TiXmlElement("input");
     triangles->LinkEndChild(elem);
@@ -676,7 +678,7 @@ void Export_DAE(const char * aFileName, Mesh * aMesh)
     elem->SetAttribute("source", "#Mesh-1-normals");
     ++ triangleInputCount;
   }
-  if(hasTexCoords)
+  if(exportTexCoords)
   {
     elem = new TiXmlElement("input");
     triangles->LinkEndChild(elem);

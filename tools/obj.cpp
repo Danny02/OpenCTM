@@ -264,15 +264,16 @@ void Import_OBJ(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export a mesh to an OBJ file.
-void Export_OBJ(const char * aFileName, Mesh * aMesh)
+void Export_OBJ(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 
-  bool hasUVCoords = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
-  bool hasNormals = (aMesh->mNormals.size() == aMesh->mVertices.size());
+  // What should we export?
+  bool exportTexCoords = aMesh->HasTexCoords() && !aOptions.mNoTexCoords;
+  bool exportNormals = aMesh->HasNormals() && !aOptions.mNoNormals;
 
   // Set floating point precision
   f << setprecision(8);
@@ -297,14 +298,14 @@ void Export_OBJ(const char * aFileName, Mesh * aMesh)
     f << "v " << aMesh->mVertices[i].x << " " << aMesh->mVertices[i].y << " " << aMesh->mVertices[i].z << endl;
 
   // Write UV coordinates
-  if(hasUVCoords)
+  if(exportTexCoords)
   {
     for(unsigned int i = 0; i < aMesh->mTexCoords.size(); ++ i)
       f << "vt " << aMesh->mTexCoords[i].u << " " << aMesh->mTexCoords[i].v << endl;
   }
 
   // Write normals
-  if(hasNormals)
+  if(exportNormals)
   {
     for(unsigned int i = 0; i < aMesh->mNormals.size(); ++ i)
       f << "vn " << aMesh->mNormals[i].x << " " << aMesh->mNormals[i].y << " " << aMesh->mNormals[i].z << endl;
@@ -317,26 +318,26 @@ void Export_OBJ(const char * aFileName, Mesh * aMesh)
   {
     unsigned int idx = aMesh->mIndices[i * 3] + 1;
     f << "f " << idx << "/";
-    if(hasUVCoords)
+    if(exportTexCoords)
       f << idx;
     f << "/";
-    if(hasNormals)
+    if(exportNormals)
       f << idx;
 
     idx = aMesh->mIndices[i * 3 + 1] + 1;
     f << " " << idx << "/";
-    if(hasUVCoords)
+    if(exportTexCoords)
       f << idx;
     f << "/";
-    if(hasNormals)
+    if(exportNormals)
       f << idx;
 
     idx = aMesh->mIndices[i * 3 + 2] + 1;
     f << " " << idx << "/";
-    if(hasUVCoords)
+    if(exportTexCoords)
       f << idx;
     f << "/";
-    if(hasNormals)
+    if(exportNormals)
       f << idx;
     f << endl;
   }

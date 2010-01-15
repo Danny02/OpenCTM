@@ -29,11 +29,12 @@
 #define __LWO_H_
 
 #include "mesh.h"
+#include "convoptions.h"
 
 /// Import a mesh from an LWO file.
 void Import_LWO(const char * aFileName, Mesh * aMesh);
 
 /// Export a mesh to an LWO file.
-void Export_LWO(const char * aFileName, Mesh * aMesh);
+void Export_LWO(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 #endif // __LWO_H_

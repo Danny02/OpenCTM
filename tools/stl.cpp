@@ -187,7 +187,7 @@ void Import_STL(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export an STL file to a file.
-void Export_STL(const char * aFileName, Mesh * aMesh)
+void Export_STL(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out | ios_base::binary);

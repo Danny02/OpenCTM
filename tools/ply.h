@@ -29,11 +29,12 @@
 #define __PLY_H_
 
 #include "mesh.h"
+#include "convoptions.h"
 
 /// Import a PLY file from a file.
 void Import_PLY(const char * aFileName, Mesh * aMesh);
 
 /// Export a PLY file to a file.
-void Export_PLY(const char * aFileName, Mesh * aMesh);
+void Export_PLY(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 #endif // __PLY_H_

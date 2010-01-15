@@ -511,16 +511,16 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export a mesh to an LWO file.
-void Export_LWO(const char * aFileName, Mesh * aMesh)
+void Export_LWO(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Check if we can support this mesh (too many vertices?)
   if(aMesh->mVertices.size() > 0x00ffffff)
     throw runtime_error("Too large mesh (not supported by the LWO file format).");
 
-  // Mesh properties
-  bool hasComment = (aMesh->mComment.size() > 0);
-  bool hasUVs = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
-  bool hasColors = (aMesh->mColors.size() == aMesh->mVertices.size());
+  // What should we export?
+  bool exportComment = (aMesh->mComment.size() > 0);
+  bool exportTexCoords = aMesh->HasTexCoords() && !aOptions.mNoTexCoords;
+  bool exportColors = aMesh->HasColors() && !aOptions.mNoColors;
 
   // Calculate the sizes of the individual chunks
   uint32 textSize = aMesh->mComment.size() + 1;
@@ -538,11 +538,11 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
                     8 + layrSize +
                     8 + pntsSize +
                     8 + polsSize;
-  if(hasComment)
+  if(exportComment)
     fileSize += 8 + textSize;
-  if(hasUVs)
+  if(exportTexCoords)
     fileSize += 8 + txuvSize;
-  if(hasColors)
+  if(exportColors)
     fileSize += 8 + rgbaSize;
 
   // Open the output file
@@ -556,7 +556,7 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   WriteString(f, "LWO2");
 
   // TEXT chunk
-  if(hasComment)
+  if(exportComment)
   {
     WriteString(f, "TEXT");
     WriteU4(f, textSize);
@@ -583,7 +583,7 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
     WriteVEC12(f, aMesh->mVertices[i]);
 
   // VMAP:TXUV chunk (optional)
-  if(hasUVs)
+  if(exportTexCoords)
   {
     WriteString(f, "VMAP");
     WriteU4(f, txuvSize);
@@ -599,7 +599,7 @@ void Export_LWO(const char * aFileName, Mesh * aMesh)
   }
 
   // VMAP:RGBA chunk (optional)
-  if(hasColors)
+  if(exportColors)
   {
     WriteString(f, "VMAP");
     WriteU4(f, rgbaSize);

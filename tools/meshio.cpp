@@ -78,21 +78,21 @@ void ExportMesh(const char * aFileName, Mesh * aMesh, Options &aOptions)
   if(fileExt == string(".CTM"))
     Export_CTM(aFileName, aMesh, aOptions);
   else if(fileExt == string(".PLY"))
-    Export_PLY(aFileName, aMesh);
+    Export_PLY(aFileName, aMesh, aOptions);
   else if(fileExt == string(".STL"))
-    Export_STL(aFileName, aMesh);
+    Export_STL(aFileName, aMesh, aOptions);
   else if(fileExt == string(".3DS"))
-    Export_3DS(aFileName, aMesh);
+    Export_3DS(aFileName, aMesh, aOptions);
   else if(fileExt == string(".DAE"))
-    Export_DAE(aFileName, aMesh);
+    Export_DAE(aFileName, aMesh, aOptions);
   else if(fileExt == string(".OBJ"))
-    Export_OBJ(aFileName, aMesh);
+    Export_OBJ(aFileName, aMesh, aOptions);
   else if(fileExt == string(".LWO"))
-    Export_LWO(aFileName, aMesh);
+    Export_LWO(aFileName, aMesh, aOptions);
   else if(fileExt == string(".OFF"))
-    Export_OFF(aFileName, aMesh);
+    Export_OFF(aFileName, aMesh, aOptions);
   else if(fileExt == string(".WRL"))
-    Export_WRL(aFileName, aMesh);
+    Export_WRL(aFileName, aMesh, aOptions);
   else
     throw runtime_error("Unknown output file extension.");
 }

@@ -29,11 +29,12 @@
 #define __WRL_H_
 
 #include "mesh.h"
+#include "convoptions.h"
 
 /// Import a mesh from a VRML 2.0 file.
 void Import_WRL(const char * aFileName, Mesh * aMesh);
 
 /// Export a mesh to a VRML 2.0 file.
-void Export_WRL(const char * aFileName, Mesh * aMesh);
+void Export_WRL(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 #endif // __WRL_H_

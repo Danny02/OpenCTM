@@ -75,14 +75,14 @@ convoptions.o: convoptions.cpp convoptions.h
 mesh.o: mesh.cpp mesh.h convoptions.h
 meshio.o: meshio.cpp common.h convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h lwo.h off.h wrl.h
 ctm.o: ctm.cpp ctm.h mesh.h convoptions.h
-ply.o: ply.cpp ply.h mesh.h common.h
-stl.o: stl.cpp stl.h mesh.h
-3ds.o: 3ds.cpp 3ds.h mesh.h
-dae.o: dae.cpp dae.h mesh.h
-obj.o: obj.cpp obj.h mesh.h common.h
-lwo.o: lwo.cpp lwo.h mesh.h
-off.o: off.cpp off.h mesh.h common.h
-wrl.o: wrl.cpp wrl.h mesh.h common.h
+ply.o: ply.cpp ply.h mesh.h convoptions.h common.h
+stl.o: stl.cpp stl.h mesh.h convoptions.h
+3ds.o: 3ds.cpp 3ds.h mesh.h convoptions.h
+dae.o: dae.cpp dae.h mesh.h convoptions.h
+obj.o: obj.cpp obj.h mesh.h convoptions.h common.h
+lwo.o: lwo.cpp lwo.h mesh.h convoptions.h
+off.o: off.cpp off.h mesh.h convoptions.h common.h
+wrl.o: wrl.cpp wrl.h mesh.h convoptions.h common.h
 
 phong_vert.h: phong.vert bin2c
 	./bin2c phong.vert phongVertSrc > $@

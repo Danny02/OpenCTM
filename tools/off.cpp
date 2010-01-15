@@ -194,7 +194,7 @@ void Import_OFF(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export a mesh to an OFF file.
-void Export_OFF(const char * aFileName, Mesh * aMesh)
+void Export_OFF(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Open the output file
   ofstream f(aFileName, ios_base::out);
@@ -231,11 +231,11 @@ void Export_OFF(const char * aFileName, Mesh * aMesh)
   f << numVertices << " " << numFaces << " 0" << endl;
 
   // Write vertices
-  bool hasVertexColors = (aMesh->mColors.size() == aMesh->mVertices.size());
+  bool exportVertexColors = !aOptions.mNoColors && aMesh->HasColors();
   for(unsigned int i = 0; i < numVertices; ++ i)
   {
     f << aMesh->mVertices[i].x << " " << aMesh->mVertices[i].y << " " << aMesh->mVertices[i].z;
-    if(hasVertexColors)
+    if(exportVertexColors)
       f << " " << aMesh->mColors[i].x << " " << aMesh->mColors[i].y << " " << aMesh->mColors[i].z << " " << aMesh->mColors[i].w;
     f << endl;
   }

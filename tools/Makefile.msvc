@@ -76,14 +76,14 @@ convoptions.obj: convoptions.cpp convoptions.h
 mesh.obj: mesh.cpp mesh.h convoptions.h
 meshio.obj: meshio.cpp common.h convoptions.h mesh.h ctm.h ply.h stl.h 3ds.h dae.h obj.h lwo.h off.h wrl.h
 ctm.obj: ctm.cpp ctm.h mesh.h convoptions.h
-ply.obj: ply.cpp ply.h mesh.h common.h
-stl.obj: stl.cpp stl.h mesh.h
-3ds.obj: 3ds.cpp 3ds.h mesh.h
-dae.obj: dae.cpp dae.h mesh.h
-obj.obj: obj.cpp obj.h mesh.h common.h
-lwo.obj: lwo.cpp lwo.h mesh.h
-off.obj: off.cpp off.h mesh.h common.h
-wrl.obj: wrl.cpp wrl.h mesh.h common.h
+ply.obj: ply.cpp ply.h mesh.h convoptions.h common.h
+stl.obj: stl.cpp stl.h mesh.h convoptions.h
+3ds.obj: 3ds.cpp 3ds.h mesh.h convoptions.h
+dae.obj: dae.cpp dae.h mesh.h convoptions.h
+obj.obj: obj.cpp obj.h mesh.h convoptions.h common.h
+lwo.obj: lwo.cpp lwo.h mesh.h convoptions.h
+off.obj: off.cpp off.h mesh.h convoptions.h common.h
+wrl.obj: wrl.cpp wrl.h mesh.h convoptions.h common.h
 
 phong_vert.h: phong.vert bin2c.exe
 	bin2c.exe phong.vert phongVertSrc > $@

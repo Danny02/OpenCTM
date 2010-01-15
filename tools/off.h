@@ -29,11 +29,12 @@
 #define __OFF_H_
 
 #include "mesh.h"
+#include "convoptions.h"
 
 /// Import a mesh from an OFF file.
 void Import_OFF(const char * aFileName, Mesh * aMesh);
 
 /// Export a mesh to an OFF file.
-void Export_OFF(const char * aFileName, Mesh * aMesh);
+void Export_OFF(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 #endif // __OFF_H_

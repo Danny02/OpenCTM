@@ -29,11 +29,12 @@
 #define __OBJ_H_
 
 #include "mesh.h"
+#include "convoptions.h"
 
 /// Import a mesh from an OBJ file.
 void Import_OBJ(const char * aFileName, Mesh * aMesh);
 
 /// Export a mesh to an OBJ file.
-void Export_OBJ(const char * aFileName, Mesh * aMesh);
+void Export_OBJ(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 #endif // __OBJ_H_

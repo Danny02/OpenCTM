@@ -102,10 +102,13 @@ static void PreProcessMesh(Mesh &aMesh, Options &aOptions)
                          vZ * aMesh.mVertices[i].z;
 
   // Update all normals
-  for(CTMuint i = 0; i < aMesh.mNormals.size(); ++ i)
-    aMesh.mNormals[i] = nX * aMesh.mNormals[i].x +
-                        nY * aMesh.mNormals[i].y +
-                        nZ * aMesh.mNormals[i].z;
+  if(aMesh.HasNormals() && !aOptions.mNoNormals)
+  {
+    for(CTMuint i = 0; i < aMesh.mNormals.size(); ++ i)
+      aMesh.mNormals[i] = nX * aMesh.mNormals[i].x +
+                          nY * aMesh.mNormals[i].y +
+                          nZ * aMesh.mNormals[i].z;
+  }
 
   // Flip trianlges?
   if(aOptions.mFlipTriangles)
@@ -121,7 +124,7 @@ static void PreProcessMesh(Mesh &aMesh, Options &aOptions)
 
   // Calculate normals?
   if((!aOptions.mNoNormals) && aOptions.mCalcNormals &&
-     (aMesh.mNormals.size() != aMesh.mVertices.size()))
+     (!aMesh.HasNormals()))
     aMesh.CalculateNormals();
 
   double dt = timer.PopDelta();
@@ -206,14 +209,6 @@ int main(int argc, char ** argv)
 
     // Manipulate the mesh
     PreProcessMesh(mesh, opt);
-
-    // Remove mesh data?
-    if(opt.mNoNormals)
-      mesh.mNormals.clear();
-    if(opt.mNoTexCoords)
-      mesh.mTexCoords.clear();
-    if(opt.mNoColors)
-      mesh.mColors.clear();
 
     // Override comment?
     if(opt.mComment.size() > 0)

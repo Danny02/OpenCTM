@@ -72,6 +72,9 @@ v1.0.3 - 2010.??.??
 
 - Improved the normal calculation algorithm (ctmviewer and ctmconv).
 
+- Normals are no longer exported if no normals were present in the input file
+  (ctmviewer).
+
 
 v1.0.2 - 2009.12.13
 -------------------

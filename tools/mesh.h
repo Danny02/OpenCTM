@@ -154,6 +154,24 @@ class Mesh {
     /// file. This flag is set to false by the CalculateNormals() method.
     bool mOriginalNormals;
 
+    /// Check if the mesh has normals
+    bool HasNormals()
+    {
+      return (mNormals.size() > 0) && (mNormals.size() == mVertices.size());
+    }
+
+    /// Check if the mesh has colors
+    bool HasColors()
+    {
+      return (mColors.size() > 0) && (mColors.size() == mVertices.size());
+    }
+
+    /// Check if the mesh has texture coordinates
+    bool HasTexCoords()
+    {
+      return (mTexCoords.size() > 0) && (mTexCoords.size() == mVertices.size());
+    }
+
     std::string mComment;
     std::string mTexFileName;
     std::vector<int> mIndices;

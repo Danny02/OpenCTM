@@ -29,11 +29,12 @@
 #define __DAE_H_
 
 #include "mesh.h"
+#include "convoptions.h"
 
 /// Import a DAE file from a file.
 void Import_DAE(const char * aFileName, Mesh * aMesh);
 
 /// Export a DAE file to a file.
-void Export_DAE(const char * aFileName, Mesh * aMesh);
+void Export_DAE(const char * aFileName, Mesh * aMesh, Options &aOptions);
 
 #endif // __DAE_H_

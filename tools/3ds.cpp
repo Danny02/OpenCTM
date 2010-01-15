@@ -312,12 +312,15 @@ void Import_3DS(const char * aFileName, Mesh * aMesh)
 }
 
 /// Export a 3DS file to a file.
-void Export_3DS(const char * aFileName, Mesh * aMesh)
+void Export_3DS(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // First, check that the mesh fits in a 3DS file (at most 65535 triangles
   // and 65535 vertices are supported).
   if((aMesh->mIndices.size() > (3*65535)) || (aMesh->mVertices.size() > 65535))
     throw runtime_error("The mesh is too large to fit in a 3DS file.");
+
+  // What should we export?
+  bool exportTexCoords = aMesh->HasTexCoords() && !aOptions.mNoTexCoords;
 
   // Predefined names / strings
   string objName("Object1");
@@ -326,12 +329,11 @@ void Export_3DS(const char * aFileName, Mesh * aMesh)
   // Get mesh properties
   uint32 triCount = aMesh->mIndices.size() / 3;
   uint32 vertCount = aMesh->mVertices.size();
-  bool hasUVCoors = (aMesh->mTexCoords.size() == aMesh->mVertices.size());
 
   // Calculate the material chunk size
   uint32 materialSize = 0;
   uint32 matGroupSize = 0;
-  if(hasUVCoors && aMesh->mTexFileName.size() > 0)
+  if(exportTexCoords && aMesh->mTexFileName.size() > 0)
   {
     materialSize += 24 + matName.size() + 1 + aMesh->mTexFileName.size() + 1;
     matGroupSize += 8 + matName.size() + 1 + 2 * triCount;
@@ -339,7 +341,7 @@ void Export_3DS(const char * aFileName, Mesh * aMesh)
 
   // Calculate the mesh chunk size
   uint32 triMeshSize = 22 + 8 * triCount + 12 * vertCount + matGroupSize;
-  if(hasUVCoors)
+  if(exportTexCoords)
     triMeshSize += 8 + 8 * vertCount;
 
   // Calculate the total file size
@@ -396,7 +398,7 @@ void Export_3DS(const char * aFileName, Mesh * aMesh)
     WriteVector3(f, aMesh->mVertices[i]);
 
   // Mapping Coordinates chunk
-  if(hasUVCoors)
+  if(exportTexCoords)
   {
     WriteInt16(f, CHUNK_MAPPINGCOORDS);
     WriteInt32(f, 8 + 8 * vertCount);
