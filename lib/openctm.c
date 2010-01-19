@@ -44,33 +44,149 @@
 //-----------------------------------------------------------------------------
 // _ctmGetArrayi() - Get an integer value from a typed array.
 //-----------------------------------------------------------------------------
-CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aIndex)
+CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent)
 {
-  // FIXME!
+  if((aComponent < aArray->mSize) && aArray->mData)
+  {
+    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    switch(aArray->mType)
+    {
+      case CTM_CHAR:
+        return (CTMuint) ((CTMchar *)elementPtr)[aComponent];
+      case CTM_UCHAR:
+        return (CTMuint) ((CTMuchar *)elementPtr)[aComponent];
+      case CTM_SHORT:
+        return (CTMuint) ((CTMshort *)elementPtr)[aComponent];
+      case CTM_USHORT:
+        return (CTMuint) ((CTMushort *)elementPtr)[aComponent];
+      case CTM_INT:
+        return (CTMuint) ((CTMint *)elementPtr)[aComponent];
+      case CTM_UINT:
+        return ((CTMuint *)elementPtr)[aComponent];
+      case CTM_FLOAT:
+        return (CTMuint) ((CTMfloat *)elementPtr)[aComponent];
+      case CTM_DOUBLE:
+        return (CTMuint) ((CTMdouble *)elementPtr)[aComponent];
+      default:
+        break;
+    }
+  }
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
 // _ctmGetArrayf() - Get a floating point value from a typed array.
 //-----------------------------------------------------------------------------
-CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aIndex)
+CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent)
 {
-  // FIXME!
+  if((aComponent < aArray->mSize) && aArray->mData)
+  {
+    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    switch(aArray->mType)
+    {
+      case CTM_CHAR:
+        return (1.0f/127.0f) * (CTMfloat) ((CTMchar *)elementPtr)[aComponent];
+      case CTM_UCHAR:
+        return (1.0f/255.0f) * (CTMfloat) ((CTMuchar *)elementPtr)[aComponent];
+      case CTM_SHORT:
+        return (CTMfloat) ((CTMshort *)elementPtr)[aComponent];
+      case CTM_USHORT:
+        return (CTMfloat) ((CTMushort *)elementPtr)[aComponent];
+      case CTM_INT:
+        return (CTMfloat) ((CTMint *)elementPtr)[aComponent];
+      case CTM_UINT:
+        return (CTMfloat) ((CTMuint *)elementPtr)[aComponent];
+      case CTM_FLOAT:
+        return ((CTMfloat *)elementPtr)[aComponent];
+      case CTM_DOUBLE:
+        return (CTMfloat) ((CTMdouble *)elementPtr)[aComponent];
+      default:
+        break;
+    }
+  }
+  return 0.0f;
 }
 
 //-----------------------------------------------------------------------------
 // _ctmSetArrayi() - Set an integer value in a typed array.
 //-----------------------------------------------------------------------------
-void _ctmSetArrayi(_CTMarray * aArray, CTMuint aIndex, CTMuint aValue)
+void _ctmSetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent,
+  CTMuint aValue)
 {
-  // FIXME!
+  if((aComponent < aArray->mSize) && aArray->mData)
+  {
+    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    switch(aArray->mType)
+    {
+      case CTM_CHAR:
+        ((CTMchar *)elementPtr)[aComponent] = (CTMchar) aValue;
+        break;
+      case CTM_UCHAR:
+        ((CTMuchar *)elementPtr)[aComponent] = (CTMuchar) aValue;
+        break;
+      case CTM_SHORT:
+        ((CTMshort *)elementPtr)[aComponent] = (CTMshort) aValue;
+        break;
+      case CTM_USHORT:
+        ((CTMushort *)elementPtr)[aComponent] = (CTMushort) aValue;
+        break;
+      case CTM_INT:
+        ((CTMint *)elementPtr)[aComponent] = (CTMint) aValue;
+        break;
+      case CTM_UINT:
+        ((CTMuint *)elementPtr)[aComponent] = aValue;
+        break;
+      case CTM_FLOAT:
+        ((CTMfloat *)elementPtr)[aComponent] = (CTMfloat) aValue;
+        break;
+      case CTM_DOUBLE:
+        ((CTMdouble *)elementPtr)[aComponent] = (CTMdouble) aValue;
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 // _ctmSetArrayf() - Set a floating point value in a typed array.
 //-----------------------------------------------------------------------------
-void _ctmSetArrayf(_CTMarray * aArray, CTMuint aIndex, CTMfloat aValue)
+void _ctmSetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent,
+  CTMfloat aValue)
 {
-  // FIXME!
+  if((aComponent < aArray->mSize) && aArray->mData)
+  {
+    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    switch(aArray->mType)
+    {
+      case CTM_CHAR:
+        ((CTMchar *)elementPtr)[aComponent] = (CTMchar) (127.0f * aValue);
+        break;
+      case CTM_UCHAR:
+        ((CTMuchar *)elementPtr)[aComponent] = (CTMuchar) (255.0f * aValue);
+        break;
+      case CTM_SHORT:
+        ((CTMshort *)elementPtr)[aComponent] = (CTMshort) aValue;
+        break;
+      case CTM_USHORT:
+        ((CTMushort *)elementPtr)[aComponent] = (CTMushort) aValue;
+        break;
+      case CTM_INT:
+        ((CTMint *)elementPtr)[aComponent] = (CTMint) aValue;
+        break;
+      case CTM_UINT:
+        ((CTMuint *)elementPtr)[aComponent] = (CTMuint) aValue;
+        break;
+      case CTM_FLOAT:
+        ((CTMfloat *)elementPtr)[aComponent] = aValue;
+        break;
+      case CTM_DOUBLE:
+        ((CTMdouble *)elementPtr)[aComponent] = (CTMdouble) aValue;
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

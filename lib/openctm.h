@@ -312,8 +312,10 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 /// @param[in] aType The type of each element (CTM_CHAR, CTM_UCHAR, CTM_SHORT,
 ///             CTM_UCHORT, CTM_INT, CTM_UINT, CTM_FLOAT or CTM_DOUBLE).
 /// @param[in] aStride Specifies the byte offset between consecutive elements.
-///             If zero (0), the elements are understood to be tightly packed
-///             in the array.
+///             If the special value zero (0) is given, the elements are
+///             understood to be tightly packed in the array (e.g. for a packed
+///             four component CTM_UCHAR array, specifying a stride of zero is
+///             equal to specifying a stride of 4).
 /// @param[in] aProperty Which array to define.
 /// @note When defining an UV map (CTM_UV_MAP_x) or an attribute map
 ///        (CTM_ATTRIB_MAP_x) for an export context, the corresponding map must

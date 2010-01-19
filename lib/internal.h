@@ -45,7 +45,7 @@ struct _CTMarray_struct {
   void * mData;         // Pointer to the first element of the array
   CTMenum mType;        // Data type
   CTMuint mSize;        // Data size (number of components per element)
-  CTMuint mStride;      // Byte offset between consecutive elements
+  CTMuint mStride;      // Byte offset from one element to the next
 };
 
 //-----------------------------------------------------------------------------
@@ -131,10 +131,10 @@ struct _CTMarray_struct {
 //-----------------------------------------------------------------------------
 // Funcion prototypes for openctm.c
 //-----------------------------------------------------------------------------
-CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aIndex);
-CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aIndex);
-void _ctmSetArrayi(_CTMarray * aArray, CTMuint aIndex, CTMuint aValue);
-void _ctmSetArrayf(_CTMarray * aArray, CTMuint aIndex, CTMfloat aValue);
+CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent);
+CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent);
+void _ctmSetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent, CTMuint aValue);
+void _ctmSetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent, CTMfloat aValue);
 
 //-----------------------------------------------------------------------------
 // Funcion prototypes for stream.c
