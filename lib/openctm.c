@@ -198,10 +198,6 @@ static void _ctmFreeMapList(_CTMcontext * self, _CTMfloatmap * aMapList)
   map = aMapList;
   while(map)
   {
-    // Free internally allocated array (if we are in import mode)
-    if((self->mMode == CTM_IMPORT) && map->mValues)
-      free(map->mValues);
-
     // Free map name
     if(map->mName)
       free(map->mName);
@@ -217,27 +213,27 @@ static void _ctmFreeMapList(_CTMcontext * self, _CTMfloatmap * aMapList)
 }
 
 //-----------------------------------------------------------------------------
+// _ctmClearArray() - Clear a typed array (set default values).
+//-----------------------------------------------------------------------------
+static void _ctmClearArray(_CTMarray * aArray)
+{
+  aArray->mData = (void *) 0;
+  aArray->mType = CTM_FLOAT;
+  aArray->mSize = 0;
+  aArray->mStride = 0;
+}
+
+//-----------------------------------------------------------------------------
 // _ctmClearMesh() - Clear the mesh in a CTM context.
 //-----------------------------------------------------------------------------
 static void _ctmClearMesh(_CTMcontext * self)
 {
-  // Free internally allocated mesh arrays
-  if(self->mMode == CTM_IMPORT)
-  {
-    if(self->mVertices)
-      free(self->mVertices);
-    if(self->mIndices)
-      free(self->mIndices);
-    if(self->mNormals)
-      free(self->mNormals);
-  }
-
   // Clear externally assigned mesh arrays
-  self->mVertices = (CTMfloat *) 0;
+  _ctmClearArray(&self->mVertices);
   self->mVertexCount = 0;
-  self->mIndices = (CTMuint *) 0;
+  _ctmClearArray(&self->mIndices);
   self->mTriangleCount = 0;
-  self->mNormals = (CTMfloat *) 0;
+  _ctmClearArray(&self->mNormals);
 
   // Free UV coordinate map list
   _ctmFreeMapList(self, self->mUVMaps);
@@ -257,43 +253,35 @@ static void _ctmClearMesh(_CTMcontext * self)
 
 static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
 {
-  CTMuint i;
+  CTMuint i, j;
   _CTMfloatmap * map;
 
   // Check that we have all the mandatory data
-  if(!self->mVertices || !self->mIndices || (self->mVertexCount < 1) ||
-     (self->mTriangleCount < 1))
+  if(!self->mVertices.mData || !self->mIndices.mData ||
+     (self->mVertexCount < 1) || (self->mTriangleCount < 1))
   {
     return CTM_FALSE;
   }
 
   // Check that all indices are within range
-  for(i = 0; i < (self->mTriangleCount * 3); ++ i)
+  for(i = 0; i < self->mTriangleCount; ++ i)
   {
-    if(self->mIndices[i] >= self->mVertexCount)
+    for(j = 0; j < 3; ++ j)
     {
-      return CTM_FALSE;
-    }
-  }
-
-  // Check that all vertices are finite (non-NaN, non-inf)
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-  {
-    if(!isfinite(self->mVertices[i]))
-    {
-      return CTM_FALSE;
-    }
-  }
-
-  // Check that all normals are finite (non-NaN, non-inf)
-  if(self->mNormals)
-  {
-    for(i = 0; i < self->mVertexCount * 3; ++ i)
-    {
-      if(!isfinite(self->mNormals[i]))
-      {
+      if(_ctmGetArrayi(&self->mIndices, i, j) >= self->mVertexCount)
         return CTM_FALSE;
-      }
+    }
+  }
+
+  // Check that all vertices and normals are finite (non-NaN, non-inf)
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    for(j = 0; j < 3; ++ j)
+    {
+      if(!isfinite(_ctmGetArrayf(&self->mVertices, i, j)))
+        return CTM_FALSE;
+      if(self->mNormals.mData && !isfinite(_ctmGetArrayf(&self->mNormals, i, j)))
+        return CTM_FALSE;
     }
   }
 
@@ -301,11 +289,12 @@ static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
   map = self->mUVMaps;
   while(map)
   {
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
+    for(i = 0; i < self->mVertexCount; ++ i)
     {
-      if(!isfinite(map->mValues[i]))
+      for(j = 0; j < 2; ++ j)
       {
-        return CTM_FALSE;
+        if(!isfinite(_ctmGetArrayf(&map->mArray, i, j)))
+          return CTM_FALSE;
       }
     }
     map = map->mNext;
@@ -315,11 +304,12 @@ static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
   map = self->mAttribMaps;
   while(map)
   {
-    for(i = 0; i < self->mVertexCount * 4; ++ i)
+    for(i = 0; i < self->mVertexCount; ++ i)
     {
-      if(!isfinite(map->mValues[i]))
+      for(j = 0; j < 4; ++ j)
       {
-        return CTM_FALSE;
+        if(!isfinite(_ctmGetArrayf(&map->mArray, i, j)))
+          return CTM_FALSE;
       }
     }
     map = map->mNext;
@@ -440,7 +430,7 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
       return self->mAttribMapCount;
 
     case CTM_HAS_NORMALS:
-      return self->mNormals ? CTM_TRUE : CTM_FALSE;
+      return self->mNormals.mData ? CTM_TRUE : CTM_FALSE;
 
     case CTM_COMPRESSION_METHOD:
       return (CTMuint) self->mMethod;
@@ -476,88 +466,126 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty)
 }
 
 //-----------------------------------------------------------------------------
-// ctmGetIntegerArray()
+// ctmArrayPointer()
 //-----------------------------------------------------------------------------
-CTMEXPORT const CTMuint * CTMCALL ctmGetIntegerArray(CTMcontext aContext,
-  CTMenum aProperty)
-{
-  _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return (CTMuint *) 0;
-
-  switch(aProperty)
-  {
-    case CTM_INDICES:
-      return self->mIndices;
-
-    default:
-      self->mError = CTM_INVALID_ARGUMENT;
-  }
-
-  return (CTMuint *) 0;
-}
-
-//-----------------------------------------------------------------------------
-// ctmGetFloatArray()
-//-----------------------------------------------------------------------------
-CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
-  CTMenum aProperty)
+CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
+  CTMuint aSize, CTMenum aType, CTMuint aStride, void * aArray)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
-  CTMuint i;
-  if(!self) return (CTMfloat *) 0;
+  _CTMarray * array = (_CTMarray *) 0;
+  CTMuint i, typeSize;
+  if(!self) return;
 
-  // Did the user request a UV map?
-  if((aProperty >= CTM_UV_MAP_1) &&
-     ((CTMuint)(aProperty - CTM_UV_MAP_1) < self->mUVMapCount))
+  // Get the array handle for the selected target array, and check the aSize
+  // argument
+  if(aTarget == CTM_INDICES)
   {
+    if(aSize != 3)
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return;
+    }
+    array = &self->mIndices;
+  }
+  else if(aTarget == CTM_VERTICES)
+  {
+    if(aSize != 3)
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return;
+    }
+    array = &self->mVertices;
+  }
+  else if(aTarget == CTM_NORMALS)
+  {
+    if(aSize != 3)
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return;
+    }
+    array = &self->mNormals;
+  }
+  else if((aTarget >= CTM_UV_MAP_1) && (aTarget <= CTM_UV_MAP_LAST))
+  {
+    if(aSize != 2)
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return;
+    }
     map = self->mUVMaps;
     i = CTM_UV_MAP_1;
-    while(map && (i != aProperty))
+    while(map && (i != aTarget))
     {
       map = map->mNext;
       ++ i;
     }
-    if(!map)
-    {
-      self->mError = CTM_INTERNAL_ERROR;
-      return (CTMfloat *) 0;
-    }
-    return map->mValues;
+    if(map)
+      array = &map->mArray;
   }
-
-  // Did the user request an attribute map?
-  if((aProperty >= CTM_ATTRIB_MAP_1) &&
-     ((CTMuint)(aProperty - CTM_ATTRIB_MAP_1) < self->mAttribMapCount))
+  else if((aTarget >= CTM_ATTRIB_MAP_1) && (aTarget <= CTM_ATTRIB_MAP_LAST))
   {
+    if((aSize < 1) || (aSize > 4))
+    {
+      self->mError = CTM_INVALID_ARGUMENT;
+      return;
+    }
     map = self->mAttribMaps;
     i = CTM_ATTRIB_MAP_1;
-    while(map && (i != aProperty))
+    while(map && (i != aTarget))
     {
       map = map->mNext;
       ++ i;
     }
-    if(!map)
-    {
-      self->mError = CTM_INTERNAL_ERROR;
-      return (CTMfloat *) 0;
-    }
-    return map->mValues;
+    if(map)
+      array = &map->mArray;
+  }
+  else
+  {
+    // Unsupported target
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
   }
 
-  switch(aProperty)
+  // Check type
+  switch(aType)
   {
-    case CTM_VERTICES:
-      return self->mVertices;
-
-    case CTM_NORMALS:
-      return self->mNormals;
-
+    case CTM_BYTE:
+    case CTM_UBYTE:
+      typeSize = sizeof(CTMbyte);
+      break;
+    case CTM_SHORT:
+    case CTM_USHORT:
+      typeSize = sizeof(CTMshort);
+      break;
+    case CTM_INT:
+    case CTM_UINT:
+      typeSize = sizeof(CTMint);
+      break;
+    case CTM_FLOAT:
+      typeSize = sizeof(CTMfloat);
+      break;
+    case CTM_DOUBLE:
+      typeSize = sizeof(CTMdouble);
+      break;
     default:
       self->mError = CTM_INVALID_ARGUMENT;
+      return;
   }
 
-  return (CTMfloat *) 0;
+  // Define array
+  if(array)
+  {
+    array->mData = aArray;
+    array->mType = aType;
+    array->mSize = aSize;
+    if(aStride > 0)
+      array->mStride = aStride;
+    else
+    {
+      array->mStride = aSize * typeSize;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -875,8 +903,8 @@ CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
   CTMfloat aRelPrecision)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMfloat avgEdgeLength, * p1, * p2;
-  CTMuint edgeCount, i, j;
+  CTMfloat avgEdgeLength, p1[3], p2[3];
+  CTMuint edgeCount, i, j, k, idx[3];
   if(!self) return;
 
   // You are only allowed to change compression attributes in export mode
@@ -893,20 +921,32 @@ CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
     return;
   }
 
+  // Check that the index array and vertex array have been defined
+  if((!self->mIndices.mData) || (!self->mVertices.mData))
+  {
+    self->mError = CTM_INVALID_MESH;
+    return;
+  }
+
   // Calculate the average edge length (Note: we actually sum up all the half-
   // edges, so in a proper solid mesh all connected edges are counted twice)
   avgEdgeLength = 0.0f;
   edgeCount = 0;
   for(i = 0; i < self->mTriangleCount; ++ i)
   {
-    p1 = &self->mVertices[self->mIndices[i * 3 + 2] * 3];
+    for(j = 0; j < 3; ++ j)
+      idx[j] = _ctmGetArrayi(&self->mIndices, i, j);
+    for(k = 0; k < 3; ++ k)
+      p1[k] = _ctmGetArrayf(&self->mVertices, idx[2], k);
     for(j = 0; j < 3; ++ j)
     {
-      p2 = &self->mVertices[self->mIndices[i * 3 + j] * 3];
+      for(k = 0; k < 3; ++ k)
+        p2[k] = _ctmGetArrayf(&self->mVertices, idx[j], k);
       avgEdgeLength += sqrtf((p2[0] - p1[0]) * (p2[0] - p1[0]) +
                              (p2[1] - p1[1]) * (p2[1] - p1[1]) +
                              (p2[2] - p1[2]) * (p2[2] - p1[2]));
-      p1 = p2;
+      for(k = 0; k < 3; ++ k)
+        p1[k] = p2[k];
       ++ edgeCount;
     }
   }
@@ -1076,49 +1116,10 @@ CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
-// ctmDefineMesh()
-//-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
-  const CTMfloat * aVertices, CTMuint aVertexCount, const CTMuint * aIndices,
-  CTMuint aTriangleCount, const CTMfloat * aNormals)
-{
-  _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return;
-
-  // You are only allowed to (re)define the mesh in export mode
-  if(self->mMode != CTM_EXPORT)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Check arguments
-  if(!aVertices || !aIndices || !aVertexCount || !aTriangleCount)
-  {
-    self->mError = CTM_INVALID_ARGUMENT;
-    return;
-  }
-
-  // Clear the old mesh, if any
-  _ctmClearMesh(self);
-
-  // Set vertex array pointer
-  self->mVertices = (CTMfloat *) aVertices;
-  self->mVertexCount = aVertexCount;
-
-  // Set index array pointer
-  self->mIndices = (CTMuint *) aIndices;
-  self->mTriangleCount = aTriangleCount;
-
-  // Set normal array pointer
-  self->mNormals = (CTMfloat *) aNormals;
-}
-
-//-----------------------------------------------------------------------------
 // _ctmAddFloatMap()
 //-----------------------------------------------------------------------------
 static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
-  const CTMfloat * aValues, const char * aName, const char * aFileName,
+  const char * aName, const char * aFileName,
   _CTMfloatmap ** aList)
 {
   _CTMfloatmap * map;
@@ -1147,7 +1148,6 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
   // Init the map item
   memset(map, 0, sizeof(_CTMfloatmap));
   map->mPrecision = 1.0f / 1024.0f;
-  map->mValues = (CTMfloat *) aValues;
 
   // Set name of the map
   if(aName)
@@ -1195,15 +1195,15 @@ static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
 //-----------------------------------------------------------------------------
 // ctmAddUVMap()
 //-----------------------------------------------------------------------------
-CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext,
-  const CTMfloat * aUVCoords, const char * aName, const char * aFileName)
+CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
+  const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
   if(!self) return CTM_NONE;
 
   // Add a new UV map to the UV map list
-  map = _ctmAddFloatMap(self, aUVCoords, aName, aFileName, &self->mUVMaps);
+  map = _ctmAddFloatMap(self, aName, aFileName, &self->mUVMaps);
   if(!map)
     return CTM_NONE;
   else
@@ -1219,15 +1219,14 @@ CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext,
 // ctmAddAttribMap()
 //-----------------------------------------------------------------------------
 CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
-  const CTMfloat * aAttribValues, const char * aName)
+  const char * aName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   _CTMfloatmap * map;
   if(!self) return CTM_NONE;
 
   // Add a new attribute map to the attribute map list
-  map = _ctmAddFloatMap(self, aAttribValues, aName, (const char *) 0,
-                        &self->mAttribMaps);
+  map = _ctmAddFloatMap(self, aName, (const char *) 0, &self->mAttribMaps);
   if(!map)
     return CTM_NONE;
   else

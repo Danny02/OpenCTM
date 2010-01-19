@@ -214,6 +214,7 @@ typedef enum {
   CTM_UV_MAP_6          = 0x0705, ///< Per vertex UV map 6 (float array).
   CTM_UV_MAP_7          = 0x0706, ///< Per vertex UV map 7 (float array).
   CTM_UV_MAP_8          = 0x0707, ///< Per vertex UV map 8 (float array).
+  CTM_UV_MAP_LAST       = 0x07ff, ///< Per vertex UV map 256 (float array).
   CTM_ATTRIB_MAP_1      = 0x0800, ///< Per vertex attribute map 1 (float array).
   CTM_ATTRIB_MAP_2      = 0x0801, ///< Per vertex attribute map 2 (float array).
   CTM_ATTRIB_MAP_3      = 0x0802, ///< Per vertex attribute map 3 (float array).
@@ -222,6 +223,7 @@ typedef enum {
   CTM_ATTRIB_MAP_6      = 0x0805, ///< Per vertex attribute map 6 (float array).
   CTM_ATTRIB_MAP_7      = 0x0806, ///< Per vertex attribute map 7 (float array).
   CTM_ATTRIB_MAP_8      = 0x0807, ///< Per vertex attribute map 8 (float array).
+  CTM_ATTRIB_MAP_LAST   = 0x08ff, ///< Per vertex attribute map 256 (float array).
 
   // Types
   CTM_BYTE              = 0x0901, ///< Signed 8-bit integer.
@@ -285,24 +287,6 @@ CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext);
 /// @see CTMenum
 CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError);
 
-/// Get information about an OpenCTM context.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aProperty Which property to return.
-/// @return An integer value, representing the OpenCTM context property given
-///         by \c aProperty.
-/// @see CTMenum
-CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
-
-/// Get information about an OpenCTM context.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aProperty Which property to return.
-/// @return A floating point value, representing the OpenCTM context property
-///         given by \c aProperty.
-/// @see CTMenum
-CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
-
 /// Define an array. This function is used for defining the location and data
 /// format for any index or vertex data array. It is used both for reading and
 /// writing data.
@@ -326,6 +310,24 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 /// @see CTMenum
 CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
   CTMuint aSize, CTMenum aType, CTMuint aStride, void * aArray);
+
+/// Get information about an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aProperty Which property to return.
+/// @return An integer value, representing the OpenCTM context property given
+///         by \c aProperty.
+/// @see CTMenum
+CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
+
+/// Get information about an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aProperty Which property to return.
+/// @return A floating point value, representing the OpenCTM context property
+///         given by \c aProperty.
+/// @see CTMenum
+CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 
 /// Get a reference to the named UV map.
 /// @param[in] aContext An OpenCTM context that has been created by
