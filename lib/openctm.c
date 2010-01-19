@@ -42,6 +42,38 @@
 
 
 //-----------------------------------------------------------------------------
+// _ctmGetArrayi() - Get an integer value from a typed array.
+//-----------------------------------------------------------------------------
+CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aIndex)
+{
+  // FIXME!
+}
+
+//-----------------------------------------------------------------------------
+// _ctmGetArrayf() - Get a floating point value from a typed array.
+//-----------------------------------------------------------------------------
+CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aIndex)
+{
+  // FIXME!
+}
+
+//-----------------------------------------------------------------------------
+// _ctmSetArrayi() - Set an integer value in a typed array.
+//-----------------------------------------------------------------------------
+void _ctmSetArrayi(_CTMarray * aArray, CTMuint aIndex, CTMuint aValue)
+{
+  // FIXME!
+}
+
+//-----------------------------------------------------------------------------
+// _ctmSetArrayf() - Set a floating point value in a typed array.
+//-----------------------------------------------------------------------------
+void _ctmSetArrayf(_CTMarray * aArray, CTMuint aIndex, CTMfloat aValue)
+{
+  // FIXME!
+}
+
+//-----------------------------------------------------------------------------
 // _ctmFreeMapList() - Free a float map list.
 //-----------------------------------------------------------------------------
 static void _ctmFreeMapList(_CTMcontext * self, _CTMfloatmap * aMapList)

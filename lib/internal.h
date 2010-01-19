@@ -38,6 +38,17 @@
 #define _CTM_HAS_NORMALS_BIT 0x00000001
 
 //-----------------------------------------------------------------------------
+// _CTMarray - Internal representation of a referenced array.
+//-----------------------------------------------------------------------------
+typedef struct _CTMarray_struct _CTMarray;
+struct _CTMarray_struct {
+  void * mData;         // Pointer to the first element of the array
+  CTMenum mType;        // Data type
+  CTMuint mSize;        // Data size (number of components per element)
+  CTMuint mStride;      // Byte offset between consecutive elements
+};
+
+//-----------------------------------------------------------------------------
 // _CTMfloatmap - Internal representation of a floating point based vertex map
 // (used for UV maps and attribute maps).
 //-----------------------------------------------------------------------------
@@ -46,7 +57,7 @@ struct _CTMfloatmap_struct {
   char * mName;         // Unique name
   char * mFileName;     // File name reference (used only for UV maps)
   CTMfloat mPrecision;  // Precision for this map
-  CTMfloat * mValues;   // Attribute/UV coordinate values (per vertex)
+  _CTMarray mArray;     // Array reference to callers memory
   _CTMfloatmap * mNext; // Pointer to the next map in the list (linked list)
 };
 
@@ -58,15 +69,15 @@ typedef struct {
   CTMenum mMode;
 
   // Vertices
-  CTMfloat * mVertices;
+  _CTMarray mVertices;
   CTMuint mVertexCount;
 
   // Indices
-  CTMuint * mIndices;
+  _CTMarray mIndices;
   CTMuint mTriangleCount;
 
   // Normals (optional)
-  CTMfloat * mNormals;
+  _CTMarray mNormals;
 
   // Multiple sets of UV coordinate maps (optional)
   CTMuint mUVMapCount;
@@ -109,6 +120,21 @@ typedef struct {
 //-----------------------------------------------------------------------------
 #define FOURCC(str) (((CTMuint) str[0]) | (((CTMuint) str[1]) << 8) | \
                     (((CTMuint) str[2]) << 16) | (((CTMuint) str[3]) << 24))
+
+struct _CTMarray_struct {
+  void * mData;         // Pointer to the first element of the array
+  CTMenum mType;        // Data type
+  CTMuint mSize;        // Data size (number of components per element)
+  CTMuint mStride;      // Byte offset between consecutive elements
+};
+
+//-----------------------------------------------------------------------------
+// Funcion prototypes for openctm.c
+//-----------------------------------------------------------------------------
+CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aIndex);
+CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aIndex);
+void _ctmSetArrayi(_CTMarray * aArray, CTMuint aIndex, CTMuint aValue);
+void _ctmSetArrayf(_CTMarray * aArray, CTMuint aIndex, CTMfloat aValue);
 
 //-----------------------------------------------------------------------------
 // Funcion prototypes for stream.c

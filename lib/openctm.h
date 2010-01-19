@@ -54,29 +54,7 @@
  * Here is a simple example of loading a CTM file:
  *
  * @code
- *   CTMcontext context;
- *   CTMuint    vertCount, triCount, * indices;
- *   CTMfloat   * vertices;
- *
- *   // Create a new context
- *   context = ctmNewContext(CTM_IMPORT);
- *
- *   // Load the OpenCTM file
- *   ctmLoad(context, "mymesh.ctm");
- *   if(ctmGetError(context) == CTM_NONE)
- *   {
- *     // Access the mesh data
- *     vertCount = ctmGetInteger(context, CTM_VERTEX_COUNT);
- *     vertices = ctmGetFloatArray(context, CTM_VERTICES);
- *     triCount = ctmGetInteger(context, CTM_TRIANGLE_COUNT);
- *     indices = ctmGetIntegerArray(context, CTM_INDICES);
- *
- *     // Deal with the mesh (e.g. transcode it to our internal representation)
- *     // ...
- *   }
- *
- *   // Free the context
- *   ctmFreeContext(context);
+ *   TBD
  * @endcode
  *
  * @subsection example_create_sec Creating a CTM file
@@ -84,33 +62,7 @@
  * Here is a simple example of creating a CTM file:
  *
  * @code
- *   CTMcontext context;
- *   CTMuint    vertCount, triCount, * indices;
- *   CTMfloat   * vertices;
- *
- *   // Create our mesh in memory
- *   vertCount = 100;
- *   triCount = 120;
- *   vertices = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * vertCount);
- *   indices = (CTMuint *) malloc(3 * sizeof(CTMuint) * triCount);
- *   // ...
- *
- *   // Create a new context
- *   context = ctmNewContext(CTM_EXPORT);
- *
- *   // Define our mesh representation to OpenCTM (store references to it in
- *   // the context)
- *   ctmDefineMesh(context, vertices, vertCount, indices, triCount, NULL);
- *
- *   // Save the OpenCTM file
- *   ctmSave(context, "mymesh.ctm");
- *
- *   // Free the context
- *   ctmFreeContext(context);
- *
- *   // Free our mesh
- *   free(indices);
- *   free(vertices);
+ *   TBD
  * @endcode
  */
 
@@ -157,6 +109,10 @@ extern "C" {
 // standard stdint.h for this.
 #ifdef _MSC_VER
   // MS Visual Studio does not support C99
+  typedef char int8_t;
+  typedef unsigned char uint8_t;
+  typedef short int16_t;
+  typedef unsigned short uint16_t;
   typedef int int32_t;
   typedef unsigned int uint32_t;
 #else
@@ -164,8 +120,8 @@ extern "C" {
 #endif
 
 
-/// OpenCTM API version (1.0).
-#define CTM_API_VERSION 0x00000100
+/// OpenCTM API version (2.0).
+#define CTM_API_VERSION 0x00000200
 
 /// Boolean TRUE.
 #define CTM_TRUE 1
@@ -175,6 +131,21 @@ extern "C" {
 
 /// Single precision floating point type (IEEE 754 32 bits wide).
 typedef float CTMfloat;
+
+/// Double precision floating point type (IEEE 754 64 bits wide).
+typedef double CTMdouble;
+
+/// Signed integer (8 bits wide).
+typedef int8_t CTMbyte;
+
+/// Unsigned integer (8 bits wide).
+typedef uint8_t CTMubyte;
+
+/// Signed integer (16 bits wide).
+typedef int16_t CTMshort;
+
+/// Unsigned integer (16 bits wide).
+typedef uint16_t CTMushort;
 
 /// Signed integer (32 bits wide).
 typedef int32_t CTMint;
@@ -250,7 +221,15 @@ typedef enum {
   CTM_ATTRIB_MAP_5      = 0x0804, ///< Per vertex attribute map 5 (float array).
   CTM_ATTRIB_MAP_6      = 0x0805, ///< Per vertex attribute map 6 (float array).
   CTM_ATTRIB_MAP_7      = 0x0806, ///< Per vertex attribute map 7 (float array).
-  CTM_ATTRIB_MAP_8      = 0x0807  ///< Per vertex attribute map 8 (float array).
+  CTM_ATTRIB_MAP_8      = 0x0807, ///< Per vertex attribute map 8 (float array).
+
+  // Types
+  CTM_BYTE              = 0x0901, ///< Signed 8-bit integer.
+  CTM_UBYTE             = 0x0902, ///< Unsigned 8-bit integer.
+  CTM_SHORT             = 0x0903, ///< Signed 16-bit integer.
+  CTM_USHORT            = 0x0904, ///< Unsigned 16-bit integer.
+  CTM_INT               = 0x0905, ///< Signed 32-bit integer.
+  CTM_UINT              = 0x0906, ///< Unsigned 32-bit integer.
 } CTMenum;
 
 /// Stream read() function pointer.
@@ -322,39 +301,27 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
 /// @see CTMenum
 CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 
-/// Get an integer array from an OpenCTM context.
+/// Define an array. This function is used for defining the location and data
+/// format for any index or vertex data array. It is used both for reading and
+/// writing data.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///             ctmNewContext().
-/// @param[in] aProperty Which array to return.
-/// @return An integer array. If the requested array does not exist, or
-///         if \c aProperty does not indicate an integer array, the function
-///         returns NULL.
-/// @note The array is only valid as long as the OpenCTM context is valid, or
-///       until the corresponding array changes within the OpenCTM context.
-///       Trying to access an invalid array will result in undefined
-///       behaviour. Therefor it is recommended that the array is copied to
-///       a new variable if it is to be used other than directly after the call
-///       to ctmGetIntegerArray().
+/// @param[in] aTarget Which array to define (CTM_INDICES, CTM_VERTICES,
+///             CTM_NORMALS, CTM_UV_MAP_x or CTM_ATTRIB_MAP_x).
+/// @param[in] aSize The number of components of each element (1, 2, 3 or 4).
+/// @param[in] aType The type of each element (CTM_CHAR, CTM_UCHAR, CTM_SHORT,
+///             CTM_UCHORT, CTM_INT, CTM_UINT, CTM_FLOAT or CTM_DOUBLE).
+/// @param[in] aStride Specifies the byte offset between consecutive elements.
+///             If zero (0), the elements are understood to be tightly packed
+///             in the array.
+/// @param[in] aProperty Which array to define.
+/// @note When defining an UV map (CTM_UV_MAP_x) or an attribute map
+///        (CTM_ATTRIB_MAP_x) for an export context, the corresponding map must
+///        first have been created by a call to ctmAddUVMap() or
+///        ctmAddAttribMap(), respectively.
 /// @see CTMenum
-CTMEXPORT const CTMuint * CTMCALL ctmGetIntegerArray(CTMcontext aContext,
-  CTMenum aProperty);
-
-/// Get a floating point array from an OpenCTM context.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aProperty Which array to return.
-/// @return A floating point array. If the requested array does not exist, or
-///         if \c aProperty does not indicate a float array, the function
-///         returns NULL.
-/// @note The array is only valid as long as the OpenCTM context is valid, or
-///       until the corresponding array changes within the OpenCTM context.
-///       Trying to access an invalid array will result in undefined
-///       behaviour. Therefor it is recommended that the array is copied to
-///       a new variable if it is to be used other than directly after the call
-///       to ctmGetFloatArray().
-/// @see CTMenum
-CTMEXPORT const CTMfloat * CTMCALL ctmGetFloatArray(CTMcontext aContext,
-  CTMenum aProperty);
+CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
+  CTMuint aSize, CTMenum aType, CTMuint aStride, void * aArray);
 
 /// Get a reference to the named UV map.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -544,32 +511,10 @@ CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
 CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
   const char * aFileComment);
 
-/// Define a triangle mesh.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aVertices An array of vertices (three consecutive floats make
-///            one vertex).
-/// @param[in] aVertexCount The number of vertices in \c aVertices (and
-///            optionally \c aTexCoords).
-/// @param[in] aIndices An array of vertex indices (three consecutive integers
-///            make one triangle).
-/// @param[in] aTriangleCount The number of triangles in \c aIndices (there
-///            must be exactly 3 x \c aTriangleCount indices in \c aIndices).
-/// @param[in] aNormals An array of per-vertex normals (or NULL if there are
-///            no normals). Each normal is made up by three consecutive floats,
-///            and there must be \c aVertexCount normals.
-/// @see ctmAddUVMap(), ctmAddAttribMap(), ctmSave(), ctmSaveCustom().
-CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
-  const CTMfloat * aVertices, CTMuint aVertexCount, const CTMuint * aIndices,
-  CTMuint aTriangleCount, const CTMfloat * aNormals);
-
-/// Define a UV map. There can be several UV maps in a mesh. A UV map is
+/// Add a UV map. There can be several UV maps in a mesh. A UV map is
 /// typically used for 2D texture mapping.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aUVCoords An array of UV coordinates. Each UV coordinate is made
-///            up by two consecutive floats, and there must be as many
-///            coordinates as there are vertices in the mesh.
 /// @param[in] aName A unique name for this UV map (zero terminated UTF-8
 ///            string).
 /// @param[in] aFileName A reference to a image file (zero terminated
@@ -577,30 +522,28 @@ CTMEXPORT void CTMCALL ctmDefineMesh(CTMcontext aContext,
 /// @return A UV map index (CTM_UV_MAP_1 and higher). If the function
 ///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
 ///         to determine the cause of the error).
-/// @note A triangle mesh must have been defined before calling this function,
-///       since the number of vertices is defined by the triangle mesh.
-/// @see ctmDefineMesh().
-CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext,
-  const CTMfloat * aUVCoords, const char * aName, const char * aFileName);
+/// @note The actual UV data array is defined by calling ctmArrayPointer() with
+///        the return value of this function as the target.
+/// @see ctmArrayPointer().
+CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
+  const char * aFileName);
 
 /// Define a custom vertex attribute map. Custom vertex attributes can be used
 /// for defining special per-vertex attributes, such as color, weight, ambient
 /// occlusion factor, etc.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aAttribValues An array of attribute values. Each attribute value
-///            is made up by four consecutive floats, and there must be as many
-///            values as there are vertices in the mesh.
 /// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
 ///            string).
 /// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
 ///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
 ///         to determine the cause of the error).
-/// @note A triangle mesh must have been defined before calling this function,
-///       since the number of vertices is defined by the triangle mesh.
-/// @see ctmDefineMesh().
+/// @note The actual attribute data array is defined by calling
+///        ctmArrayPointer() with the return value of this function as the
+///        target.
+/// @see ctmArrayPointer().
 CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
-  const CTMfloat * aAttribValues, const char * aName);
+  const char * aName);
 
 /// Load an OpenCTM format file into the context. The mesh data can be retrieved
 /// with the various ctmGet functions.
@@ -622,15 +565,15 @@ CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName);
 CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
   void * aUserData);
 
-/// Save an OpenCTM format file. The mesh must have been defined by
-/// ctmDefineMesh().
+/// Save an OpenCTM format file. The mesh must have been fully defined by
+/// ctmArrayPointer().
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be saved.
 CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName);
 
-/// Save an OpenCTM format file using a custom stream write function. The mesh
-/// must have been defined by ctmDefineMesh().
+/// Save an OpenCTM format file using a custom stream write function.The mesh
+/// must have been fully defined by ctmArrayPointer().
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aWriteFn Pointer to a custom stream write function.
