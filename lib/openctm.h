@@ -230,6 +230,8 @@ typedef enum {
   CTM_USHORT            = 0x0904, ///< Unsigned 16-bit integer.
   CTM_INT               = 0x0905, ///< Signed 32-bit integer.
   CTM_UINT              = 0x0906, ///< Unsigned 32-bit integer.
+  CTM_FLOAT             = 0x0907, ///< 32-bit floating point.
+  CTM_DOUBLE            = 0x0908, ///< 64-bit floating point.
 } CTMenum;
 
 /// Stream read() function pointer.

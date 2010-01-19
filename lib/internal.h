@@ -38,7 +38,7 @@
 #define _CTM_HAS_NORMALS_BIT 0x00000001
 
 //-----------------------------------------------------------------------------
-// _CTMarray - Internal representation of a referenced array.
+// _CTMarray - Internal representation of a typed array.
 //-----------------------------------------------------------------------------
 typedef struct _CTMarray_struct _CTMarray;
 struct _CTMarray_struct {
@@ -120,13 +120,6 @@ typedef struct {
 //-----------------------------------------------------------------------------
 #define FOURCC(str) (((CTMuint) str[0]) | (((CTMuint) str[1]) << 8) | \
                     (((CTMuint) str[2]) << 16) | (((CTMuint) str[3]) << 24))
-
-struct _CTMarray_struct {
-  void * mData;         // Pointer to the first element of the array
-  CTMenum mType;        // Data type
-  CTMuint mSize;        // Data size (number of components per element)
-  CTMuint mStride;      // Byte offset between consecutive elements
-};
 
 //-----------------------------------------------------------------------------
 // Funcion prototypes for openctm.c

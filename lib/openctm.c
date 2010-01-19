@@ -48,13 +48,13 @@ CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent)
 {
   if((aComponent < aArray->mSize) && aArray->mData)
   {
-    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    void * elementPtr = (void *) &((CTMbyte *)aArray->mData)[aElement * aArray->mStride];
     switch(aArray->mType)
     {
-      case CTM_CHAR:
-        return (CTMuint) ((CTMchar *)elementPtr)[aComponent];
-      case CTM_UCHAR:
-        return (CTMuint) ((CTMuchar *)elementPtr)[aComponent];
+      case CTM_BYTE:
+        return (CTMuint) ((CTMbyte *)elementPtr)[aComponent];
+      case CTM_UBYTE:
+        return (CTMuint) ((CTMubyte *)elementPtr)[aComponent];
       case CTM_SHORT:
         return (CTMuint) ((CTMshort *)elementPtr)[aComponent];
       case CTM_USHORT:
@@ -81,13 +81,13 @@ CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent)
 {
   if((aComponent < aArray->mSize) && aArray->mData)
   {
-    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    void * elementPtr = (void *) &((CTMbyte *)aArray->mData)[aElement * aArray->mStride];
     switch(aArray->mType)
     {
-      case CTM_CHAR:
-        return (1.0f/127.0f) * (CTMfloat) ((CTMchar *)elementPtr)[aComponent];
-      case CTM_UCHAR:
-        return (1.0f/255.0f) * (CTMfloat) ((CTMuchar *)elementPtr)[aComponent];
+      case CTM_BYTE:
+        return (1.0f/127.0f) * (CTMfloat) ((CTMbyte *)elementPtr)[aComponent];
+      case CTM_UBYTE:
+        return (1.0f/255.0f) * (CTMfloat) ((CTMubyte *)elementPtr)[aComponent];
       case CTM_SHORT:
         return (CTMfloat) ((CTMshort *)elementPtr)[aComponent];
       case CTM_USHORT:
@@ -115,14 +115,14 @@ void _ctmSetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent,
 {
   if((aComponent < aArray->mSize) && aArray->mData)
   {
-    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    void * elementPtr = (void *) &((CTMbyte *)aArray->mData)[aElement * aArray->mStride];
     switch(aArray->mType)
     {
-      case CTM_CHAR:
-        ((CTMchar *)elementPtr)[aComponent] = (CTMchar) aValue;
+      case CTM_BYTE:
+        ((CTMbyte *)elementPtr)[aComponent] = (CTMbyte) aValue;
         break;
-      case CTM_UCHAR:
-        ((CTMuchar *)elementPtr)[aComponent] = (CTMuchar) aValue;
+      case CTM_UBYTE:
+        ((CTMubyte *)elementPtr)[aComponent] = (CTMubyte) aValue;
         break;
       case CTM_SHORT:
         ((CTMshort *)elementPtr)[aComponent] = (CTMshort) aValue;
@@ -156,14 +156,14 @@ void _ctmSetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent,
 {
   if((aComponent < aArray->mSize) && aArray->mData)
   {
-    void * elementPtr = (void *) &((CTMchar *)aArray->mData)[aElement * mStride];
+    void * elementPtr = (void *) &((CTMbyte *)aArray->mData)[aElement * aArray->mStride];
     switch(aArray->mType)
     {
-      case CTM_CHAR:
-        ((CTMchar *)elementPtr)[aComponent] = (CTMchar) (127.0f * aValue);
+      case CTM_BYTE:
+        ((CTMbyte *)elementPtr)[aComponent] = (CTMbyte) (127.0f * aValue);
         break;
-      case CTM_UCHAR:
-        ((CTMuchar *)elementPtr)[aComponent] = (CTMuchar) (255.0f * aValue);
+      case CTM_UBYTE:
+        ((CTMubyte *)elementPtr)[aComponent] = (CTMubyte) (255.0f * aValue);
         break;
       case CTM_SHORT:
         ((CTMshort *)elementPtr)[aComponent] = (CTMshort) aValue;
