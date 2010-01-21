@@ -30,6 +30,8 @@
 #include "openctm.h"
 #include "internal.h"
 
+#ifdef _CTM_SUPPORT_MG1
+
 #ifdef __DEBUG_
 #include <stdio.h>
 #endif
@@ -322,3 +324,5 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
 
   return CTM_TRUE;
 }
+
+#endif // _CTM_SUPPORT_MG1

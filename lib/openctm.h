@@ -172,10 +172,14 @@ typedef enum {
   CTM_INVALID_MESH      = 0x0004, ///< The mesh was invalid (e.g. no vertices).
   CTM_OUT_OF_MEMORY     = 0x0005, ///< Not enough memory to proceed.
   CTM_FILE_ERROR        = 0x0006, ///< File I/O error.
-  CTM_BAD_FORMAT        = 0x0007, ///< File format error (e.g. unrecognized format or corrupted file).
+  CTM_BAD_FORMAT        = 0x0007, ///< File format error (e.g. unrecognized
+                                  ///  format or corrupted file).
   CTM_LZMA_ERROR        = 0x0008, ///< An error occured within the LZMA library.
   CTM_INTERNAL_ERROR    = 0x0009, ///< An internal error occured (indicates a bug).
   CTM_UNSUPPORTED_FORMAT_VERSION = 0x000A, ///< Unsupported file format version.
+  CTM_UNSUPPORTED_OPERATION = 0x000B, ///< Unsupported operation (the library
+                                  /// was asked to do something that was
+                                  /// excluded at compile time)
 
   // OpenCTM context modes
   CTM_IMPORT            = 0x0101, ///< The OpenCTM context will be used for importing data.
@@ -287,30 +291,6 @@ CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext);
 /// @see CTMenum
 CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError);
 
-/// Define an array. This function is used for defining the location and data
-/// format for any index or vertex data array. It is used both for reading and
-/// writing data.
-/// @param[in] aContext An OpenCTM context that has been created by
-///             ctmNewContext().
-/// @param[in] aTarget Which array to define (CTM_INDICES, CTM_VERTICES,
-///             CTM_NORMALS, CTM_UV_MAP_x or CTM_ATTRIB_MAP_x).
-/// @param[in] aSize The number of components of each element (1, 2, 3 or 4).
-/// @param[in] aType The type of each element (CTM_CHAR, CTM_UCHAR, CTM_SHORT,
-///             CTM_UCHORT, CTM_INT, CTM_UINT, CTM_FLOAT or CTM_DOUBLE).
-/// @param[in] aStride Specifies the byte offset between consecutive elements.
-///             If the special value zero (0) is given, the elements are
-///             understood to be tightly packed in the array (e.g. for a packed
-///             four component CTM_UCHAR array, specifying a stride of zero is
-///             equal to specifying a stride of 4).
-/// @param[in] aProperty Which array to define.
-/// @note When defining an UV map (CTM_UV_MAP_x) or an attribute map
-///        (CTM_ATTRIB_MAP_x) for an export context, the corresponding map must
-///        first have been created by a call to ctmAddUVMap() or
-///        ctmAddAttribMap(), respectively.
-/// @see CTMenum
-CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
-  CTMuint aSize, CTMenum aType, CTMuint aStride, void * aArray);
-
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
@@ -329,6 +309,23 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
 /// @see CTMenum
 CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 
+/// Get information about an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aProperty Which property to return.
+/// @return A string value, representing the OpenCTM context property given
+///         by \c aProperty.
+/// @note The string is only valid as long as the OpenCTM context is valid, or
+///       until the corresponding string changes within the OpenCTM context
+///       (e.g. calling ctmFileComment() invalidates the CTM_FILE_COMMENT
+///       string). Trying to access an invalid string will result in undefined
+///       behaviour. Therefor it is recommended that the string is copied to
+///       a new variable if it is to be used other than directly after the call
+///       to ctmGetString().
+/// @see CTMenum
+CTMEXPORT const char * CTMCALL ctmGetString(CTMcontext aContext,
+  CTMenum aProperty);
+
 /// Get a reference to the named UV map.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
@@ -337,6 +334,16 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 ///         CTM_UV_MAP_1 or higher is returned, otherwise CTM_NONE is
 ///         returned.
 CTMEXPORT CTMenum CTMCALL ctmGetNamedUVMap(CTMcontext aContext,
+  const char * aName);
+
+/// Get a reference to the named vertex attribute map.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aName The name of the attribute map that should be returned.
+/// @return A reference to an attribute map. If the attribute map was found,
+///         a value of CTM_ATTRIB_MAP_1 or higher is returned, otherwise
+///         CTM_NONE is returned.
+CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
   const char * aName);
 
 /// Get information about a UV map.
@@ -365,16 +372,6 @@ CTMEXPORT const char * CTMCALL ctmGetUVMapString(CTMcontext aContext,
 /// @see CTMenum
 CTMEXPORT CTMfloat CTMCALL ctmGetUVMapFloat(CTMcontext aContext,
   CTMenum aUVMap, CTMenum aProperty);
-
-/// Get a reference to the named vertex attribute map.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aName The name of the attribute map that should be returned.
-/// @return A reference to an attribute map. If the attribute map was found,
-///         a value of CTM_ATTRIB_MAP_1 or higher is returned, otherwise
-///         CTM_NONE is returned.
-CTMEXPORT CTMenum CTMCALL ctmGetNamedAttribMap(CTMcontext aContext,
-  const char * aName);
 
 /// Get information about a vertex attribute map.
 /// @param[in] aContext An OpenCTM context that has been created by
@@ -405,22 +402,88 @@ CTMEXPORT const char * CTMCALL ctmGetAttribMapString(CTMcontext aContext,
 CTMEXPORT CTMfloat CTMCALL ctmGetAttribMapFloat(CTMcontext aContext,
   CTMenum aAttribMap, CTMenum aProperty);
 
-/// Get information about an OpenCTM context.
+/// Define the number of vertices for the mesh.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aProperty Which property to return.
-/// @return A string value, representing the OpenCTM context property given
-///         by \c aProperty.
-/// @note The string is only valid as long as the OpenCTM context is valid, or
-///       until the corresponding string changes within the OpenCTM context
-///       (e.g. calling ctmFileComment() invalidates the CTM_FILE_COMMENT
-///       string). Trying to access an invalid string will result in undefined
-///       behaviour. Therefor it is recommended that the string is copied to
-///       a new variable if it is to be used other than directly after the call
-///       to ctmGetString().
+/// @param[in] aCount Number of vertices.
+/// @note The vertex count must be defined before saving a mesh, and before
+///       calling ctmVertexPrecisionRel().
+/// @see ctmArrayPointer().
+CTMEXPORT void CTMCALL ctmVertexCount(CTMcontext aContext, CTMuint aCount);
+
+/// Define the number of triangles for the mesh.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aCount Number of triangles.
+/// @note The triangle count must be defined before saving a mesh, and before
+///       calling ctmVertexPrecisionRel().
+/// @see ctmArrayPointer().
+CTMEXPORT void CTMCALL ctmTriangleCount(CTMcontext aContext, CTMuint aCount);
+
+/// Add a UV map. There can be several UV maps in a mesh. A UV map is
+/// typically used for 2D texture mapping.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aName A unique name for this UV map (zero terminated UTF-8
+///            string).
+/// @param[in] aFileName A reference to a image file (zero terminated
+///            UTF-8 string). If no file name reference exists, pass NULL.
+/// @return A UV map index (CTM_UV_MAP_1 and higher). If the function
+///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///         to determine the cause of the error).
+/// @note The actual UV data array is defined by calling ctmArrayPointer() with
+///        the return value of this function as the target.
+/// @see ctmArrayPointer().
+CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
+  const char * aFileName);
+
+/// Define a custom vertex attribute map. Custom vertex attributes can be used
+/// for defining special per-vertex attributes, such as color, weight, ambient
+/// occlusion factor, etc.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
+///            string).
+/// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
+///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
+///         to determine the cause of the error).
+/// @note The actual attribute data array is defined by calling
+///        ctmArrayPointer() with the return value of this function as the
+///        target.
+/// @see ctmArrayPointer().
+CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
+  const char * aName);
+
+/// Define an array. This function is used for defining the location and data
+/// format for any index or vertex data array. It is used both for reading and
+/// writing data.
+/// @param[in] aContext An OpenCTM context that has been created by
+///             ctmNewContext().
+/// @param[in] aTarget Which array to define (CTM_INDICES, CTM_VERTICES,
+///             CTM_NORMALS, CTM_UV_MAP_x or CTM_ATTRIB_MAP_x).
+/// @param[in] aSize The number of components of each element (1, 2, 3 or 4).
+/// @param[in] aType The type of each element (CTM_CHAR, CTM_UCHAR, CTM_SHORT,
+///             CTM_UCHORT, CTM_INT, CTM_UINT, CTM_FLOAT or CTM_DOUBLE).
+/// @param[in] aStride Specifies the byte offset between consecutive elements.
+///             If the special value zero (0) is given, the elements are
+///             understood to be tightly packed in the array (e.g. for a packed
+///             four component CTM_UCHAR array, specifying a stride of zero is
+///             equal to specifying a stride of 4).
+/// @param[in] aArray Pointer to the first element of the array.
+/// @note When defining an UV map (CTM_UV_MAP_x) or an attribute map
+///        (CTM_ATTRIB_MAP_x) for an export context, the corresponding map must
+///        first have been created by a call to ctmAddUVMap() or
+///        ctmAddAttribMap(), respectively.
 /// @see CTMenum
-CTMEXPORT const char * CTMCALL ctmGetString(CTMcontext aContext,
-  CTMenum aProperty);
+CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
+  CTMuint aSize, CTMenum aType, CTMuint aStride, void * aArray);
+
+/// Set the file comment for the given OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aFileComment The file comment (zero terminated UTF-8 string).
+CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
+  const char * aFileComment);
 
 /// Set which compression method to use for the given OpenCTM context.
 /// The selected compression method will be used when calling the ctmSave()
@@ -463,8 +526,7 @@ CTMEXPORT void CTMCALL ctmVertexPrecision(CTMcontext aContext,
 ///            final, fixed point precision. For instance, if aRelPrecision is 
 ///            0.01, and the average edge length is 3.7, then the fixed point
 ///            precision is set to 0.037.
-/// @note The mesh must have been defined using the ctmDefineMesh() function
-///       before calling this function.
+/// @note The mesh must be fully defined before calling this function.
 /// @see ctmVertexPrecision().
 CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
   CTMfloat aRelPrecision);
@@ -509,47 +571,6 @@ CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
 /// @see ctmAddAttribMap().
 CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
   CTMenum aAttribMap, CTMfloat aPrecision);
-
-/// Set the file comment for the given OpenCTM context.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aFileComment The file comment (zero terminated UTF-8 string).
-CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
-  const char * aFileComment);
-
-/// Add a UV map. There can be several UV maps in a mesh. A UV map is
-/// typically used for 2D texture mapping.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aName A unique name for this UV map (zero terminated UTF-8
-///            string).
-/// @param[in] aFileName A reference to a image file (zero terminated
-///            UTF-8 string). If no file name reference exists, pass NULL.
-/// @return A UV map index (CTM_UV_MAP_1 and higher). If the function
-///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
-///         to determine the cause of the error).
-/// @note The actual UV data array is defined by calling ctmArrayPointer() with
-///        the return value of this function as the target.
-/// @see ctmArrayPointer().
-CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
-  const char * aFileName);
-
-/// Define a custom vertex attribute map. Custom vertex attributes can be used
-/// for defining special per-vertex attributes, such as color, weight, ambient
-/// occlusion factor, etc.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-/// @param[in] aName A unique name for this attribute map (zero terminated UTF-8
-///            string).
-/// @return A attribute map index (CTM_ATTRIB_MAP_1 and higher). If the function
-///         failed, it will return the zero valued CTM_NONE (use ctmGetError()
-///         to determine the cause of the error).
-/// @note The actual attribute data array is defined by calling
-///        ctmArrayPointer() with the return value of this function as the
-///        target.
-/// @see ctmArrayPointer().
-CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
-  const char * aName);
 
 /// Load an OpenCTM format file into the context. The mesh data can be retrieved
 /// with the various ctmGet functions.

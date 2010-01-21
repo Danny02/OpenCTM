@@ -28,6 +28,8 @@
 #include "openctm.h"
 #include "internal.h"
 
+#ifdef _CTM_SUPPORT_RAW
+
 #ifdef __DEBUG_
 #include <stdio.h>
 #endif
@@ -40,7 +42,7 @@
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_RAW(_CTMcontext * self)
 {
-  CTMuint i;
+  CTMuint i, j;
   _CTMfloatmap * map;
 
 #ifdef __DEBUG_
@@ -52,26 +54,29 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
   printf("Inidices: %d bytes\n", (CTMuint)(self->mTriangleCount * 3 * sizeof(CTMuint)));
 #endif
   _ctmStreamWrite(self, (void *) "INDX", 4);
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    _ctmStreamWriteUINT(self, self->mIndices[i]);
+  for(i = 0; i < self->mTriangleCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      _ctmStreamWriteUINT(self, _ctmGetArrayi(&self->mIndices, i, j));
 
   // Write vertices
 #ifdef __DEBUG_
   printf("Vertices: %d bytes\n", (CTMuint)(self->mVertexCount * 3 * sizeof(CTMfloat)));
 #endif
   _ctmStreamWrite(self, (void *) "VERT", 4);
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-    _ctmStreamWriteFLOAT(self, self->mVertices[i]);
+  for(i = 0; i < self->mVertexCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      _ctmStreamWriteFLOAT(self, _ctmGetArrayf(&self->mVertices, i, j));
 
   // Write normals
-  if(self->mNormals)
+  if(self->mHasNormals)
   {
 #ifdef __DEBUG_
     printf("Normals: %d bytes\n", (CTMuint)(self->mVertexCount * 3 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
-    for(i = 0; i < self->mVertexCount * 3; ++ i)
-      _ctmStreamWriteFLOAT(self, self->mNormals[i]);
+    for(i = 0; i < self->mVertexCount; ++ i)
+      for(j = 0; j < 3; ++ j)
+        _ctmStreamWriteFLOAT(self, _ctmGetArrayf(&self->mNormals, i, j));
   }
 
   // Write UV maps
@@ -84,8 +89,9 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
     _ctmStreamWriteSTRING(self, map->mFileName);
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
-      _ctmStreamWriteFLOAT(self, map->mValues[i]);
+    for(i = 0; i < self->mVertexCount; ++ i)
+      for(j = 0; j < 2; ++ j)
+        _ctmStreamWriteFLOAT(self, _ctmGetArrayf(&map->mArray, i, j));
     map = map->mNext;
   }
 
@@ -98,8 +104,9 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
     _ctmStreamWriteSTRING(self, map->mName);
-    for(i = 0; i < self->mVertexCount * 4; ++ i)
-      _ctmStreamWriteFLOAT(self, map->mValues[i]);
+    for(i = 0; i < self->mVertexCount; ++ i)
+      for(j = 0; j < 4; ++ j)
+        _ctmStreamWriteFLOAT(self, _ctmGetArrayf(&map->mArray, i, j));
     map = map->mNext;
   }
 
@@ -113,7 +120,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 int _ctmUncompressMesh_RAW(_CTMcontext * self)
 {
-  CTMuint i;
+  CTMuint i, j;
   _CTMfloatmap * map;
 
   // Read triangle indices
@@ -122,8 +129,9 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     self->mError = CTM_BAD_FORMAT;
     return 0;
   }
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    self->mIndices[i] = _ctmStreamReadUINT(self);
+  for(i = 0; i < self->mTriangleCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      _ctmSetArrayi(&self->mIndices, i, j, _ctmStreamReadUINT(self));
 
   // Read vertices
   if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
@@ -131,19 +139,21 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     self->mError = CTM_BAD_FORMAT;
     return 0;
   }
-  for(i = 0; i < self->mVertexCount * 3; ++ i)
-    self->mVertices[i] = _ctmStreamReadFLOAT(self);
+  for(i = 0; i < self->mVertexCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      _ctmSetArrayf(&self->mVertices, i, j, _ctmStreamReadFLOAT(self));
 
   // Read normals
-  if(self->mNormals)
+  if(self->mHasNormals)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
       self->mError = CTM_BAD_FORMAT;
       return 0;
     }
-    for(i = 0; i < self->mVertexCount * 3; ++ i)
-      self->mNormals[i] = _ctmStreamReadFLOAT(self);
+    for(i = 0; i < self->mVertexCount; ++ i)
+      for(j = 0; j < 3; ++ j)
+        _ctmSetArrayf(&self->mNormals, i, j, _ctmStreamReadFLOAT(self));
   }
 
   // Read UV maps
@@ -157,8 +167,9 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     }
     _ctmStreamReadSTRING(self, &map->mName);
     _ctmStreamReadSTRING(self, &map->mFileName);
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
-      map->mValues[i] = _ctmStreamReadFLOAT(self);
+    for(i = 0; i < self->mVertexCount; ++ i)
+      for(j = 0; j < 2; ++ j)
+        _ctmSetArrayf(&map->mArray, i, j, _ctmStreamReadFLOAT(self));
     map = map->mNext;
   }
 
@@ -172,10 +183,13 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
       return 0;
     }
     _ctmStreamReadSTRING(self, &map->mName);
-    for(i = 0; i < self->mVertexCount * 4; ++ i)
-      map->mValues[i] = _ctmStreamReadFLOAT(self);
+    for(i = 0; i < self->mVertexCount; ++ i)
+      for(j = 0; j < 4; ++ j)
+        _ctmSetArrayf(&map->mArray, i, j, _ctmStreamReadFLOAT(self));
     map = map->mNext;
   }
 
   return 1;
 }
+
+#endif // _CTM_SUPPORT_RAW

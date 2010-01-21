@@ -29,6 +29,13 @@
 #define __OPENCTM_INTERNAL_H_
 
 //-----------------------------------------------------------------------------
+// Configuration
+//-----------------------------------------------------------------------------
+#define _CTM_SUPPORT_RAW
+//#define _CTM_SUPPORT_MG1
+//#define _CTM_SUPPORT_MG2
+
+//-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
 // OpenCTM file format version (v5).
@@ -78,6 +85,7 @@ typedef struct {
 
   // Normals (optional)
   _CTMarray mNormals;
+  CTMuint mHasNormals;
 
   // Multiple sets of UV coordinate maps (optional)
   CTMuint mUVMapCount;

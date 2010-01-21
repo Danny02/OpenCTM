@@ -68,20 +68,7 @@ class ctm_error: public std::exception
 /// context. Usage example:
 ///
 /// @code
-///   // Create a new OpenCTM importer object
-///   CTMimporter ctm;
-///
-///   // Load the OpenCTM file
-///   ctm.Load("mymesh.ctm");
-///
-///   // Access the mesh data
-///   vertCount = ctm.GetInteger(CTM_VERTEX_COUNT);
-///   vertices = ctm.GetFloatArray(CTM_VERTICES);
-///   triCount = ctm.GetInteger(CTM_TRIANGLE_COUNT);
-///   indices = ctm.GetIntegerArray(CTM_INDICES);
-///
-///   // Deal with the mesh (e.g. transcode it to our internal representation)
-///   // ...
+///   TBD
 /// @endcode
 
 class CTMimporter {
