@@ -28,12 +28,7 @@
 #ifndef __OPENCTM_INTERNAL_H_
 #define __OPENCTM_INTERNAL_H_
 
-//-----------------------------------------------------------------------------
-// Configuration
-//-----------------------------------------------------------------------------
-#define _CTM_SUPPORT_RAW
-//#define _CTM_SUPPORT_MG1
-//#define _CTM_SUPPORT_MG2
+#include "config.h"
 
 //-----------------------------------------------------------------------------
 // Constants
