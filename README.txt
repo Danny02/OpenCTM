@@ -16,7 +16,7 @@ The library is written in portable C (C99), and should compile nicely on any
 ==========
 
 The OpenCTM API and the OpenCTM tools are released under the zlib/libpng
-license (see LICENSE.txt).
+license (see LICENSE.txt).
 
 3. CREDITS
 ==========
