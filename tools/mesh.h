@@ -69,22 +69,22 @@ class Vector3 {
       x = a.x; y = a.y; z = a.z;
     }
 
-    inline Vector3 operator+(const Vector3 &v) const 
+    inline Vector3 operator+(const Vector3 &v) const
     {
       return Vector3(x + v.x,  y + v.y,  z + v.z);
     }
 
-    inline Vector3 operator-(const Vector3 &v) const 
+    inline Vector3 operator-(const Vector3 &v) const
     {
       return Vector3(x - v.x,  y - v.y,  z - v.z);
     }
 
-    inline Vector3 operator*(const float &aScale) const 
+    inline Vector3 operator*(const float &aScale) const
     {
       return Vector3(aScale * x, aScale * y, aScale * z);
     }
 
-    inline void operator+=(const Vector3 &v) 
+    inline void operator+=(const Vector3 &v)
     {
       x += v.x;
       y += v.y;
