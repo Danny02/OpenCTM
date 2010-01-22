@@ -113,14 +113,14 @@ void Import_STL(const char * aFileName, Mesh * aMesh)
   aMesh->Clear();
 
   // Open the input file
-  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  ifstream f(aFileName, ios::in | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open input file.");
 
   // Get the file size
-  f.seekg(0, ios_base::end);
+  f.seekg(0, ios::end);
   uint32 fileSize = (uint32) f.tellg();
-  f.seekg(0, ios_base::beg);
+  f.seekg(0, ios::beg);
   if(fileSize < 84)
     throw runtime_error("Invalid format - not a valid STL file.");
 
@@ -141,7 +141,7 @@ void Import_STL(const char * aFileName, Mesh * aMesh)
     for(uint32 i = 0; i < triangleCount; ++ i)
     {
       // Skip the flat normal
-      f.seekg(12, ios_base::cur);
+      f.seekg(12, ios::cur);
 
       // Read the three triangle vertices
       for(uint32 j = 0; j < 3; ++ j)
@@ -155,7 +155,7 @@ void Import_STL(const char * aFileName, Mesh * aMesh)
       }
 
       // Ignore the two fill bytes
-      f.seekg(2, ios_base::cur);
+      f.seekg(2, ios::cur);
     }
 
     // Make sure that no redundant copies of vertices exist (STL files are full
@@ -190,7 +190,7 @@ void Import_STL(const char * aFileName, Mesh * aMesh)
 void Export_STL(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Open the output file
-  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  ofstream f(aFileName, ios::out | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 

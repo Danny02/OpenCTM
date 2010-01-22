@@ -172,14 +172,14 @@ void Import_3DS(const char * aFileName, Mesh * aMesh)
   aMesh->Clear();
 
   // Open the input file
-  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  ifstream f(aFileName, ios::in | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open input file.");
 
   // Get file size
-  f.seekg(0, ios_base::end);
+  f.seekg(0, ios::end);
   uint32 fileSize = f.tellg();
-  f.seekg(0, ios_base::beg);
+  f.seekg(0, ios::beg);
 
   // Check file size (rough initial check)
   if(fileSize < 6)
@@ -230,7 +230,7 @@ void Import_3DS(const char * aFileName, Mesh * aMesh)
         count = ReadInt16(f);
         if((!obj) || ((obj->mVertices.size() > 0) && (obj->mVertices.size() != count)))
         {
-          f.seekg(count * 12, ios_base::cur);
+          f.seekg(count * 12, ios::cur);
           break;
         }
         if(obj->mVertices.size() == 0)
@@ -244,7 +244,7 @@ void Import_3DS(const char * aFileName, Mesh * aMesh)
         count = ReadInt16(f);
         if((!obj) || ((obj->mUVCoords.size() > 0) && (obj->mUVCoords.size() != count)))
         {
-          f.seekg(count * 8, ios_base::cur);
+          f.seekg(count * 8, ios::cur);
           break;
         }
         if(obj->mUVCoords.size() == 0)
@@ -260,7 +260,7 @@ void Import_3DS(const char * aFileName, Mesh * aMesh)
         count = ReadInt16(f);
         if(!obj)
         {
-          f.seekg(count * 8, ios_base::cur);
+          f.seekg(count * 8, ios::cur);
           break;
         }
         if(obj->mIndices.size() == 0)
@@ -275,7 +275,7 @@ void Import_3DS(const char * aFileName, Mesh * aMesh)
         break;
         
       default:      // Unknown/ignored - skip past this one
-        f.seekg(chunkLen - 6, ios_base::cur);
+        f.seekg(chunkLen - 6, ios::cur);
     }
   }
 
@@ -348,7 +348,7 @@ void Export_3DS(const char * aFileName, Mesh * aMesh, Options &aOptions)
   uint32 fileSize = 38 + objName.size() + 1 + materialSize + triMeshSize;
 
   // Open the output file
-  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  ofstream f(aFileName, ios::out | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 

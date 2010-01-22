@@ -241,7 +241,7 @@ void Export_PLY(const char * aFileName, Mesh * aMesh, Options &aOptions)
   bool exportColors = aMesh->HasColors() && !aOptions.mNoColors;
 
   // Open the output file
-  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  ofstream f(aFileName, ios::out | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 

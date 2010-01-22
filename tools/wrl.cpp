@@ -207,7 +207,7 @@ void Import_WRL(const char * aFileName, Mesh * aMesh)
   aMesh->Clear();
 
   // Open the input file
-  ifstream f(aFileName, ios_base::in);
+  ifstream f(aFileName, ios::in);
   if(f.fail())
     throw runtime_error("Could not open input file.");
 
@@ -226,7 +226,7 @@ void Import_WRL(const char * aFileName, Mesh * aMesh)
 void Export_WRL(const char * aFileName, Mesh * aMesh, Options &aOptions)
 {
   // Open the output file
-  ofstream f(aFileName, ios_base::out);
+  ofstream f(aFileName, ios::out);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 

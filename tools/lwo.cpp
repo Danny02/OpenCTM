@@ -278,7 +278,7 @@ static uint32 CalcVMAPSize(Mesh * aMesh, uint32 aDimension)
 void Import_LWO(const char * aFileName, Mesh * aMesh)
 {
   // Open the input file
-  ifstream f(aFileName, ios_base::in | ios_base::binary);
+  ifstream f(aFileName, ios::in | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open input file.");
 
@@ -408,7 +408,7 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
       else
       {
         // We only support FACE/PTCH type polygons - skip this chunk
-        f.seekg(chunkSize - 4, ios_base::cur);
+        f.seekg(chunkSize - 4, ios::cur);
       }
     }
     else if((chunkID == string("VMAP")) || (chunkID == string("VMAD")))
@@ -478,13 +478,13 @@ void Import_LWO(const char * aFileName, Mesh * aMesh)
       else
       {
         // We only support RGB/RGBA & TXUV type VMAPs - skip this chunk
-        f.seekg(bytesLeft, ios_base::cur);
+        f.seekg(bytesLeft, ios::cur);
       }
     }
     else
     {
       // Just skip this chunk
-      f.seekg(chunkSize, ios_base::cur);
+      f.seekg(chunkSize, ios::cur);
     }
   }
 
@@ -546,7 +546,7 @@ void Export_LWO(const char * aFileName, Mesh * aMesh, Options &aOptions)
     fileSize += 8 + rgbaSize;
 
   // Open the output file
-  ofstream f(aFileName, ios_base::out | ios_base::binary);
+  ofstream f(aFileName, ios::out | ios::binary);
   if(f.fail())
     throw runtime_error("Could not open output file.");
 

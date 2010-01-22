@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
   }
 
   // Open input file
-  ifstream f(argv[1], ios_base::binary | ios_base::in);
+  ifstream f(argv[1], ios::binary | ios::in);
   if(f.fail())
   {
     cerr << "Unable to open file: " << argv[1] << endl;
