@@ -33,8 +33,8 @@
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
-// OpenCTM file format version (v5).
-#define _CTM_FORMAT_VERSION  0x00000005
+// OpenCTM file format version (v6).
+#define _CTM_FORMAT_VERSION  0x00000006
 
 // Flags for the Mesh flags field of the file header
 #define _CTM_HAS_NORMALS_BIT 0x00000001
@@ -70,13 +70,19 @@ typedef struct {
   // Context mode (import or export)
   CTMenum mMode;
 
-  // Vertices
-  _CTMarray mVertices;
-  CTMuint mVertexCount;
+  // Animation frame count
+  CTMuint mFrameCount;
+
+  // Current animation frame (zero index)
+  CTMuint mCurrentFrame;
 
   // Indices
   _CTMarray mIndices;
   CTMuint mTriangleCount;
+
+  // Vertices
+  _CTMarray mVertices;
+  CTMuint mVertexCount;
 
   // Normals (optional)
   _CTMarray mNormals;
@@ -116,6 +122,9 @@ typedef struct {
 
   // User data (for stream read/write - usually the stream handle)
   void * mUserData;
+
+  // Flag: are we using our own file handle (i.e. did WE open the file?)
+  CTMuint mUserDataIsFileHandle;
 } _CTMcontext;
 
 //-----------------------------------------------------------------------------
@@ -125,7 +134,7 @@ typedef struct {
                     (((CTMuint) str[2]) << 16) | (((CTMuint) str[3]) << 24))
 
 //-----------------------------------------------------------------------------
-// Funcion prototypes for openctm.c
+// Function prototypes for openctm.c
 //-----------------------------------------------------------------------------
 CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent);
 CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent);
@@ -133,7 +142,7 @@ void _ctmSetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent, CTM
 void _ctmSetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent, CTMfloat aValue);
 
 //-----------------------------------------------------------------------------
-// Funcion prototypes for stream.c
+// Function prototypes for stream.c
 //-----------------------------------------------------------------------------
 CTMuint _ctmStreamRead(_CTMcontext * self, void * aBuf, CTMuint aCount);
 CTMuint _ctmStreamWrite(_CTMcontext * self, void * aBuf, CTMuint aCount);
@@ -149,19 +158,19 @@ int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCo
 int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
 
 //-----------------------------------------------------------------------------
-// Funcion prototypes for compressRAW.c
+// Function prototypes for compressRAW.c
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_RAW(_CTMcontext * self);
 int _ctmUncompressMesh_RAW(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
-// Funcion prototypes for compressMG1.c
+// Function prototypes for compressMG1.c
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_MG1(_CTMcontext * self);
 int _ctmUncompressMesh_MG1(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
-// Funcion prototypes for compressMG2.c
+// Function prototypes for compressMG2.c
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_MG2(_CTMcontext * self);
 int _ctmUncompressMesh_MG2(_CTMcontext * self);

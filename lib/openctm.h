@@ -200,6 +200,7 @@ typedef enum {
   CTM_NORMAL_PRECISION  = 0x0307, ///< Normal precision - for MG2 (float).
   CTM_COMPRESSION_METHOD = 0x0308, ///< Compression method (integer).
   CTM_FILE_COMMENT      = 0x0309, ///< File comment (string).
+  CTM_FRAME_COUNT       = 0x030A, ///< Number of animation frames (integer).
 
   // UV/attribute map queries
   CTM_NAME              = 0x0501, ///< Unique name (UV/attrib map string).
@@ -485,6 +486,12 @@ CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
 CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
   const char * aFileComment);
 
+/// Define the number of animation frames.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aCount Number of animation frames.
+CTMEXPORT void CTMCALL ctmFrameCount(CTMcontext aContext, CTMuint aCount);
+
 /// Set which compression method to use for the given OpenCTM context.
 /// The selected compression method will be used when calling the ctmSave()
 /// function.
@@ -572,15 +579,14 @@ CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
 CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
   CTMenum aAttribMap, CTMfloat aPrecision);
 
-/// Load an OpenCTM format file into the context. The mesh data can be retrieved
-/// with the various ctmGet functions.
+/// Open an OpenCTM format file for reading.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be loaded.
-CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName);
+CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
+  const char * aFileName);
 
-/// Load an OpenCTM format file using a custom stream read function. The mesh
-/// data can be retrieved with the various ctmGet functions.
+/// Open an OpenCTM format file for reading, using a custom read function.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aReadFn Pointer to a custom stream read function.
@@ -589,18 +595,32 @@ CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName);
 ///            of any type. The user data pointer will be passed to the
 ///            custom stream read function.
 /// @see CTMreadfn.
-CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
-  void * aUserData);
+CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
+  CTMreadfn aReadFn, void * aUserData);
 
-/// Save an OpenCTM format file. The mesh must have been fully defined by
-/// ctmArrayPointer().
+/// Read the header data from an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmReadHeader(CTMcontext aContext);
+
+/// Read the mesh data from an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext);
+
+/// Read the next frame in an animated mesh from an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext);
+
+/// Open an OpenCTM format file for writing.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be saved.
-CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName);
+CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
+  const char * aFileName);
 
-/// Save an OpenCTM format file using a custom stream write function.The mesh
-/// must have been fully defined by ctmArrayPointer().
+/// Open an OpenCTM format file for writing, using a custom write function.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aWriteFn Pointer to a custom stream write function.
@@ -609,8 +629,28 @@ CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName);
 ///            of any type. The user data pointer will be passed to the
 ///            custom stream write function.
 /// @see CTMwritefn.
-CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
-  void * aUserData);
+CTMEXPORT void CTMCALL ctmOpenWriteCustom(CTMcontext aContext,
+  CTMwritefn aWriteFn, void * aUserData);
+
+/// Write the header data to an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmWriteHeader(CTMcontext aContext);
+
+/// Write the mesh data to an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmWriteMesh(CTMcontext aContext);
+
+/// Write the next frame in an animated mesh to an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext);
+
+/// Close an opened file.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+CTMEXPORT void CTMCALL ctmClose(CTMcontext aContext);
 
 #ifdef __cplusplus
 }

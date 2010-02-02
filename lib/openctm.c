@@ -331,6 +331,7 @@ CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode)
   // Initialize structure (set null pointers and zero array lengths)
   memset(self, 0, sizeof(_CTMcontext));
   self->mMode = aMode;
+  self->mFrameCount = 1;
   self->mError = CTM_NONE;
 #if defined(_CTM_SUPPORT_MG1)
   self->mMethod = CTM_METHOD_MG1;
@@ -440,6 +441,9 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
 
     case CTM_COMPRESSION_METHOD:
       return (CTMuint) self->mMethod;
+
+    case CTM_FRAME_COUNT:
+      return self->mFrameCount;
 
     default:
       self->mError = CTM_INVALID_ARGUMENT;
@@ -705,6 +709,13 @@ CTMEXPORT void CTMCALL ctmVertexCount(CTMcontext aContext, CTMuint aCount)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
+  // You are only allowed to change the vertex count in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   self->mVertexCount = aCount;
 }
 
@@ -715,6 +726,13 @@ CTMEXPORT void CTMCALL ctmTriangleCount(CTMcontext aContext, CTMuint aCount)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
+
+  // You are only allowed to change the triangle count in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
 
   self->mTriangleCount = aCount;
 }
@@ -1006,6 +1024,24 @@ CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
     return;
   }
   strcpy(self->mFileComment, aFileComment);
+}
+
+//-----------------------------------------------------------------------------
+// ctmFrameCount()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmFrameCount(CTMcontext aContext, CTMuint aCount)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // You are only allowed to change the animation frame count in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  self->mFrameCount = aCount;
 }
 
 //-----------------------------------------------------------------------------
@@ -1301,9 +1337,10 @@ static CTMuint CTMCALL _ctmDefaultRead(void * aBuf, CTMuint aCount,
 }
 
 //-----------------------------------------------------------------------------
-// ctmLoad()
+// ctmOpenReadFile()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName)
+CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
+  const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   FILE * f;
@@ -1324,11 +1361,42 @@ CTMEXPORT void CTMCALL ctmLoad(CTMcontext aContext, const char * aFileName)
     return;
   }
 
-  // Load the file
-  ctmLoadCustom(self, _ctmDefaultRead, (void *) f);
+  // Initialize stream
+  self->mReadFn = _ctmDefaultRead;
+  self->mUserData = (void *) f;
 
-  // Close file stream
-  fclose(f);
+  // Clear any old mesh arrays
+  _ctmClearMesh(self);
+
+  // The file stream is owned by the library
+  self->mUserDataIsFileHandle = CTM_TRUE;
+}
+
+//-----------------------------------------------------------------------------
+// ctmOpenReadCustom()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
+  CTMreadfn aReadFn, void * aUserData)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // You are only allowed to load data in import mode
+  if(self->mMode != CTM_IMPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // Initialize stream
+  self->mReadFn = aReadFn;
+  self->mUserData = aUserData;
+
+  // Clear any old mesh arrays
+  _ctmClearMesh(self);
+
+  // The file stream is owned by the caller
+  self->mUserDataIsFileHandle = CTM_FALSE;
 }
 
 //-----------------------------------------------------------------------------
@@ -1363,28 +1431,13 @@ static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
 }
 
 //-----------------------------------------------------------------------------
-// ctmLoadCustom()
+// ctmReadHeader()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
-  void * aUserData)
+CTMEXPORT void CTMCALL ctmReadHeader(CTMcontext aContext)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMuint formatVersion, flags, method;
   if(!self) return;
-
-  // You are only allowed to load data in import mode
-  if(self->mMode != CTM_IMPORT)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Initialize stream
-  self->mReadFn = aReadFn;
-  self->mUserData = aUserData;
-
-  // Clear any old mesh arrays
-  _ctmClearMesh(self);
 
   // Read header from stream
   if(_ctmStreamReadUINT(self) != FOURCC("OCTM"))
@@ -1444,6 +1497,25 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
     return;
   }
 
+  // Clear the frame counter (no frames have been read yet)
+  self->mCurrentFrame = 0;
+}
+
+//-----------------------------------------------------------------------------
+// ctmReadMesh()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Is this the first frame?
+  if(self->mCurrentFrame != 0)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
   // Uncompress from stream
   switch(self->mMethod)
   {
@@ -1481,12 +1553,38 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
       self->mError = CTM_INTERNAL_ERROR;
   }
 
+  // We are done with the frame, on to the next...
+  ++ self->mCurrentFrame;
+
   // Check mesh integrity
   if(!_ctmCheckMeshIntegrity(self))
   {
     self->mError = CTM_INVALID_MESH;
     return;
   }
+}
+
+//-----------------------------------------------------------------------------
+// ctmReadNextFrame()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Are we trying to read more frames than this animation has?
+  if(self->mCurrentFrame >= self->mFrameCount)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // FIXME: Still not implemented...
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return;
+
+  // We are done with the frame, on to the next...
+  ++ self->mCurrentFrame;
 }
 
 //-----------------------------------------------------------------------------
@@ -1499,9 +1597,10 @@ static CTMuint CTMCALL _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
 }
 
 //-----------------------------------------------------------------------------
-// ctmSave()
+// ctmOpenWriteFile()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName)
+CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
+  const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   FILE * f;
@@ -1522,21 +1621,21 @@ CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName)
     return;
   }
 
-  // Save the file
-  ctmSaveCustom(self, _ctmDefaultWrite, (void *) f);
+  // Initialize stream
+  self->mWriteFn = _ctmDefaultWrite;
+  self->mUserData = (void *) f;
 
-  // Close file stream
-  fclose(f);
+  // The file stream is owned by the library
+  self->mUserDataIsFileHandle = CTM_TRUE;
 }
 
 //-----------------------------------------------------------------------------
-// ctmSaveCustom()
+// ctmOpenWriteCustom()
 //-----------------------------------------------------------------------------
-void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
-  void * aUserData)
+CTMEXPORT void CTMCALL ctmOpenWriteCustom(CTMcontext aContext,
+  CTMwritefn aWriteFn, void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMuint flags;
   if(!self) return;
 
   // You are only allowed to save data in export mode
@@ -1546,16 +1645,22 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
     return;
   }
 
-  // Check mesh integrity
-  if(!_ctmCheckMeshIntegrity(self))
-  {
-    self->mError = CTM_INVALID_MESH;
-    return;
-  }
-
   // Initialize stream
   self->mWriteFn = aWriteFn;
   self->mUserData = aUserData;
+
+  // The file stream is owned by the caller
+  self->mUserDataIsFileHandle = CTM_FALSE;
+}
+
+//-----------------------------------------------------------------------------
+// ctmWriteHeader()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmWriteHeader(CTMcontext aContext)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  CTMuint flags;
+  if(!self) return;
 
   // Determine flags
   flags = 0;
@@ -1588,7 +1693,34 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
   _ctmStreamWriteUINT(self, self->mUVMapCount);
   _ctmStreamWriteUINT(self, self->mAttribMapCount);
   _ctmStreamWriteUINT(self, flags);
+  _ctmStreamWriteUINT(self, self->mFrameCount);
   _ctmStreamWriteSTRING(self, self->mFileComment);
+
+  // Clear the frame counter (no frames have been written yet)
+  self->mCurrentFrame = 0;
+}
+
+//-----------------------------------------------------------------------------
+// ctmWriteMesh()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmWriteMesh(CTMcontext aContext)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Is this the first frame?
+  if(self->mCurrentFrame != 0)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // Check mesh integrity
+  if(!_ctmCheckMeshIntegrity(self))
+  {
+    self->mError = CTM_INVALID_MESH;
+    return;
+  }
 
   // Compress to stream
   switch(self->mMethod)
@@ -1615,4 +1747,48 @@ void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
       self->mError = CTM_INTERNAL_ERROR;
       return;
   }
+
+  // We are done with the frame, on to the next...
+  ++ self->mCurrentFrame;
+}
+
+//-----------------------------------------------------------------------------
+// ctmWriteNextFrame()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Are we trying to write more frames than this animation has?
+  if(self->mCurrentFrame >= self->mFrameCount)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // FIXME: Still not implemented...
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return;
+
+  // We are done with the frame, on to the next...
+  ++ self->mCurrentFrame;
+}
+
+//-----------------------------------------------------------------------------
+// ctmClose()
+//-----------------------------------------------------------------------------
+CTMEXPORT void CTMCALL ctmClose(CTMcontext aContext)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return;
+
+  // Close the file stream
+  if(self->mUserDataIsFileHandle && self->mUserData)
+    fclose(self->mUserData);
+
+  // Clear load/save handles
+  self->mReadFn = (CTMreadfn) 0;
+  self->mWriteFn = (CTMwritefn) 0;
+  self->mUserData = (void *) 0;
 }
