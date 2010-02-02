@@ -345,10 +345,10 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmStreamReadPackedFloats() - Read an compressed binary float data array
-// from a stream, and uncompress it.
+// _ctmStreamReadPackedFloatArray() - Read an compressed binary float data
+// array from a stream, and uncompress it.
 //-----------------------------------------------------------------------------
-int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
+int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
   CTMuint aCount, CTMuint aSize)
 {
   CTMuint i, k;
@@ -410,7 +410,7 @@ int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
                 (((CTMint) tmp[i + k * aCount + 2 * aCount * aSize]) << 8) |
                 (((CTMint) tmp[i + k * aCount + aCount * aSize]) << 16) |
                 (((CTMint) tmp[i + k * aCount]) << 24);
-      aData[i * aSize + k] = value.f;
+      _ctmSetArrayf(aArray, i, k, value.f);
     }
   }
 
@@ -421,10 +421,10 @@ int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmStreamWritePackedFloats() - Compress a binary float data array, and
+// _ctmStreamWritePackedFloatArray() - Compress a binary float data array, and
 // write it to a stream.
 //-----------------------------------------------------------------------------
-int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
+int _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
   CTMuint aCount, CTMuint aSize)
 {
   int lzmaRes, lzmaAlgo;
@@ -449,7 +449,7 @@ int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData,
   {
     for(k = 0; k < aSize; ++ k)
     {
-      value.f = aData[i * aSize + k];
+      value.f = _ctmGetArrayf(aArray, i, k);
       tmp[i + k * aCount + 3 * aCount * aSize] = value.i & 0x000000ff;
       tmp[i + k * aCount + 2 * aCount * aSize] = (value.i >> 8) & 0x000000ff;
       tmp[i + k * aCount + aCount * aSize] = (value.i >> 16) & 0x000000ff;

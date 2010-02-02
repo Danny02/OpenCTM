@@ -154,8 +154,8 @@ void _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue);
 void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue);
 int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
 int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
-int _ctmStreamReadPackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
-int _ctmStreamWritePackedFloats(_CTMcontext * self, CTMfloat * aData, CTMuint aCount, CTMuint aSize);
+int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMuint aCount, CTMuint aSize);
+int _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMuint aCount, CTMuint aSize);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for compressRAW.c

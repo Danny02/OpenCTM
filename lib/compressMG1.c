@@ -146,7 +146,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
   _CTMfloatmap * map;
-  CTMuint i;
+  CTMuint i, j;
 
 #ifdef __DEBUG_
   printf("COMPRESSION METHOD: MG1\n");
@@ -159,8 +159,9 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    indices[i] = self->mIndices[i];
+  for(i = 0; i < self->mTriangleCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      indices[i * 3 + j] = _ctmGetArrayi(&self->mIndices, i, j);
   _ctmReArrangeTriangles(self, indices);
 
   // Calculate index deltas (entropy-reduction)
@@ -185,20 +186,17 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   printf("Vertices: ");
 #endif
   _ctmStreamWrite(self, (void *) "VERT", 4);
-  if(!_ctmStreamWritePackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
-  {
-    free((void *) indices);
+  if(!_ctmStreamWritePackedFloatArray(self, &self->mVertices, self->mVertexCount, 3))
     return CTM_FALSE;
-  }
 
   // Write normals
-  if(self->mNormals)
+  if(self->mHasNormals)
   {
 #ifdef __DEBUG_
     printf("Normals: ");
 #endif
     _ctmStreamWrite(self, (void *) "NORM", 4);
-    if(!_ctmStreamWritePackedFloats(self, self->mNormals, self->mVertexCount, 3))
+    if(!_ctmStreamWritePackedFloatArray(self, &self->mNormals, self->mVertexCount, 3))
       return CTM_FALSE;
   }
 
@@ -212,7 +210,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
     _ctmStreamWrite(self, (void *) "TEXC", 4);
     _ctmStreamWriteSTRING(self, map->mName);
     _ctmStreamWriteSTRING(self, map->mFileName);
-    if(!_ctmStreamWritePackedFloats(self, map->mValues, self->mVertexCount, 2))
+    if(!_ctmStreamWritePackedFloatArray(self, &map->mArray, self->mVertexCount, 2))
       return CTM_FALSE;
     map = map->mNext;
   }
@@ -226,7 +224,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
     _ctmStreamWriteSTRING(self, map->mName);
-    if(!_ctmStreamWritePackedFloats(self, map->mValues, self->mVertexCount, 4))
+    if(!_ctmStreamWritePackedFloatArray(self, &map->mArray, self->mVertexCount, 4))
       return CTM_FALSE;
     map = map->mNext;
   }
@@ -242,7 +240,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
   _CTMfloatmap * map;
-  CTMuint i;
+  CTMuint i, j;
 
   // Allocate memory for the indices
   indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
@@ -264,8 +262,9 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
 
   // Restore indices
   _ctmRestoreIndices(self, indices);
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    self->mIndices[i] = indices[i];
+  for(i = 0; i < self->mTriangleCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      _ctmSetArrayi(&self->mIndices, i, j, indices[i * 3 + j]);
 
   // Free temporary resources
   free(indices);
@@ -276,18 +275,18 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     self->mError = CTM_BAD_FORMAT;
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
+  if(!_ctmStreamReadPackedFloatArray(self, &self->mVertices, self->mVertexCount, 3))
     return CTM_FALSE;
 
   // Read normals
-  if(self->mNormals)
+  if(self->mHasNormals)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
       self->mError = CTM_BAD_FORMAT;
       return CTM_FALSE;
     }
-    if(!_ctmStreamReadPackedFloats(self, self->mNormals, self->mVertexCount, 3))
+    if(!_ctmStreamReadPackedFloatArray(self, &self->mNormals, self->mVertexCount, 3))
       return CTM_FALSE;
   }
 
@@ -302,7 +301,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     }
     _ctmStreamReadSTRING(self, &map->mName);
     _ctmStreamReadSTRING(self, &map->mFileName);
-    if(!_ctmStreamReadPackedFloats(self, map->mValues, self->mVertexCount, 2))
+    if(!_ctmStreamReadPackedFloatArray(self, &map->mArray, self->mVertexCount, 2))
       return CTM_FALSE;
     map = map->mNext;
   }
@@ -317,7 +316,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
       return 0;
     }
     _ctmStreamReadSTRING(self, &map->mName);
-    if(!_ctmStreamReadPackedFloats(self, map->mValues, self->mVertexCount, 4))
+    if(!_ctmStreamReadPackedFloatArray(self, &map->mArray, self->mVertexCount, 4))
       return CTM_FALSE;
     map = map->mNext;
   }

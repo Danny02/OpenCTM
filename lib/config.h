@@ -37,7 +37,7 @@
 #define _CTM_SUPPORT_RAW
 
 // Enable support for the MG1 method.
-//#define _CTM_SUPPORT_MG1
+#define _CTM_SUPPORT_MG1
 
 // Enable support for the MG2 method.
 //#define _CTM_SUPPORT_MG2
