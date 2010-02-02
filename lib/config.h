@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
 // Product:     OpenCTM
 // File:        config.h
-// Description: Build time configuration of the library. Edit this to fit
-//              your needs.
+// Description: Build time configuration of the library. Edit this to make the
+//              library fit your needs.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Marcus Geelnard
 //
