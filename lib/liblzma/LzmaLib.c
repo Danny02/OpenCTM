@@ -3,6 +3,10 @@
 Igor Pavlov
 Public domain */
 
+/* OpenCTM configuration */
+#include "../config.h"
+
+
 #include "LzmaEnc.h"
 #include "LzmaDec.h"
 #include "Alloc.h"
@@ -12,6 +16,7 @@ static void *SzAlloc(void *p, size_t size) { p = p; return MyAlloc(size); }
 static void SzFree(void *p, void *address) { p = p; MyFree(address); }
 static ISzAlloc g_Alloc = { SzAlloc, SzFree };
 
+#ifdef _CTM_SUPPORT_SAVE
 MY_STDAPI LzmaCompress(unsigned char *dest, size_t  *destLen, const unsigned char *src, size_t  srcLen,
   unsigned char *outProps, size_t *outPropsSize,
   int level, /* 0 <= level <= 9, default = 5 */
@@ -38,6 +43,7 @@ MY_STDAPI LzmaCompress(unsigned char *dest, size_t  *destLen, const unsigned cha
   return LzmaEncode(dest, destLen, src, srcLen, &props, outProps, outPropsSize, 0,
       NULL, &g_Alloc, &g_Alloc);
 }
+#endif // _CTM_SUPPORT_SAVE
 
 
 MY_STDAPI LzmaUncompress(unsigned char *dest, size_t  *destLen, const unsigned char *src, size_t  *srcLen,

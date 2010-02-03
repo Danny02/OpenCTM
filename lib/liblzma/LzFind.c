@@ -1,6 +1,11 @@
 /* LzFind.c -- Match finder for LZ algorithms
 2008-10-04 : Igor Pavlov : Public domain */
 
+/* OpenCTM configuration */
+#include "../config.h"
+#ifdef _CTM_SUPPORT_SAVE
+
+
 #include <string.h>
 
 #include "LzFind.h"
@@ -749,3 +754,8 @@ void MatchFinder_CreateVTable(CMatchFinder *p, IMatchFinder *vTable)
     vTable->Skip = (Mf_Skip_Func)Bt4_MatchFinder_Skip;
   }
 }
+
+#else // _CTM_SUPPORT_SAVE
+  // Dummy code (ISO C does not like empty source files)
+  void __myDummyFunc1(void) {}
+#endif // _CTM_SUPPORT_SAVE

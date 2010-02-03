@@ -1,6 +1,11 @@
 /* LzmaEnc.c -- LZMA Encoder
 2009-02-02 : Igor Pavlov : Public domain */
 
+/* OpenCTM configuration */
+#include "../config.h"
+#ifdef _CTM_SUPPORT_SAVE
+
+
 #include <string.h>
 
 /* #define SHOW_STAT */
@@ -2279,3 +2284,8 @@ SRes LzmaEncode(Byte *dest, SizeT *destLen, const Byte *src, SizeT srcLen,
   LzmaEnc_Destroy(p, alloc, allocBig);
   return res;
 }
+
+#else // _CTM_SUPPORT_SAVE
+  // Dummy code (ISO C does not like empty source files)
+  void __myDummyFunc2(void) {}
+#endif // _CTM_SUPPORT_SAVE

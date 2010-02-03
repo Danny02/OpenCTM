@@ -37,6 +37,7 @@
 #endif
 
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _compareTriangle() - Comparator for the triangle sorting.
 //-----------------------------------------------------------------------------
@@ -49,7 +50,9 @@ static int _compareTriangle(const void * elem1, const void * elem2)
   else
     return tri1[1] - tri2[1];
 }
+#endif
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmReArrangeTriangles() - Re-arrange all triangles for optimal
 // compression.
@@ -82,7 +85,9 @@ static void _ctmReArrangeTriangles(_CTMcontext * self, CTMuint * aIndices)
   // Step 2: Sort the triangles based on the first triangle index
   qsort((void *) aIndices, self->mTriangleCount, sizeof(CTMuint) * 3, _compareTriangle);
 }
+#endif
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmMakeIndexDeltas() - Calculate various forms of derivatives in order to
 // reduce data entropy.
@@ -109,6 +114,7 @@ static void _ctmMakeIndexDeltas(_CTMcontext * self, CTMuint * aIndices)
       aIndices[i * 3] -= aIndices[(i - 1) * 3];
   }
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmRestoreIndices() - Restore original indices (inverse derivative
@@ -138,6 +144,7 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
   }
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmCompressMesh_MG1() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
@@ -231,6 +238,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 
   return CTM_TRUE;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmUncompressMesh_MG1() - Uncmpress the mesh from the input stream in the

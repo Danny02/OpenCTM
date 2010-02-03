@@ -42,9 +42,6 @@
 // Enable support for the MG2 method.
 //#define _CTM_SUPPORT_MG2
 
-// Enable support for loading OpenCTM files.
-#define _CTM_SUPPORT_LOAD
-
 // Enable support for saving OpenCTM files.
 #define _CTM_SUPPORT_SAVE
 

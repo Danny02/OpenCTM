@@ -35,6 +35,7 @@
 #endif
 
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmCompressMesh_RAW() - Compress the mesh that is stored in the CTM
 // context using the RAW method, and write it the the output stream in the CTM
@@ -112,6 +113,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 
   return 1;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmUncompressMesh_RAW() - Uncmpress the mesh from the input stream in the

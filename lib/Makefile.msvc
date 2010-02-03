@@ -91,14 +91,14 @@ compressMG2.obj: compressMG2.c openctm.h internal.h config.h
 Alloc.obj: $(LZMADIR)\Alloc.c $(LZMADIR)\Alloc.h $(LZMADIR)\NameMangle.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\Alloc.c
 
-LzFind.obj: $(LZMADIR)\LzFind.c $(LZMADIR)\LzFind.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzHash.h
+LzFind.obj: $(LZMADIR)\LzFind.c $(LZMADIR)\LzFind.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzHash.h config.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzFind.c
 
 LzmaDec.obj: $(LZMADIR)\LzmaDec.c $(LZMADIR)\LzmaDec.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzmaDec.c
 
-LzmaEnc.obj: $(LZMADIR)\LzmaEnc.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzFind.h
+LzmaEnc.obj: $(LZMADIR)\LzmaEnc.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzFind.h config.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzmaEnc.c
 
-LzmaLib.obj: $(LZMADIR)\LzmaLib.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzmaDec.h $(LZMADIR)\Alloc.h $(LZMADIR)\LzmaLib.h
+LzmaLib.obj: $(LZMADIR)\LzmaLib.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzmaDec.h $(LZMADIR)\Alloc.h $(LZMADIR)\LzmaLib.h config.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzmaLib.c

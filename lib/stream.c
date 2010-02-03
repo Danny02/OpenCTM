@@ -46,6 +46,7 @@ CTMuint _ctmStreamRead(_CTMcontext * self, void * aBuf, CTMuint aCount)
   return self->mReadFn(aBuf, aCount, self->mUserData);
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmStreamWrite() - Write data to a stream.
 //-----------------------------------------------------------------------------
@@ -56,6 +57,7 @@ CTMuint _ctmStreamWrite(_CTMcontext * self, void * aBuf, CTMuint aCount)
 
   return self->mWriteFn(aBuf, aCount, self->mUserData);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmStreamReadUINT() - Read an unsigned integer from a stream in a machine
@@ -71,6 +73,7 @@ CTMuint _ctmStreamReadUINT(_CTMcontext * self)
          (((CTMuint) buf[3]) << 24);
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmStreamWriteUINT() - Write an unsigned integer to a stream in a machine
 // endian independent manner (for portability).
@@ -84,6 +87,7 @@ void _ctmStreamWriteUINT(_CTMcontext * self, CTMuint aValue)
   buf[3] = (aValue >> 24) & 0x000000ff;
   _ctmStreamWrite(self, (void *) buf, 4);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmStreamReadFLOAT() - Read a floating point value from a stream in a
@@ -99,6 +103,7 @@ CTMfloat _ctmStreamReadFLOAT(_CTMcontext * self)
   return u.f;
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmStreamWriteFLOAT() - Write a floating point value to a stream in a
 // machine endian independent manner (for portability).
@@ -112,6 +117,7 @@ void _ctmStreamWriteFLOAT(_CTMcontext * self, CTMfloat aValue)
   u.f = aValue;
   _ctmStreamWriteUINT(self, u.i);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmStreamReadSTRING() - Read a string value from a stream. The format of
@@ -144,6 +150,7 @@ void _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue)
   }
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmStreamWriteSTRING() - Write a string value to a stream. The format of
 // the string in the stream is: an unsigned integer (string length) followed by
@@ -166,6 +173,7 @@ void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue)
   if(len > 0)
     _ctmStreamWrite(self, (void *) aValue, len);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmStreamReadPackedInts() - Read an compressed binary integer data array
@@ -246,6 +254,7 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
   return CTM_TRUE;
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmStreamWritePackedInts() - Compress a binary integer data array, and
 // write it to a stream.
@@ -343,6 +352,7 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
 
   return CTM_TRUE;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // _ctmStreamReadPackedFloatArray() - Read an compressed binary float data
@@ -420,6 +430,7 @@ int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
   return CTM_TRUE;
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmStreamWritePackedFloatArray() - Compress a binary float data array, and
 // write it to a stream.
@@ -510,3 +521,4 @@ int _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
 
   return CTM_TRUE;
 }
+#endif
