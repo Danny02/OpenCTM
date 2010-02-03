@@ -19,6 +19,7 @@ EXPORTS
     ctmAddAttribMap@8
     ctmArrayPointer@24
     ctmFileComment@8
+    ctmFrameCount@8
     ctmCompressionMethod@8
     ctmCompressionLevel@8
     ctmVertexPrecision@8
@@ -26,7 +27,14 @@ EXPORTS
     ctmNormalPrecision@8
     ctmUVCoordPrecision@12
     ctmAttribPrecision@12
-    ctmLoad@8
-    ctmLoadCustom@12
-    ctmSave@8
-    ctmSaveCustom@12
+    ctmOpenReadFile@8
+    ctmOpenReadCustom@12
+    ctmReadHeader@4
+    ctmReadMesh@4
+    ctmReadNextFrame@4
+    ctmOpenWriteFile@8
+    ctmOpenWriteCustom@12
+    ctmWriteHeader@4
+    ctmWriteMesh@4
+    ctmWriteNextFrame@4
+    ctmClose@4

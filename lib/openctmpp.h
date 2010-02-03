@@ -114,18 +114,10 @@ class CTMimporter {
       return res;
     }
 
-    /// Wrapper for ctmGetIntegerArray()
-    const CTMuint * GetIntegerArray(CTMenum aProperty)
+    /// Wrapper for ctmGetString()
+    const char * GetString(CTMenum aProperty)
     {
-      const CTMuint * res = ctmGetIntegerArray(mContext, aProperty);
-      CheckError();
-      return res;
-    }
-
-    /// Wrapper for ctmGetFloatArray()
-    const CTMfloat * GetFloatArray(CTMenum aProperty)
-    {
-      const CTMfloat * res = ctmGetFloatArray(mContext, aProperty);
+      const char * res = ctmGetString(mContext, aProperty);
       CheckError();
       return res;
     }
@@ -134,6 +126,14 @@ class CTMimporter {
     CTMenum GetNamedUVMap(const char * aName)
     {
       CTMenum res = ctmGetNamedUVMap(mContext, aName);
+      CheckError();
+      return res;
+    }
+
+    /// Wrapper for ctmGetNamedAttribMap()
+    CTMenum GetNamedAttribMap(const char * aName)
+    {
+      CTMenum res = ctmGetNamedAttribMap(mContext, aName);
       CheckError();
       return res;
     }
@@ -154,14 +154,6 @@ class CTMimporter {
       return res;
     }
 
-    /// Wrapper for ctmGetNamedAttribMap()
-    CTMenum GetNamedAttribMap(const char * aName)
-    {
-      CTMenum res = ctmGetNamedAttribMap(mContext, aName);
-      CheckError();
-      return res;
-    }
-
     /// Wrapper for ctmGetAttribMapString()
     const char * GetAttribMapString(CTMenum aAttribMap, CTMenum aProperty)
     {
@@ -178,25 +170,55 @@ class CTMimporter {
       return res;
     }
 
-    /// Wrapper for ctmGetString()
-    const char * GetString(CTMenum aProperty)
+    /// Wrapper for ctmArrayPointer()
+    CTMfloat ArrayPointer(CTMenum aTarget, CTMuint aSize, CTMenum aType,
+      CTMuint aStride, void * aArray)
     {
-      const char * res = ctmGetString(mContext, aProperty);
+      CTMfloat res = ctmArrayPointer(mContext, aTarget, aSize, aType, aStride,
+                                     aArray);
       CheckError();
       return res;
     }
 
-    /// Wrapper for ctmLoad()
-    void Load(const char * aFileName)
+    /// Wrapper for ctmOpenReadFile()
+    void OpenReadFile(const char * aFileName)
     {
-      ctmLoad(mContext, aFileName);
+      ctmOpenReadFile(mContext, aFileName);
       CheckError();
     }
 
-    /// Wrapper for ctmLoadCustom()
-    void LoadCustom(CTMreadfn aReadFn, void * aUserData)
+    /// Wrapper for ctmOpenReadCustom()
+    void OpenReadCustom(CTMreadfn aReadFn, void * aUserData)
     {
-      ctmLoadCustom(mContext, aReadFn, aUserData);
+      ctmOpenReadCustom(mContext, aReadFn, aUserData);
+      CheckError();
+    }
+
+    /// Wrapper for ctmReadHeader()
+    void ReadHeader();
+    {
+      ctmReadHeader(mContext);
+      CheckError();
+    }
+
+    /// Wrapper for ctmReadMesh()
+    void ReadMesh();
+    {
+      ctmReadMesh(mContext);
+      CheckError();
+    }
+
+    /// Wrapper for ctmReadNextFrame()
+    void ReadNextFrame()
+    {
+      ctmReadNextFrame(mContext);
+      CheckError();
+    }
+
+    /// Wrapper for ctmClose()
+    void Close()
+    {
+      ctmClose(mContext);
       CheckError();
     }
 
@@ -254,6 +276,60 @@ class CTMexporter {
       ctmFreeContext(mContext);
     }
 
+    /// Wrapper for ctmVertexCount()
+    void VertexCount(CTMuint aCount)
+    {
+      ctmVertexCount(mContext, aCount);
+      CheckError();
+    }
+
+    /// Wrapper for ctmTriangleCount()
+    void TriangleCount(CTMuint aCount)
+    {
+      ctmTriangleCount(mContext, aCount);
+      CheckError();
+    }
+
+    /// Wrapper for ctmAddUVMap()
+    CTMenum AddUVMap(const char * aName, const char * aFileName)
+    {
+      CTMenum res = ctmAddUVMap(mContext, aName, aFileName);
+      CheckError();
+      return res;
+    }
+
+    /// Wrapper for ctmAddAttribMap()
+    CTMenum AddAttribMap(const char * aName)
+    {
+      CTMenum res = ctmAddAttribMap(mContext, aName);
+      CheckError();
+      return res;
+    }
+
+    /// Wrapper for ctmArrayPointer()
+    CTMfloat ArrayPointer(CTMenum aTarget, CTMuint aSize, CTMenum aType,
+      CTMuint aStride, void * aArray)
+    {
+      CTMfloat res = ctmArrayPointer(mContext, aTarget, aSize, aType, aStride,
+                                     aArray);
+      CheckError();
+      return res;
+    }
+
+    /// Wrapper for ctmFileComment()
+    void FileComment(const char * aFileComment)
+    {
+      ctmFileComment(mContext, aFileComment);
+      CheckError();
+    }
+
+    /// Wrapper for ctmFrameCount()
+    void FrameCount(CTMuint aCount)
+    {
+      ctmFrameCount(mContext, aCount);
+      CheckError();
+    }
+
     /// Wrapper for ctmCompressionMethod()
     void CompressionMethod(CTMenum aMethod)
     {
@@ -303,51 +379,45 @@ class CTMexporter {
       CheckError();
     }
 
-    /// Wrapper for ctmFileComment()
-    void FileComment(const char * aFileComment)
+    /// Wrapper for ctmOpenWriteFile()
+    void OpenWriteFile(const char * aFileName)
     {
-      ctmFileComment(mContext, aFileComment);
+      ctmOpenWriteFile(mContext, aFileName);
       CheckError();
     }
 
-    /// Wrapper for ctmDefineMesh()
-    void DefineMesh(const CTMfloat * aVertices, CTMuint aVertexCount, 
-      const CTMuint * aIndices, CTMuint aTriangleCount,
-      const CTMfloat * aNormals)
+    /// Wrapper for ctmOpenWriteCustom()
+    void OpenWriteCustom(CTMwritefn aWriteFn, void * aUserData)
     {
-      ctmDefineMesh(mContext, aVertices, aVertexCount, aIndices, aTriangleCount,
-                    aNormals);
+      ctmOpenWriteCustom(mContext, aWriteFn, aUserData);
       CheckError();
     }
 
-    /// Wrapper for ctmAddUVMap()
-    CTMenum AddUVMap(const CTMfloat * aUVCoords, const char * aName,
-      const char * aFileName)
+    /// Wrapper for ctmWriteHeader()
+    void WriteHeader()
     {
-      CTMenum res = ctmAddUVMap(mContext, aUVCoords, aName, aFileName);
-      CheckError();
-      return res;
-    }
-
-    /// Wrapper for ctmAddAttribMap()
-    CTMenum AddAttribMap(const CTMfloat * aAttribValues, const char * aName)
-    {
-      CTMenum res = ctmAddAttribMap(mContext, aAttribValues, aName);
-      CheckError();
-      return res;
-    }
-
-    /// Wrapper for ctmSave()
-    void Save(const char * aFileName)
-    {
-      ctmSave(mContext, aFileName);
+      ctmWriteHeader(mContext);
       CheckError();
     }
 
-    /// Wrapper for ctmSaveCustom()
-    void SaveCustom(CTMwritefn aWriteFn, void * aUserData)
+    /// Wrapper for ctmWriteMesh()
+    void WriteMesh()
     {
-      ctmSaveCustom(mContext, aWriteFn, aUserData);
+      ctmWriteMesh(mContext);
+      CheckError();
+    }
+
+    /// Wrapper for ctmWriteNextFrame()
+    void WriteNextFrame()
+    {
+      ctmWriteNextFrame(mContext);
+      CheckError();
+    }
+
+    /// Wrapper for ctmClose()
+    void ctmClose()
+    {
+      Close(mContext);
       CheckError();
     }
 

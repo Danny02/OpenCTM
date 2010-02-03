@@ -355,6 +355,10 @@ CTMEXPORT void CTMCALL ctmFreeContext(CTMcontext aContext)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
+  // Close the file stream, if necessary
+  if(self->mUserDataIsFileHandle && self->mUserData)
+    fclose(self->mUserData);
+
   // Free all mesh resources
   _ctmClearMesh(self);
 
