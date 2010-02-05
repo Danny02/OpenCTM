@@ -579,14 +579,15 @@ CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
 CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
   CTMenum aAttribMap, CTMfloat aPrecision);
 
-/// Open an OpenCTM format file for reading.
+/// Open an OpenCTM format file for reading, and read the header information.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be loaded.
 CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
   const char * aFileName);
 
-/// Open an OpenCTM format file for reading, using a custom read function.
+/// Open an OpenCTM format file for reading, using a custom read function, and
+/// read the header information.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aReadFn Pointer to a custom stream read function.
@@ -597,11 +598,6 @@ CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
 /// @see CTMreadfn.
 CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   CTMreadfn aReadFn, void * aUserData);
-
-/// Read the header data from an opened file.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-CTMEXPORT void CTMCALL ctmReadHeader(CTMcontext aContext);
 
 /// Read the mesh data from an opened file.
 /// @param[in] aContext An OpenCTM context that has been created by

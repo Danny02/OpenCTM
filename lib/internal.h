@@ -28,6 +28,7 @@
 #ifndef __OPENCTM_INTERNAL_H_
 #define __OPENCTM_INTERNAL_H_
 
+#include <stdio.h>
 #include "config.h"
 
 //-----------------------------------------------------------------------------
@@ -123,8 +124,8 @@ typedef struct {
   // User data (for stream read/write - usually the stream handle)
   void * mUserData;
 
-  // Flag: are we using our own file handle (i.e. did WE open the file?)
-  CTMuint mUserDataIsFileHandle;
+  // If we use our own file handle, set this handle (otherwise nil)
+  FILE * mFileStream;
 } _CTMcontext;
 
 //-----------------------------------------------------------------------------

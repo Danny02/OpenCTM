@@ -194,13 +194,6 @@ class CTMimporter {
       CheckError();
     }
 
-    /// Wrapper for ctmReadHeader()
-    void ReadHeader();
-    {
-      ctmReadHeader(mContext);
-      CheckError();
-    }
-
     /// Wrapper for ctmReadMesh()
     void ReadMesh();
     {

@@ -29,7 +29,6 @@ EXPORTS
     ctmAttribPrecision@12
     ctmOpenReadFile@8
     ctmOpenReadCustom@12
-    ctmReadHeader@4
     ctmReadMesh@4
     ctmReadNextFrame@4
     ctmOpenWriteFile@8

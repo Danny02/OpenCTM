@@ -29,7 +29,6 @@ EXPORTS
     ctmAttribPrecision = ctmAttribPrecision@12
     ctmOpenReadFile = ctmOpenReadFile@8
     ctmOpenReadCustom = ctmOpenReadCustom@12
-    ctmReadHeader = ctmReadHeader@4
     ctmReadMesh = ctmReadMesh@4
     ctmReadNextFrame = ctmReadNextFrame@4
     ctmOpenWriteFile = ctmOpenWriteFile@8

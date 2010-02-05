@@ -27,7 +27,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <math.h>
 #include "openctm.h"
 #include "internal.h"
@@ -363,8 +362,8 @@ CTMEXPORT void CTMCALL ctmFreeContext(CTMcontext aContext)
   if(!self) return;
 
   // Close the file stream, if necessary
-  if(self->mUserDataIsFileHandle && self->mUserData)
-    fclose(self->mUserData);
+  if(self->mFileStream)
+    fclose(self->mFileStream);
 
   // Free all mesh resources
   _ctmClearMesh(self);
@@ -1424,7 +1423,6 @@ CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
   const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  FILE * f;
   if(!self) return;
 
   // You are only allowed to load data in import mode
@@ -1435,49 +1433,15 @@ CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
   }
 
   // Open file stream
-  f = fopen(aFileName, "rb");
-  if(!f)
+  self->mFileStream = fopen(aFileName, "rb");
+  if(!self->mFileStream)
   {
     self->mError = CTM_FILE_ERROR;
     return;
   }
 
-  // Initialize stream
-  self->mReadFn = _ctmDefaultRead;
-  self->mUserData = (void *) f;
-
-  // Clear any old mesh arrays
-  _ctmClearMesh(self);
-
-  // The file stream is owned by the library
-  self->mUserDataIsFileHandle = CTM_TRUE;
-}
-
-//-----------------------------------------------------------------------------
-// ctmOpenReadCustom()
-//-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
-  CTMreadfn aReadFn, void * aUserData)
-{
-  _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return;
-
-  // You are only allowed to load data in import mode
-  if(self->mMode != CTM_IMPORT)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Initialize stream
-  self->mReadFn = aReadFn;
-  self->mUserData = aUserData;
-
-  // Clear any old mesh arrays
-  _ctmClearMesh(self);
-
-  // The file stream is owned by the caller
-  self->mUserDataIsFileHandle = CTM_FALSE;
+  // ...continue with the custom function
+  ctmOpenReadCustom(aContext, _ctmDefaultRead, self->mFileStream);
 }
 
 //-----------------------------------------------------------------------------
@@ -1512,13 +1476,28 @@ static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
 }
 
 //-----------------------------------------------------------------------------
-// ctmReadHeader()
+// ctmOpenReadCustom()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmReadHeader(CTMcontext aContext)
+CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
+  CTMreadfn aReadFn, void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMuint formatVersion, flags, method;
   if(!self) return;
+
+  // You are only allowed to load data in import mode
+  if(self->mMode != CTM_IMPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return;
+  }
+
+  // Initialize stream
+  self->mReadFn = aReadFn;
+  self->mUserData = aUserData;
+
+  // Clear any old mesh arrays
+  _ctmClearMesh(self);
 
   // Read header from stream
   if(_ctmStreamReadUINT(self) != FOURCC("OCTM"))
@@ -1686,9 +1665,6 @@ CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
   const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-#ifdef _CTM_SUPPORT_SAVE
-  FILE * f;
-#endif
   if(!self) return;
 
 #ifdef _CTM_SUPPORT_SAVE
@@ -1700,19 +1676,15 @@ CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
   }
 
   // Open file stream
-  f = fopen(aFileName, "wb");
-  if(!f)
+  self->mFileStream = fopen(aFileName, "wb");
+  if(!self->mFileStream)
   {
     self->mError = CTM_FILE_ERROR;
     return;
   }
 
-  // Initialize stream
-  self->mWriteFn = _ctmDefaultWrite;
-  self->mUserData = (void *) f;
-
-  // The file stream is owned by the library
-  self->mUserDataIsFileHandle = CTM_TRUE;
+  // Continue with the custom write function...
+  ctmOpenWriteCustom(aContext, _ctmDefaultWrite, self->mFileStream);
 #else
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
@@ -1738,9 +1710,6 @@ CTMEXPORT void CTMCALL ctmOpenWriteCustom(CTMcontext aContext,
   // Initialize stream
   self->mWriteFn = aWriteFn;
   self->mUserData = aUserData;
-
-  // The file stream is owned by the caller
-  self->mUserDataIsFileHandle = CTM_FALSE;
 #else
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
@@ -1912,8 +1881,11 @@ CTMEXPORT void CTMCALL ctmClose(CTMcontext aContext)
   if(!self) return;
 
   // Close the file stream
-  if(self->mUserDataIsFileHandle && self->mUserData)
-    fclose(self->mUserData);
+  if(self->mFileStream)
+  {
+    fclose(self->mFileStream);
+    self->mFileStream = (FILE *) 0;
+  }
 
   // Clear load/save handles
   self->mReadFn = (CTMreadfn) 0;
