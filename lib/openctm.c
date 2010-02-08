@@ -279,7 +279,7 @@ static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
     {
       if(!isfinite(_ctmGetArrayf(&self->mVertices, i, j)))
         return CTM_FALSE;
-      if(self->mNormals.mData && !isfinite(_ctmGetArrayf(&self->mNormals, i, j)))
+      if(self->mHasNormals && !isfinite(_ctmGetArrayf(&self->mNormals, i, j)))
         return CTM_FALSE;
     }
   }
@@ -449,7 +449,7 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
       return self->mAttribMapCount;
 
     case CTM_HAS_NORMALS:
-      return self->mNormals.mData ? CTM_TRUE : CTM_FALSE;
+      return self->mHasNormals ? CTM_TRUE : CTM_FALSE;
 
     case CTM_COMPRESSION_METHOD:
       return (CTMuint) self->mMethod;
@@ -1483,6 +1483,7 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   CTMuint formatVersion, flags, method;
+  _CTMfloatmap * map;
   if(!self) return;
 
   // You are only allowed to load data in import mode
@@ -1555,6 +1556,33 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
     _ctmClearMesh(self);
     self->mError = CTM_OUT_OF_MEMORY;
     return;
+  }
+
+  // Read UV map info
+  if(_ctmStreamReadUINT(self) != FOURCC("UINF"))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return;
+  }
+  map = self->mUVMaps;
+  while(map)
+  {
+    _ctmStreamReadSTRING(self, &map->mName);
+    _ctmStreamReadSTRING(self, &map->mFileName);
+    map = map->mNext;
+  }
+
+  // Read attribute map info
+  if(_ctmStreamReadUINT(self) != FOURCC("AINF"))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return;
+  }
+  map = self->mAttribMaps;
+  while(map)
+  {
+    _ctmStreamReadSTRING(self, &map->mName);
+    map = map->mNext;
   }
 
   // Clear the frame counter (no frames have been read yet)
@@ -1699,6 +1727,7 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   _CTMcontext * self = (_CTMcontext *) aContext;
 #ifdef _CTM_SUPPORT_SAVE
   CTMuint flags;
+  _CTMfloatmap * map;
 #endif
   if(!self) return;
 
@@ -1723,7 +1752,7 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
 
   // Determine flags
   flags = 0;
-  if(self->mNormals.mData)
+  if(self->mHasNormals)
     flags |= _CTM_HAS_NORMALS_BIT;
 
   // Write header to stream
@@ -1754,6 +1783,25 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   _ctmStreamWriteUINT(self, flags);
   _ctmStreamWriteUINT(self, self->mFrameCount);
   _ctmStreamWriteSTRING(self, self->mFileComment);
+
+  // Write UV map info
+  _ctmStreamWrite(self, (void *) "UINF", 4);
+  map = self->mUVMaps;
+  while(map)
+  {
+    _ctmStreamWriteSTRING(self, map->mName);
+    _ctmStreamWriteSTRING(self, map->mFileName);
+    map = map->mNext;
+  }
+
+  // Write attribute map info
+  _ctmStreamWrite(self, (void *) "AINF", 4);
+  map = self->mAttribMaps;
+  while(map)
+  {
+    _ctmStreamWriteSTRING(self, map->mName);
+    map = map->mNext;
+  }
 
   // Compress to stream
   switch(self->mMethod)

@@ -88,8 +88,6 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
     printf("UV coordinates (%s): %d bytes\n", map->mName ? map->mName : "no name", (CTMuint)(self->mVertexCount * 2 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
-    _ctmStreamWriteSTRING(self, map->mName);
-    _ctmStreamWriteSTRING(self, map->mFileName);
     for(i = 0; i < self->mVertexCount; ++ i)
       for(j = 0; j < 2; ++ j)
         _ctmStreamWriteFLOAT(self, _ctmGetArrayf(&map->mArray, i, j));
@@ -104,14 +102,13 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
     printf("Vertex attributes (%s): %d bytes\n", map->mName ? map->mName : "no name", (CTMuint)(self->mVertexCount * 4 * sizeof(CTMfloat)));
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
-    _ctmStreamWriteSTRING(self, map->mName);
     for(i = 0; i < self->mVertexCount; ++ i)
       for(j = 0; j < 4; ++ j)
         _ctmStreamWriteFLOAT(self, _ctmGetArrayf(&map->mArray, i, j));
     map = map->mNext;
   }
 
-  return 1;
+  return CTM_TRUE;
 }
 #endif
 
@@ -129,7 +126,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
     self->mError = CTM_BAD_FORMAT;
-    return 0;
+    return CTM_FALSE;
   }
   for(i = 0; i < self->mTriangleCount; ++ i)
     for(j = 0; j < 3; ++ j)
@@ -139,7 +136,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
   if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
   {
     self->mError = CTM_BAD_FORMAT;
-    return 0;
+    return CTM_FALSE;
   }
   for(i = 0; i < self->mVertexCount; ++ i)
     for(j = 0; j < 3; ++ j)
@@ -151,7 +148,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
     {
       self->mError = CTM_BAD_FORMAT;
-      return 0;
+      return CTM_FALSE;
     }
     for(i = 0; i < self->mVertexCount; ++ i)
       for(j = 0; j < 3; ++ j)
@@ -165,10 +162,8 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
     {
       self->mError = CTM_BAD_FORMAT;
-      return 0;
+      return CTM_FALSE;
     }
-    _ctmStreamReadSTRING(self, &map->mName);
-    _ctmStreamReadSTRING(self, &map->mFileName);
     for(i = 0; i < self->mVertexCount; ++ i)
       for(j = 0; j < 2; ++ j)
         _ctmSetArrayf(&map->mArray, i, j, _ctmStreamReadFLOAT(self));
@@ -182,16 +177,15 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
     {
       self->mError = CTM_BAD_FORMAT;
-      return 0;
+      return CTM_FALSE;
     }
-    _ctmStreamReadSTRING(self, &map->mName);
     for(i = 0; i < self->mVertexCount; ++ i)
       for(j = 0; j < 4; ++ j)
         _ctmSetArrayf(&map->mArray, i, j, _ctmStreamReadFLOAT(self));
     map = map->mNext;
   }
 
-  return 1;
+  return CTM_TRUE;
 }
 
 #endif // _CTM_SUPPORT_RAW

@@ -215,8 +215,6 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
     printf("UV coordinates (%s): ", map->mName ? map->mName : "no name");
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
-    _ctmStreamWriteSTRING(self, map->mName);
-    _ctmStreamWriteSTRING(self, map->mFileName);
     if(!_ctmStreamWritePackedFloatArray(self, &map->mArray, self->mVertexCount, 2))
       return CTM_FALSE;
     map = map->mNext;
@@ -230,7 +228,6 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
     printf("Vertex attributes (%s): ", map->mName ? map->mName : "no name");
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
-    _ctmStreamWriteSTRING(self, map->mName);
     if(!_ctmStreamWritePackedFloatArray(self, &map->mArray, self->mVertexCount, 4))
       return CTM_FALSE;
     map = map->mNext;
@@ -307,8 +304,6 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
       self->mError = CTM_BAD_FORMAT;
       return 0;
     }
-    _ctmStreamReadSTRING(self, &map->mName);
-    _ctmStreamReadSTRING(self, &map->mFileName);
     if(!_ctmStreamReadPackedFloatArray(self, &map->mArray, self->mVertexCount, 2))
       return CTM_FALSE;
     map = map->mNext;
@@ -323,7 +318,6 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
       self->mError = CTM_BAD_FORMAT;
       return 0;
     }
-    _ctmStreamReadSTRING(self, &map->mName);
     if(!_ctmStreamReadPackedFloatArray(self, &map->mArray, self->mVertexCount, 4))
       return CTM_FALSE;
     map = map->mNext;
