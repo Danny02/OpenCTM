@@ -609,14 +609,16 @@ CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext);
 ///            ctmNewContext().
 CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext);
 
-/// Open an OpenCTM format file for writing.
+/// Open an OpenCTM format file for writing, and write the header and mesh
+/// information to it.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be saved.
-CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
+CTMEXPORT void CTMCALL ctmSaveFile(CTMcontext aContext,
   const char * aFileName);
 
-/// Open an OpenCTM format file for writing, using a custom write function.
+/// Open an OpenCTM format file for writing, using a custom write function,
+/// and write the header and mesh information to it.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
 /// @param[in] aWriteFn Pointer to a custom stream write function.
@@ -625,18 +627,8 @@ CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
 ///            of any type. The user data pointer will be passed to the
 ///            custom stream write function.
 /// @see CTMwritefn.
-CTMEXPORT void CTMCALL ctmOpenWriteCustom(CTMcontext aContext,
+CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   CTMwritefn aWriteFn, void * aUserData);
-
-/// Write the header data to an opened file.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-CTMEXPORT void CTMCALL ctmWriteHeader(CTMcontext aContext);
-
-/// Write the mesh data to an opened file.
-/// @param[in] aContext An OpenCTM context that has been created by
-///            ctmNewContext().
-CTMEXPORT void CTMCALL ctmWriteMesh(CTMcontext aContext);
 
 /// Write the next frame in an animated mesh to an opened file.
 /// @param[in] aContext An OpenCTM context that has been created by

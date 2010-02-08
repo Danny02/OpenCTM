@@ -31,9 +31,7 @@ EXPORTS
     ctmOpenReadCustom@12
     ctmReadMesh@4
     ctmReadNextFrame@4
-    ctmOpenWriteFile@8
-    ctmOpenWriteCustom@12
-    ctmWriteHeader@4
-    ctmWriteMesh@4
+    ctmSaveFile@8
+    ctmSaveCustom@12
     ctmWriteNextFrame@4
     ctmClose@4

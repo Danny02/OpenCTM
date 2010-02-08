@@ -1659,9 +1659,9 @@ static CTMuint CTMCALL _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
 #endif
 
 //-----------------------------------------------------------------------------
-// ctmOpenWriteFile()
+// ctmSaveFile()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
+CTMEXPORT void CTMCALL ctmSaveFile(CTMcontext aContext,
   const char * aFileName)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
@@ -1684,41 +1684,17 @@ CTMEXPORT void CTMCALL ctmOpenWriteFile(CTMcontext aContext,
   }
 
   // Continue with the custom write function...
-  ctmOpenWriteCustom(aContext, _ctmDefaultWrite, self->mFileStream);
+  ctmSaveCustom(aContext, _ctmDefaultWrite, self->mFileStream);
 #else
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
 
 //-----------------------------------------------------------------------------
-// ctmOpenWriteCustom()
+// ctmSaveCustom()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmOpenWriteCustom(CTMcontext aContext,
+CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   CTMwritefn aWriteFn, void * aUserData)
-{
-  _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return;
-
-#ifdef _CTM_SUPPORT_SAVE
-  // You are only allowed to save data in export mode
-  if(self->mMode != CTM_EXPORT)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Initialize stream
-  self->mWriteFn = aWriteFn;
-  self->mUserData = aUserData;
-#else
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-#endif
-}
-
-//-----------------------------------------------------------------------------
-// ctmWriteHeader()
-//-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmWriteHeader(CTMcontext aContext)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
 #ifdef _CTM_SUPPORT_SAVE
@@ -1733,6 +1709,17 @@ CTMEXPORT void CTMCALL ctmWriteHeader(CTMcontext aContext)
     self->mError = CTM_INVALID_OPERATION;
     return;
   }
+
+  // Check mesh integrity
+  if(!_ctmCheckMeshIntegrity(self))
+  {
+    self->mError = CTM_INVALID_MESH;
+    return;
+  }
+
+  // Initialize stream
+  self->mWriteFn = aWriteFn;
+  self->mUserData = aUserData;
 
   // Determine flags
   flags = 0;
@@ -1768,43 +1755,6 @@ CTMEXPORT void CTMCALL ctmWriteHeader(CTMcontext aContext)
   _ctmStreamWriteUINT(self, self->mFrameCount);
   _ctmStreamWriteSTRING(self, self->mFileComment);
 
-  // Clear the frame counter (no frames have been written yet)
-  self->mCurrentFrame = 0;
-#else
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-#endif
-}
-
-//-----------------------------------------------------------------------------
-// ctmWriteMesh()
-//-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmWriteMesh(CTMcontext aContext)
-{
-  _CTMcontext * self = (_CTMcontext *) aContext;
-  if(!self) return;
-
-#ifdef _CTM_SUPPORT_SAVE
-  // You are only allowed to save data in export mode
-  if(self->mMode != CTM_EXPORT)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Is this the first frame?
-  if(self->mCurrentFrame != 0)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Check mesh integrity
-  if(!_ctmCheckMeshIntegrity(self))
-  {
-    self->mError = CTM_INVALID_MESH;
-    return;
-  }
-
   // Compress to stream
   switch(self->mMethod)
   {
@@ -1832,7 +1782,7 @@ CTMEXPORT void CTMCALL ctmWriteMesh(CTMcontext aContext)
   }
 
   // We are done with the frame, on to the next...
-  ++ self->mCurrentFrame;
+  self->mCurrentFrame = 1;
 #else
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif

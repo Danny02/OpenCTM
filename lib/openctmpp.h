@@ -372,31 +372,17 @@ class CTMexporter {
       CheckError();
     }
 
-    /// Wrapper for ctmOpenWriteFile()
-    void OpenWriteFile(const char * aFileName)
+    /// Wrapper for ctmSaveFile()
+    void SaveFile(const char * aFileName)
     {
-      ctmOpenWriteFile(mContext, aFileName);
+      ctmSaveFile(mContext, aFileName);
       CheckError();
     }
 
-    /// Wrapper for ctmOpenWriteCustom()
-    void OpenWriteCustom(CTMwritefn aWriteFn, void * aUserData)
+    /// Wrapper for ctmSaveCustom()
+    void SaveCustom(CTMwritefn aWriteFn, void * aUserData)
     {
-      ctmOpenWriteCustom(mContext, aWriteFn, aUserData);
-      CheckError();
-    }
-
-    /// Wrapper for ctmWriteHeader()
-    void WriteHeader()
-    {
-      ctmWriteHeader(mContext);
-      CheckError();
-    }
-
-    /// Wrapper for ctmWriteMesh()
-    void WriteMesh()
-    {
-      ctmWriteMesh(mContext);
+      ctmSaveCustom(mContext, aWriteFn, aUserData);
       CheckError();
     }
 
