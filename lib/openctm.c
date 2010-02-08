@@ -1539,6 +1539,7 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   self->mUVMapCount = _ctmStreamReadUINT(self);
   self->mAttribMapCount = _ctmStreamReadUINT(self);
   flags = _ctmStreamReadUINT(self);
+  self->mFrameCount = _ctmStreamReadUINT(self);
   _ctmStreamReadSTRING(self, &self->mFileComment);
 
   // Decode the flags field

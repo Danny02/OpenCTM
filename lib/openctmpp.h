@@ -171,13 +171,11 @@ class CTMimporter {
     }
 
     /// Wrapper for ctmArrayPointer()
-    CTMfloat ArrayPointer(CTMenum aTarget, CTMuint aSize, CTMenum aType,
+    void ArrayPointer(CTMenum aTarget, CTMuint aSize, CTMenum aType,
       CTMuint aStride, void * aArray)
     {
-      CTMfloat res = ctmArrayPointer(mContext, aTarget, aSize, aType, aStride,
-                                     aArray);
+      ctmArrayPointer(mContext, aTarget, aSize, aType, aStride, aArray);
       CheckError();
-      return res;
     }
 
     /// Wrapper for ctmOpenReadFile()
@@ -195,7 +193,7 @@ class CTMimporter {
     }
 
     /// Wrapper for ctmReadMesh()
-    void ReadMesh();
+    void ReadMesh()
     {
       ctmReadMesh(mContext);
       CheckError();
@@ -300,13 +298,11 @@ class CTMexporter {
     }
 
     /// Wrapper for ctmArrayPointer()
-    CTMfloat ArrayPointer(CTMenum aTarget, CTMuint aSize, CTMenum aType,
+    void ArrayPointer(CTMenum aTarget, CTMuint aSize, CTMenum aType,
       CTMuint aStride, void * aArray)
     {
-      CTMfloat res = ctmArrayPointer(mContext, aTarget, aSize, aType, aStride,
-                                     aArray);
+      ctmArrayPointer(mContext, aTarget, aSize, aType, aStride, aArray);
       CheckError();
-      return res;
     }
 
     /// Wrapper for ctmFileComment()
@@ -394,9 +390,9 @@ class CTMexporter {
     }
 
     /// Wrapper for ctmClose()
-    void ctmClose()
+    void Close()
     {
-      Close(mContext);
+      ctmClose(mContext);
       CheckError();
     }
 
