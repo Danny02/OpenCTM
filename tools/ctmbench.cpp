@@ -55,7 +55,11 @@ void BenchmarkLoads(int aIterations, const char * aFileName, double &tMin,
     timer.Push();
 
     // Load the file
-    ctm.Load(aFileName);
+    ctm.OpenReadFile(aFileName);
+    CTMuint frameCount = ctm.GetInteger(CTM_FRAME_COUNT);
+    ctm.ReadMesh();
+    for(CTMuint j = 1; j < frameCount; ++ j)
+      ctm.ReadNextFrame();
 
     // Stop the timer
     double t = timer.PopDelta();
@@ -85,23 +89,25 @@ void BenchmarkSaves(int aIterations, const char * aInFile, const char * aOutFile
 
   // Load the file
   CTMimporter in;
-  in.Load(aInFile);
+  in.OpenReadFile(aInFile);
 
   // Extract mesh definition
-  CTMint triCount = in.GetInteger(CTM_TRIANGLE_COUNT);
-  CTMint vertCount = in.GetInteger(CTM_VERTEX_COUNT);
-  const CTMuint * indx = in.GetIntegerArray(CTM_INDICES);
-  const CTMfloat * vert = in.GetFloatArray(CTM_VERTICES);
-  const CTMfloat * norm = 0;
-  if(in.GetInteger(CTM_HAS_NORMALS))
-    norm = in.GetFloatArray(CTM_NORMALS);
+  CTMuint triCount = in.GetInteger(CTM_TRIANGLE_COUNT);
+  CTMuint vertCount = in.GetInteger(CTM_VERTEX_COUNT);
+  bool hasNormals = (in.GetInteger(CTM_HAS_NORMALS) == CTM_TRUE);
+  CTMuint uvCount = in.GetInteger(CTM_UV_MAP_COUNT);
+  CTMuint attrCount = in.GetInteger(CTM_ATTRIB_MAP_COUNT);
+  CTMuint frameCount = in.GetInteger(CTM_FRAME_COUNT);
 
   // Iterate...
   cout << "Doing " << aIterations << " save iterations..." << endl << flush;
   for(int i = 0; i < aIterations; ++ i)
   {
-    // Define the mesh
     CTMexporter out;
+
+    // FIXME: Not yet implemented...
+/*
+    // Define the mesh
     out.DefineMesh(vert, vertCount, indx, triCount, norm);
 
     int uvCount = in.GetInteger(CTM_UV_MAP_COUNT);
@@ -120,6 +126,7 @@ void BenchmarkSaves(int aIterations, const char * aInFile, const char * aOutFile
       const char * name = in.GetAttribMapString(CTMenum(CTM_ATTRIB_MAP_1 + k), CTM_NAME);
       out.AddAttribMap(attrMap, name);
     }
+*/
 
     // Select compression parameters
     out.CompressionMethod(CTM_METHOD_MG1);
@@ -128,7 +135,7 @@ void BenchmarkSaves(int aIterations, const char * aInFile, const char * aOutFile
     timer.Push();
 
     // Save the file
-    out.Save(aOutFile);
+    out.SaveFile(aOutFile);
 
     // Stop the timer
     double t = timer.PopDelta();
