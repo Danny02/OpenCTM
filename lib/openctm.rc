@@ -16,6 +16,7 @@
 				VALUE "OriginalFilename", "openctm.dll"
 				VALUE "LegalCopyright", "© 2009-2010 Marcus Geelnard"
 				VALUE "License", "This software is released under the zlib/libpng license."
+				VALUE "URL", "http://openctm.sourceforge.net/"
 			END
 		END
 
