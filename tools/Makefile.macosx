@@ -45,7 +45,7 @@ CTMBENCHOBJS = ctmbench.o systimer.o
 
 all: ctmconv ctmviewer ctmbench
 
-libopenctm.dylib: $(OPENCTMDIR)/libopenctm.dylib
+libopenctm2.dylib: $(OPENCTMDIR)/libopenctm2.dylib
 	cp $< $@
 
 clean:
@@ -54,14 +54,14 @@ clean:
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.macosx clean
 	cd $(ZLIBDIR) && $(MAKE) -f Makefile.macosx clean
 
-ctmconv: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a $(OPENCTMDIR)/libopenctm.dylib
-	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm -ltinyxml
+ctmconv: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a libopenctm2.dylib
+	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm2 -ltinyxml
 
-ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a $(OPENCTMDIR)/libopenctm.dylib
-	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lz -framework GLUT -framework OpenGL -framework Cocoa
+ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a libopenctm2.dylib
+	$(CPP) -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm2 -ltinyxml -ljpeg -lz -framework GLUT -framework OpenGL -framework Cocoa
 
-ctmbench: $(CTMBENCHOBJS) $(OPENCTMDIR)/libopenctm.dylib
-	$(CPP) -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm
+ctmbench: $(CTMBENCHOBJS) libopenctm2.dylib
+	$(CPP) -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm2
 
 %.o: %.cpp
 	$(CPP) $(CPPFLAGS) -o $@ $<

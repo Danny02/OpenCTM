@@ -34,8 +34,8 @@ RM = del /Q
 DEPEND = $(CC) -MM
 RC = windres
 
-DYNAMICLIB = openctm.dll
-LINKLIB = libopenctm.a
+DYNAMICLIB = openctm2.dll
+LINKLIB = libopenctm2.a
 
 OBJS = openctm.o \
        stream.o \

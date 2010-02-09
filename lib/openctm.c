@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "openctm.h"
+#include "openctm2.h"
 #include "internal.h"
 
 

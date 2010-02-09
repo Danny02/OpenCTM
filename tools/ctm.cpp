@@ -26,7 +26,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdexcept>
-#include <openctm.h>
+#include <openctm2.h>
 #include "ctm.h"
 
 using namespace std;

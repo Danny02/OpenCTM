@@ -25,7 +25,7 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
-#include "openctm.h"
+#include "openctm2.h"
 #include "internal.h"
 
 #ifdef _CTM_SUPPORT_RAW

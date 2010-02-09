@@ -1,4 +1,4 @@
-LIBRARY openctm.dll
+LIBRARY openctm2.dll
 EXPORTS
     ctmNewContext@4
     ctmFreeContext@4

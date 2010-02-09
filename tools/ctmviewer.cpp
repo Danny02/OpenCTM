@@ -38,7 +38,7 @@
 #else
   #include <GL/glut.h>
 #endif
-#include <openctm.h>
+#include <openctm2.h>
 #include "mesh.h"
 #include "meshio.h"
 #include "sysdialog.h"

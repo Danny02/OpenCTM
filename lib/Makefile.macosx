@@ -33,7 +33,7 @@ CFLAGS_LZMA = -O3 -W -Wall -c -fvisibility=hidden -DLZMA_PREFIX_CTM -std=c99 -pe
 RM = rm -f
 DEPEND = $(CPP) -MM
 
-DYNAMICLIB = libopenctm.dylib
+DYNAMICLIB = libopenctm2.dylib
 
 OBJS = openctm.o \
        stream.o \

@@ -50,17 +50,17 @@ clean:
 	cd $(TINYXMLDIR) && $(MAKE) -f Makefile.mingw clean
 	cd $(ZLIBDIR) && $(MAKE) -f Makefile.mingw clean
 
-openctm.dll: $(OPENCTMDIR)\openctm.dll
+openctm2.dll: $(OPENCTMDIR)\openctm2.dll
 	copy $< $@
 
-ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a openctm.dll
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm -ltinyxml
+ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a openctm2.dll
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -lopenctm2 -ltinyxml
 
-ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a openctm.dll
-	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm -ltinyxml -ljpeg -lz -lfreeglut -lopengl32 -lglu32 -lcomdlg32
+ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a openctm2.dll
+	$(CPP) -mwindows -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -lopenctm2 -ltinyxml -ljpeg -lz -lfreeglut -lopengl32 -lglu32 -lcomdlg32
 
-ctmbench.exe: $(CTMBENCHOBJS) openctm.dll
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm
+ctmbench.exe: $(CTMBENCHOBJS) openctm2.dll
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -lopenctm2
 
 %.o: %.cpp
 	$(CPP) $(CPPFLAGS) -o $@ $<

@@ -30,7 +30,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-#include <openctm.h>
+#include <openctm2.h>
 #include "systimer.h"
 
 using namespace std;

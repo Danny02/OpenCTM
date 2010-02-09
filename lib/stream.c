@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <LzmaLib.h>
-#include "openctm.h"
+#include "openctm2.h"
 #include "internal.h"
 
 #ifdef __DEBUG_

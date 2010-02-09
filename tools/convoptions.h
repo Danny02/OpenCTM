@@ -29,7 +29,7 @@
 #define __CONVOPTIONS_H_
 
 #include <string>
-#include <openctm.h>
+#include <openctm2.h>
 
 
 typedef enum {

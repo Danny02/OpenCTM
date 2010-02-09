@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Product:     OpenCTM
-// File:        openctm.h
+// File:        openctm2.h
 // Description: OpenCTM API definition.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Marcus Geelnard
@@ -25,8 +25,8 @@
 //     distribution.
 //-----------------------------------------------------------------------------
 
-#ifndef __OPENCTM_H_
-#define __OPENCTM_H_
+#ifndef __OPENCTM2_H_
+#define __OPENCTM2_H_
 
 /*! @mainpage OpenCTM API Reference
  *
@@ -647,7 +647,7 @@ CTMEXPORT void CTMCALL ctmClose(CTMcontext aContext);
 
 // C++ extensions to the API (to disable C++ extensions, define OPENCTM_NO_CPP)
 #if defined(__cplusplus) && !defined(OPENCTM_NO_CPP)
-  #include "openctmpp.h"
+  #include "openctm2pp.h"
 #endif
 
-#endif // __OPENCTM_H_
+#endif // __OPENCTM2_H_

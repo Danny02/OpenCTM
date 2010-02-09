@@ -13,7 +13,7 @@
 				VALUE "FileVersion", "2.0.0.0"
 				VALUE "FileDescription", "OpenCTM API shared library"
 				VALUE "ProductName", "OpenCTM"
-				VALUE "OriginalFilename", "openctm.dll"
+				VALUE "OriginalFilename", "openctm2.dll"
 				VALUE "LegalCopyright", "© 2009-2010 Marcus Geelnard"
 				VALUE "License", "This software is released under the zlib/libpng license."
 				VALUE "URL", "http://openctm.sourceforge.net/"

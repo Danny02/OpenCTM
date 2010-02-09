@@ -34,7 +34,7 @@ CFLAGS_LZMA = -O3 -W -Wall -c -fPIC -DLZMA_PREFIX_CTM -std=c99 -pedantic
 RM = rm -f
 DEPEND = $(CPP) -MM
 
-DYNAMICLIB = libopenctm.so
+DYNAMICLIB = libopenctm2.so
 
 OBJS = openctm.o \
        stream.o \

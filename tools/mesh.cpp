@@ -26,7 +26,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdexcept>
-#include <openctm.h>
+#include <openctm2.h>
 #include <cmath>
 #include "mesh.h"
 #include "convoptions.h"

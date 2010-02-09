@@ -50,17 +50,17 @@ clean:
 	cd $(TINYXMLDIR) && $(MAKE) /fMakefile.msvc clean
 	cd $(ZLIBDIR) && $(MAKE) /fMakefile.msvc clean
 
-openctm.dll: $(OPENCTMDIR)\openctm.dll
-	copy $(OPENCTMDIR)\openctm.dll openctm.dll
+openctm.dll: $(OPENCTMDIR)\openctm2.dll
+	copy $(OPENCTMDIR)\openctm2.dll openctm2.dll
 
-ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)\tinyxml.lib openctm.dll
-	$(CPP) /nologo /Fe$@ $(CTMCONVOBJS) /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) openctm.lib tinyxml.lib
+ctmconv.exe: $(CTMCONVOBJS) $(TINYXMLDIR)\tinyxml.lib
+	$(CPP) /nologo /Fe$@ $(CTMCONVOBJS) /link /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) openctm2.lib tinyxml.lib
 
-ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)\libjpeg.lib $(TINYXMLDIR)\tinyxml.lib $(ZLIBDIR)\libz.lib openctm.dll
-	$(CPP) /nologo /Fe$@ $(CTMVIEWEROBJS) /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) /LIBPATH:$(JPEGDIR) /LIBPATH:$(ZLIBDIR) openctm.lib tinyxml.lib glut.lib libjpeg.lib libz.lib opengl32.lib glu32.lib
+ctmviewer.exe: $(CTMVIEWEROBJS) $(JPEGDIR)\libjpeg.lib $(TINYXMLDIR)\tinyxml.lib $(ZLIBDIR)\libz.lib
+	$(CPP) /nologo /Fe$@ $(CTMVIEWEROBJS) /link /subsystem:windows /entry:mainCRTStartup /LIBPATH:$(OPENCTMDIR) /LIBPATH:$(TINYXMLDIR) /LIBPATH:$(JPEGDIR) /LIBPATH:$(ZLIBDIR) openctm2.lib tinyxml.lib glut.lib libjpeg.lib libz.lib opengl32.lib glu32.lib
 
-ctmbench.exe: $(CTMBENCHOBJS) openctm.dll
-	$(CPP) /nologo /Fe$@ $(CTMBENCHOBJS) /link /LIBPATH:$(OPENCTMDIR) openctm.lib
+ctmbench.exe: $(CTMBENCHOBJS)
+	$(CPP) /nologo /Fe$@ $(CTMBENCHOBJS) /link /LIBPATH:$(OPENCTMDIR) openctm2.lib
 
 .cpp.obj:
 	$(CPP) $(CPPFLAGS) /Fo$@ $<

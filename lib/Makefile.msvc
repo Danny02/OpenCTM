@@ -33,8 +33,8 @@ CFLAGS_LZMA = /nologo /Ox /W3 /c /DLZMA_PREFIX_CTM
 RM = del /Q
 RC = rc
 
-DYNAMICLIB = openctm.dll
-LINKLIB = openctm.lib
+DYNAMICLIB = openctm2.dll
+LINKLIB = openctm2.lib
 
 OBJS = openctm.obj \
        stream.obj \
@@ -73,19 +73,19 @@ $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-msvc.def openctm.res
 openctm.res: openctm.rc
 	$(RC) openctm.rc
 
-openctm.obj: openctm.c openctm.h internal.h config.h
+openctm.obj: openctm.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) openctm.c
 
-stream.obj: stream.c openctm.h internal.h config.h
+stream.obj: stream.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) stream.c
 
-compressRAW.obj: compressRAW.c openctm.h internal.h config.h
+compressRAW.obj: compressRAW.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) compressRAW.c
 
-compressMG1.obj: compressMG1.c openctm.h internal.h config.h
+compressMG1.obj: compressMG1.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) compressMG1.c
 
-compressMG2.obj: compressMG2.c openctm.h internal.h config.h
+compressMG2.obj: compressMG2.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) compressMG2.c
 
 Alloc.obj: $(LZMADIR)\Alloc.c $(LZMADIR)\Alloc.h $(LZMADIR)\NameMangle.h

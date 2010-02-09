@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Product:     OpenCTM
-// File:        openctmpp.h
+// File:        openctm2pp.h
 // Description: C++ wrapper for the OpenCTM API.
 //-----------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Marcus Geelnard
@@ -28,12 +28,12 @@
 // To disable C++ extensions, define OPENCTM_NO_CPP
 #ifndef OPENCTM_NO_CPP
 
-#ifndef __OPENCTMPP_H_
-#define __OPENCTMPP_H_
+#ifndef __OPENCTM2PP_H_
+#define __OPENCTM2PP_H_
 
-// Just in case (if this file was included from outside openctm.h)...
-#ifndef __OPENCTM_H_
-#include "openctm.h"
+// Just in case (if this file was included from outside openctm2.h)...
+#ifndef __OPENCTM2_H_
+#include "openctm2.h"
 #endif
 
 #include <exception>
@@ -404,6 +404,6 @@ class CTMexporter {
     CTMexporter& operator=(const CTMexporter& v);
 };
 
-#endif // __OPENCTMPP_H_
+#endif // __OPENCTM2PP_H_
 
 #endif // OPENCTM_NO_CPP
