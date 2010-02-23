@@ -76,27 +76,29 @@ typedef struct {
 //-----------------------------------------------------------------------------
 static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
 {
-  CTMuint i;
-  CTMfloat factor[3], sum, wantedGrids;
+  CTMuint i, j;
+  CTMfloat p[3], factor[3], sum, wantedGrids;
 
   // Calculate the mesh bounding box
-  aGrid->mMin[0] = aGrid->mMax[0] = self->mVertices[0];
-  aGrid->mMin[1] = aGrid->mMax[1] = self->mVertices[1];
-  aGrid->mMin[2] = aGrid->mMax[2] = self->mVertices[2];
+  aGrid->mMin[0] = aGrid->mMax[0] = _ctmGetArrayf(&self->mVertices, 0, 0);
+  aGrid->mMin[1] = aGrid->mMax[1] = _ctmGetArrayf(&self->mVertices, 0, 1);
+  aGrid->mMin[2] = aGrid->mMax[2] = _ctmGetArrayf(&self->mVertices, 0, 2);
   for(i = 1; i < self->mVertexCount; ++ i)
   {
-    if(self->mVertices[i * 3] < aGrid->mMin[0])
-      aGrid->mMin[0] = self->mVertices[i * 3];
-    else if(self->mVertices[i * 3] > aGrid->mMax[0])
-      aGrid->mMax[0] = self->mVertices[i * 3];
-    if(self->mVertices[i * 3 + 1] < aGrid->mMin[1])
-      aGrid->mMin[1] = self->mVertices[i * 3 + 1];
-    else if(self->mVertices[i * 3 + 1] > aGrid->mMax[1])
-      aGrid->mMax[1] = self->mVertices[i * 3 + 1];
-    if(self->mVertices[i * 3 + 2] < aGrid->mMin[2])
-      aGrid->mMin[2] = self->mVertices[i * 3 + 2];
-    else if(self->mVertices[i * 3 + 2] > aGrid->mMax[2])
-      aGrid->mMax[2] = self->mVertices[i * 3 + 2];
+    for(j = 0; j < 3; ++ j)
+      p[j] = _ctmGetArrayf(&self->mVertices, i, j);
+    if(p[0] < aGrid->mMin[0])
+      aGrid->mMin[0] = p[0];
+    else if(p[0] > aGrid->mMax[0])
+      aGrid->mMax[0] = p[0];
+    if(p[1] < aGrid->mMin[1])
+      aGrid->mMin[1] = p[1];
+    else if(p[1] > aGrid->mMax[1])
+      aGrid->mMax[1] = p[1];
+    if(p[2] < aGrid->mMin[2])
+      aGrid->mMin[2] = p[2];
+    else if(p[2] > aGrid->mMax[2])
+      aGrid->mMax[2] = p[2];
   }
 
   // Determine optimal grid resolution, based on the number of vertices and
@@ -197,14 +199,17 @@ static int _compareVertex(const void * elem1, const void * elem2)
 static void _ctmSortVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
   _CTMgrid * aGrid)
 {
-  CTMuint i;
+  CTMfloat p[3];
+  CTMuint i, j;
 
   // Prepare sort vertex array
   for(i = 0; i < self->mVertexCount; ++ i)
   {
     // Store vertex properties in the sort vertex array
-    aSortVertices[i].x = self->mVertices[i * 3];
-    aSortVertices[i].mGridIndex = _ctmPointToGridIdx(aGrid, &self->mVertices[i * 3]);
+    for(j = 0; j < 3; ++ j)
+      p[j] = _ctmGetArrayf(&self->mVertices, i, j);
+    aSortVertices[i].x = p[0];
+    aSortVertices[i].mGridIndex = _ctmPointToGridIdx(aGrid, p);
     aSortVertices[i].mOriginalIndex = i;
   }
 
@@ -219,7 +224,7 @@ static void _ctmSortVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
 static int _ctmReIndexIndices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
   CTMuint * aIndices)
 {
-  CTMuint i, * indexLUT;
+  CTMuint i, j, * indexLUT, * ptr;
 
   // Create temporary lookup-array, O(n)
   indexLUT = (CTMuint *) malloc(sizeof(CTMuint) * self->mVertexCount);
@@ -232,8 +237,10 @@ static int _ctmReIndexIndices(_CTMcontext * self, _CTMsortvertex * aSortVertices
     indexLUT[aSortVertices[i].mOriginalIndex] = i;
 
   // Convert old indices to new indices, O(n)
-  for(i = 0; i < self->mTriangleCount * 3; ++ i)
-    aIndices[i] = indexLUT[self->mIndices[i]];
+  ptr = aIndices;
+  for(i = 0; i < self->mTriangleCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      *ptr ++ = indexLUT[_ctmGetArrayi(&self->mIndices, i, j)];
 
   // Free temporary lookup-array
   free((void *) indexLUT);
@@ -349,8 +356,8 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
 static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
   _CTMsortvertex * aSortVertices, _CTMgrid * aGrid)
 {
-  CTMuint i, gridIdx, prevGridIndex, oldIdx;
-  CTMfloat gridOrigin[3], scale;
+  CTMuint i, j, gridIdx, prevGridIndex, oldIdx;
+  CTMfloat gridOrigin[3], p[3], scale;
   CTMint deltaX, prevDeltaX;
 
   // Vertex scaling factor
@@ -367,16 +374,20 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
     // Get old vertex coordinate index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
+    // Get vertex coordinate
+    for(j = 0; j < 3; ++ j)
+      p[j] = _ctmGetArrayf(&self->mVertices, oldIdx, j);
+    
     // Store delta to the grid box origin in the integer vertex array. For the
     // X axis (which is sorted) we also do the delta to the previous coordinate
     // in the box.
-    deltaX = (CTMint) floorf(scale * (self->mVertices[oldIdx * 3] - gridOrigin[0]) + 0.5f);
+    deltaX = (CTMint) floorf(scale * (p[0] - gridOrigin[0]) + 0.5f);
     if(gridIdx == prevGridIndex)
       aIntVertices[i * 3] = deltaX - prevDeltaX;
     else
       aIntVertices[i * 3] = deltaX;
-    aIntVertices[i * 3 + 1] = (CTMint) floorf(scale * (self->mVertices[oldIdx * 3 + 1] - gridOrigin[1]) + 0.5f);
-    aIntVertices[i * 3 + 2] = (CTMint) floorf(scale * (self->mVertices[oldIdx * 3 + 2] - gridOrigin[2]) + 0.5f);
+    aIntVertices[i * 3 + 1] = (CTMint) floorf(scale * (p[1] - gridOrigin[1]) + 0.5f);
+    aIntVertices[i * 3 + 2] = (CTMint) floorf(scale * (p[2] - gridOrigin[2]) + 0.5f);
 
     prevGridIndex = gridIdx;
     prevDeltaX = deltaX;
@@ -532,7 +543,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 {
   CTMuint i, j, oldIdx, intPhi;
   CTMfloat magn, phi, theta, scale, thetaScale;
-  CTMfloat * smoothNormals, n[3], n2[3], basisAxes[9];
+  CTMfloat * smoothNormals, n0[3], n[3], n2[3], basisAxes[9];
 
   // Allocate temporary memory for the nominal vertex normals
   smoothNormals = (CTMfloat *) malloc(3 * sizeof(CTMfloat) * self->mVertexCount);
@@ -554,18 +565,20 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
     // Get old normal index (before vertex sorting)
     oldIdx = aSortVertices[i].mOriginalIndex;
 
+    // Get the normal
+    for(j = 0; j < 3; ++ j)
+      n0[j] = _ctmGetArrayf(&self->mNormals, oldIdx, j);
+
     // Calculate normal magnitude (should always be 1.0 for unit length normals)
-    magn = sqrtf(self->mNormals[oldIdx * 3] * self->mNormals[oldIdx * 3] +
-                 self->mNormals[oldIdx * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
-                 self->mNormals[oldIdx * 3 + 2] * self->mNormals[oldIdx * 3 + 2]);
+    magn = sqrtf(n0[0] * n0[0] + n0[1] * n0[1] + n0[2] * n0[2]);
     if(magn < 1e-10f)
       magn = 1.0f;
 
     // Invert magnitude if the normal is negative compared to the predicted
     // smooth normal
-    if((smoothNormals[i * 3] * self->mNormals[oldIdx * 3] +
-        smoothNormals[i * 3 + 1] * self->mNormals[oldIdx * 3 + 1] +
-        smoothNormals[i * 3 + 2] * self->mNormals[oldIdx * 3 + 2]) < 0.0f)
+    if((smoothNormals[i * 3] * n0[0] +
+        smoothNormals[i * 3 + 1] * n0[1] +
+        smoothNormals[i * 3 + 2] * n0[2]) < 0.0f)
       magn = -magn;
 
     // Store the magnitude in the first element of the three normal elements
@@ -574,7 +587,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
     // Normalize the normal (1 / magn) - and flip it if magn < 0
     magn = 1.0f / magn;
     for(j = 0; j < 3; ++ j)
-      n[j] = self->mNormals[oldIdx * 3 + j] * magn;
+      n[j] = n0[j] * magn;
 
     // Convert the normal to angular representation (phi, theta) in a coordinate
     // system where the nominal (smooth) normal is the Z-axis
@@ -660,7 +673,7 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
 
     // Apply normal magnitude, and output to the normals array
     for(j = 0; j < 3; ++ j)
-      self->mNormals[i * 3 + j] = n[j] * magn;
+      _ctmSetArrayf(&self->mNormals, i, j, n[j] * magn);
   }
 
   // Free temporary resources
@@ -690,8 +703,8 @@ static void _ctmMakeUVCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
     oldIdx = aSortVertices[i].mOriginalIndex;
 
     // Convert to fixed point
-    u = (CTMint) floorf(scale * aMap->mValues[oldIdx * 2] + 0.5f);
-    v = (CTMint) floorf(scale * aMap->mValues[oldIdx * 2 + 1] + 0.5f);
+    u = (CTMint) floorf(scale * _ctmGetArrayf(&aMap->mArray, oldIdx, 0) + 0.5f);
+    v = (CTMint) floorf(scale * _ctmGetArrayf(&aMap->mArray, oldIdx, 1) + 0.5f);
 
     // Calculate delta and store it in the converted array. NOTE: Here we rely
     // on the fact that vertices are sorted, and usually close to each other,
@@ -726,8 +739,8 @@ static void _ctmRestoreUVCoords(_CTMcontext * self, _CTMfloatmap * aMap,
     v = aIntUVCoords[i * 2 + 1] + prevV;
 
     // Convert to floating point
-    aMap->mValues[i * 2] = (CTMfloat) u * scale;
-    aMap->mValues[i * 2 + 1] = (CTMfloat) v * scale;
+    _ctmSetArrayf(&aMap->mArray, i, 0, (CTMfloat) u * scale);
+    _ctmSetArrayf(&aMap->mArray, i, 1, (CTMfloat) v * scale);
 
     prevU = u;
     prevV = v;
@@ -763,7 +776,7 @@ static void _ctmMakeAttribDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
     // the geometry)...
     for(j = 0; j < 4; ++ j)
     {
-      value[j] = (CTMint) floorf(scale * aMap->mValues[oldIdx * 4 + j] + 0.5f);
+      value[j] = (CTMint) floorf(scale * _ctmGetArrayf(&aMap->mArray, oldIdx, j) + 0.5f);
       aIntAttribs[i * 4 + j] = value[j] - prev[j];
       prev[j] = value[j];
     }
@@ -793,7 +806,7 @@ static void _ctmRestoreAttribs(_CTMcontext * self, _CTMfloatmap * aMap,
     for(j = 0; j < 4; ++ j)
     {
       value[j] = aIntAttribs[i * 4 + j] + prev[j];
-      aMap->mValues[i * 4 + j] = (CTMfloat) value[j] * scale;
+      _ctmSetArrayf(&aMap->mArray, i, j, (CTMfloat) value[j] * scale);
       prev[j] = value[j];
     }
   }
@@ -961,7 +974,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   // Free temporary data for the indices
   free((void *) deltaIndices);
 
-  if(self->mNormals)
+  if(self->mHasNormals)
   {
     // Convert normals to integers and calculate deltas (entropy-reduction)
     intNormals = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
@@ -1023,8 +1036,6 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     printf("Texture coordinates (%s): ", map->mName ? map->mName : "no name");
 #endif
     _ctmStreamWrite(self, (void *) "TEXC", 4);
-    _ctmStreamWriteSTRING(self, map->mName);
-    _ctmStreamWriteSTRING(self, map->mFileName);
     _ctmStreamWriteFLOAT(self, map->mPrecision);
     if(!_ctmStreamWritePackedInts(self, intUVCoords, self->mVertexCount, 2, CTM_TRUE))
     {
@@ -1058,7 +1069,6 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
     printf("Vertex attributes (%s): ", map->mName ? map->mName : "no name");
 #endif
     _ctmStreamWrite(self, (void *) "ATTR", 4);
-    _ctmStreamWriteSTRING(self, map->mName);
     _ctmStreamWriteFLOAT(self, map->mPrecision);
     if(!_ctmStreamWritePackedInts(self, intAttribs, self->mVertexCount, 4, CTM_TRUE))
     {
@@ -1254,8 +1264,6 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       free((void *) intUVCoords);
       return CTM_FALSE;
     }
-    _ctmStreamReadSTRING(self, &map->mName);
-    _ctmStreamReadSTRING(self, &map->mFileName);
     map->mPrecision = _ctmStreamReadFLOAT(self);
     if(map->mPrecision <= 0.0f)
     {
@@ -1294,7 +1302,6 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
       free((void *) intAttribs);
       return CTM_FALSE;
     }
-    _ctmStreamReadSTRING(self, &map->mName);
     map->mPrecision = _ctmStreamReadFLOAT(self);
     if(map->mPrecision <= 0.0f)
     {
