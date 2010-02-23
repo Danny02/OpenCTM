@@ -1560,30 +1560,36 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   }
 
   // Read UV map info
-  if(_ctmStreamReadUINT(self) != FOURCC("UINF"))
+  if(self->mUVMaps)
   {
-    self->mError = CTM_BAD_FORMAT;
-    return;
-  }
-  map = self->mUVMaps;
-  while(map)
-  {
-    _ctmStreamReadSTRING(self, &map->mName);
-    _ctmStreamReadSTRING(self, &map->mFileName);
-    map = map->mNext;
+    if(_ctmStreamReadUINT(self) != FOURCC("UINF"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return;
+    }
+    map = self->mUVMaps;
+    while(map)
+    {
+      _ctmStreamReadSTRING(self, &map->mName);
+      _ctmStreamReadSTRING(self, &map->mFileName);
+      map = map->mNext;
+    }
   }
 
   // Read attribute map info
-  if(_ctmStreamReadUINT(self) != FOURCC("AINF"))
+  if(self->mAttribMaps)
   {
-    self->mError = CTM_BAD_FORMAT;
-    return;
-  }
-  map = self->mAttribMaps;
-  while(map)
-  {
-    _ctmStreamReadSTRING(self, &map->mName);
-    map = map->mNext;
+    if(_ctmStreamReadUINT(self) != FOURCC("AINF"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return;
+    }
+    map = self->mAttribMaps;
+    while(map)
+    {
+      _ctmStreamReadSTRING(self, &map->mName);
+      map = map->mNext;
+    }
   }
 
   // Clear the frame counter (no frames have been read yet)
@@ -1786,22 +1792,28 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   _ctmStreamWriteSTRING(self, self->mFileComment);
 
   // Write UV map info
-  _ctmStreamWrite(self, (void *) "UINF", 4);
-  map = self->mUVMaps;
-  while(map)
+  if(self->mUVMaps)
   {
-    _ctmStreamWriteSTRING(self, map->mName);
-    _ctmStreamWriteSTRING(self, map->mFileName);
-    map = map->mNext;
+    _ctmStreamWrite(self, (void *) "UINF", 4);
+    map = self->mUVMaps;
+    while(map)
+    {
+      _ctmStreamWriteSTRING(self, map->mName);
+      _ctmStreamWriteSTRING(self, map->mFileName);
+      map = map->mNext;
+    }
   }
 
   // Write attribute map info
-  _ctmStreamWrite(self, (void *) "AINF", 4);
-  map = self->mAttribMaps;
-  while(map)
+  if(self->mAttribMaps)
   {
-    _ctmStreamWriteSTRING(self, map->mName);
-    map = map->mNext;
+    _ctmStreamWrite(self, (void *) "AINF", 4);
+    map = self->mAttribMaps;
+    while(map)
+    {
+      _ctmStreamWriteSTRING(self, map->mName);
+      map = map->mNext;
+    }
   }
 
   // Compress to stream
