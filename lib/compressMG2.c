@@ -624,7 +624,8 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 //-----------------------------------------------------------------------------
 // _ctmRestoreNormals() - Convert the normals back to cartesian coordinates.
 //-----------------------------------------------------------------------------
-static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
+static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMuint * aIndices,
+  CTMfloat * aVertices, CTMint * aIntNormals)
 {
   CTMuint i, j, intPhi;
   CTMfloat magn, phi, theta, scale, thetaScale;
@@ -639,7 +640,7 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMint * aIntNormals)
   }
 
   // Calculate smooth normals (nominal normals)
-  _ctmCalcSmoothNormals(self, self->mVertices, self->mIndices, smoothNormals);
+  _ctmCalcSmoothNormals(self, aVertices, aIndices, smoothNormals);
 
   // Normal scaling factor
   scale = self->mNormalPrecision;
@@ -908,18 +909,23 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   // to use the same vertex data for calculating nominal normals as the
   // decompression routine (i.e. compensate for the vertex error when
   // calculating the normals)
-  restoredVertices = (CTMfloat *) malloc(sizeof(CTMfloat) * 3 * self->mVertexCount);
-  if(!restoredVertices)
+  if(self->mHasNormals)
   {
-    self->mError = CTM_OUT_OF_MEMORY;
-    free((void *) gridIndices);
-    free((void *) intVertices);
-    free((void *) sortVertices);
-    return CTM_FALSE;
+    restoredVertices = (CTMfloat *) malloc(sizeof(CTMfloat) * 3 * self->mVertexCount);
+    if(!restoredVertices)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      free((void *) gridIndices);
+      free((void *) intVertices);
+      free((void *) sortVertices);
+      return CTM_FALSE;
+    }
+    for(i = 1; i < self->mVertexCount; ++ i)
+      gridIndices[i] += gridIndices[i - 1];
+    _ctmRestoreVertices(self, intVertices, gridIndices, &grid, restoredVertices);
   }
-  for(i = 1; i < self->mVertexCount; ++ i)
-    gridIndices[i] += gridIndices[i - 1];
-  _ctmRestoreVertices(self, intVertices, gridIndices, &grid, restoredVertices);
+  else
+    restoredVertices = (CTMfloat *) 0;
 
   // Free temporary resources
   free((void *) gridIndices);
@@ -930,14 +936,14 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   if(!indices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
-    free((void *) restoredVertices);
+    if(restoredVertices) free((void *) restoredVertices);
     free((void *) sortVertices);
     return CTM_FALSE;
   }
   if(!_ctmReIndexIndices(self, sortVertices, indices))
   {
     free((void *) indices);
-    free((void *) restoredVertices);
+    if(restoredVertices) free((void *) restoredVertices);
     free((void *) sortVertices);
     return CTM_FALSE;
   }
@@ -949,7 +955,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   {
     self->mError = CTM_OUT_OF_MEMORY;
     free((void *) indices);
-    free((void *) restoredVertices);
+    if(restoredVertices) free((void *) restoredVertices);
     free((void *) sortVertices);
     return CTM_FALSE;
   }
@@ -966,7 +972,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
   {
     free((void *) deltaIndices);
     free((void *) indices);
-    free((void *) restoredVertices);
+    if(restoredVertices) free((void *) restoredVertices);
     free((void *) sortVertices);
     return CTM_FALSE;
   }
@@ -976,6 +982,15 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 
   if(self->mHasNormals)
   {
+    // Sanity check
+    if(!restoredVertices)
+    {
+      self->mError = CTM_INTERNAL_ERROR;
+      free((void *) indices);
+      free((void *) sortVertices);
+      return CTM_FALSE;
+    }
+
     // Convert normals to integers and calculate deltas (entropy-reduction)
     intNormals = (CTMint *) malloc(sizeof(CTMint) * 3 * self->mVertexCount);
     if(!intNormals)
@@ -1015,7 +1030,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 
   // Free restored indices and vertices
   free((void *) indices);
-  free((void *) restoredVertices);
+  if(restoredVertices) free((void *) restoredVertices);
 
   // Write UV maps
   map = self->mUVMaps;
@@ -1095,8 +1110,9 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 int _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
-  CTMuint * gridIndices, i;
+  CTMuint * gridIndices, * indices, i, j, idx;
   CTMint * intVertices, * intNormals, * intUVCoords, * intAttribs;
+  CTMfloat * vertices, * fPtr;
   _CTMfloatmap * map;
   _CTMgrid grid;
 
@@ -1188,7 +1204,24 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     gridIndices[i] += gridIndices[i - 1];
 
   // Restore vertices
-  _ctmRestoreVertices(self, intVertices, gridIndices, &grid, self->mVertices);
+  vertices = (CTMfloat *) malloc(sizeof(CTMfloat) * self->mVertexCount);
+  if(!gridIndices)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    free((void *) gridIndices);
+    free((void *) intVertices);
+    return CTM_FALSE;
+  }
+  _ctmRestoreVertices(self, intVertices, gridIndices, &grid, vertices);
+  fPtr = vertices;
+  for(i = 0; i < self->mVertexCount; ++ i)
+    for(j = 0; j < 3; ++ j)
+      _ctmSetArrayf(&self->mVertices, i, j, *fPtr ++);
+  if(!self->mHasNormals)
+  {
+    free((void *) vertices);
+    vertices = (CTMfloat *) 0;
+  }
 
   // Free temporary resources
   free((void *) gridIndices);
@@ -1198,27 +1231,52 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
     self->mError = CTM_BAD_FORMAT;
+    if(vertices) free((void *) vertices);
     return CTM_FALSE;
   }
-  if(!_ctmStreamReadPackedInts(self, (CTMint *) self->mIndices, self->mTriangleCount, 3, CTM_FALSE))
-    return CTM_FALSE;
-
-  // Restore indices
-  _ctmRestoreIndices(self, self->mIndices);
-
-  // Check that all indices are within range
-  for(i = 0; i < (self->mTriangleCount * 3); ++ i)
+  indices = (CTMuint *) malloc(sizeof(CTMuint) * self->mTriangleCount * 3);
+  if(!indices)
   {
-    if(self->mIndices[i] >= self->mVertexCount)
+    self->mError = CTM_OUT_OF_MEMORY;
+    if(vertices) free((void *) vertices);
+    return CTM_FALSE;
+  }
+  if(!_ctmStreamReadPackedInts(self, (CTMint *) indices, self->mTriangleCount, 3, CTM_FALSE))
+  {
+    free((void *) indices);
+    if(vertices) free((void *) vertices);
+    return CTM_FALSE;
+  }
+
+  // Restore indices, and check that all indices are within range
+  _ctmRestoreIndices(self, indices);
+  for(i = 0; i < self->mTriangleCount; ++ i)
+  {
+    for(j = 0; j < 3; ++ j)
     {
-      self->mError = CTM_INVALID_MESH;
-      return CTM_FALSE;
+      idx = indices[i * 3 + j];
+      if(idx >= self->mVertexCount)
+      {
+        self->mError = CTM_INVALID_MESH;
+        free((void *) indices);
+        if(vertices) free((void *) vertices);
+        return CTM_FALSE;
+      }
+      _ctmSetArrayi(&self->mIndices, i, j, idx);
     }
   }
 
   // Read normals
-  if(self->mNormals)
+  if(self->mHasNormals)
   {
+    // Sanity check
+    if(!vertices)
+    {
+      self->mError = CTM_INTERNAL_ERROR;
+      free((void *) indices);
+      return CTM_FALSE;
+    }
+
     intNormals = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 3);
     if(!intNormals)
     {
@@ -1238,7 +1296,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
 
     // Restore normals
-    if(!_ctmRestoreNormals(self, intNormals))
+    if(!_ctmRestoreNormals(self, indices, vertices, intNormals))
     {
       free((void *) intNormals);
       return CTM_FALSE;
@@ -1247,6 +1305,10 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     // Free temporary normals data
     free((void *) intNormals);
   }
+
+  // Free temporary resources
+  free((void *) indices);
+  if(vertices) free((void *) vertices);
 
   // Read UV maps
   map = self->mUVMaps;
