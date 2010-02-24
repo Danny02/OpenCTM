@@ -40,7 +40,7 @@
 #define _CTM_SUPPORT_MG1
 
 // Enable support for the MG2 method.
-//#define _CTM_SUPPORT_MG2
+#define _CTM_SUPPORT_MG2
 
 // Enable support for saving OpenCTM files.
 #define _CTM_SUPPORT_SAVE

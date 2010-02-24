@@ -1117,6 +1117,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   _CTMgrid grid;
 
   // Read MG2-specific header information from the stream
+#ifdef __DEBUG_
+  printf("Reading MG2 header.\n");
+#endif
   if(_ctmStreamReadUINT(self) != FOURCC("MG2H"))
   {
     self->mError = CTM_BAD_FORMAT;
@@ -1161,6 +1164,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     grid.mSize[i] = (grid.mMax[i] - grid.mMin[i]) / grid.mDivision[i];
 
   // Read vertices
+#ifdef __DEBUG_
+  printf("Reading vertices.\n");
+#endif
   if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
   {
     self->mError = CTM_BAD_FORMAT;
@@ -1179,6 +1185,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   }
 
   // Read grid indices
+#ifdef __DEBUG_
+  printf("Reading grid indices.\n");
+#endif
   if(_ctmStreamReadUINT(self) != FOURCC("GIDX"))
   {
     free((void *) intVertices);
@@ -1204,7 +1213,10 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     gridIndices[i] += gridIndices[i - 1];
 
   // Restore vertices
-  vertices = (CTMfloat *) malloc(sizeof(CTMfloat) * self->mVertexCount);
+#ifdef __DEBUG_
+  printf("Restoring vertices.\n");
+#endif
+  vertices = (CTMfloat *) malloc(sizeof(CTMfloat) * self->mVertexCount * 3);
   if(!gridIndices)
   {
     self->mError = CTM_OUT_OF_MEMORY;
@@ -1228,6 +1240,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   free((void *) intVertices);
 
   // Read triangle indices
+#ifdef __DEBUG_
+  printf("Reading triangle indices.\n");
+#endif
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
   {
     self->mError = CTM_BAD_FORMAT;
@@ -1249,6 +1264,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   }
 
   // Restore indices, and check that all indices are within range
+#ifdef __DEBUG_
+  printf("Restoring triangle indices.\n");
+#endif
   _ctmRestoreIndices(self, indices);
   for(i = 0; i < self->mTriangleCount; ++ i)
   {
@@ -1269,6 +1287,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   // Read normals
   if(self->mHasNormals)
   {
+#ifdef __DEBUG_
+    printf("Reading normals.\n");
+#endif
     // Sanity check
     if(!vertices)
     {
@@ -1296,6 +1317,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
 
     // Restore normals
+#ifdef __DEBUG_
+    printf("Restoring normals.\n");
+#endif
     if(!_ctmRestoreNormals(self, indices, vertices, intNormals))
     {
       free((void *) intNormals);
@@ -1314,6 +1338,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   map = self->mUVMaps;
   while(map)
   {
+#ifdef __DEBUG_
+    printf("Reading UV map \"%s\".\n", map->mName);
+#endif
     intUVCoords = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 2);
     if(!intUVCoords)
     {
@@ -1340,6 +1367,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
 
     // Restore UV coordinates
+#ifdef __DEBUG_
+    printf("Restoring UV coordinates.\n");
+#endif
     _ctmRestoreUVCoords(self, map, intUVCoords);
 
     // Free temporary UV coordinate data
@@ -1352,6 +1382,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
   map = self->mAttribMaps;
   while(map)
   {
+#ifdef __DEBUG_
+    printf("Reading attribute map \"%s\".\n", map->mName);
+#endif
     intAttribs = (CTMint *) malloc(sizeof(CTMint) * self->mVertexCount * 4);
     if(!intAttribs)
     {
@@ -1378,6 +1411,9 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
     }
 
     // Restore vertex attributes
+#ifdef __DEBUG_
+    printf("Restoring attribute values.\n");
+#endif
     _ctmRestoreAttribs(self, map, intAttribs);
 
     // Free temporary vertex attribute data
@@ -1385,6 +1421,10 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
 
     map = map->mNext;
   }
+
+#ifdef __DEBUG_
+  printf("MG2 done!\n");
+#endif
 
   return CTM_TRUE;
 }
