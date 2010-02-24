@@ -71,6 +71,7 @@ typedef struct {
   CTMuint mOriginalIndex;
 } _CTMsortvertex;
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmSetupGrid() - Setup the 3D space subdivision grid.
 //-----------------------------------------------------------------------------
@@ -136,7 +137,9 @@ static void _ctmSetupGrid(_CTMcontext * self, _CTMgrid * aGrid)
   for(i = 0; i < 3; ++ i)
     aGrid->mSize[i] = (aGrid->mMax[i] - aGrid->mMin[i]) / aGrid->mDivision[i];
 }
+#endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmPointToGridIdx() - Convert a point to a grid index.
 //-----------------------------------------------------------------------------
@@ -153,6 +156,7 @@ static CTMuint _ctmPointToGridIdx(_CTMgrid * aGrid, CTMfloat * aPoint)
 
   return idx[0] + aGrid->mDivision[0] * (idx[1] + aGrid->mDivision[1] * idx[2]);
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmGridIdxToPoint() - Convert a grid index to a point (the min x/y/z for
@@ -175,6 +179,7 @@ static void _ctmGridIdxToPoint(_CTMgrid * aGrid, CTMuint aIdx, CTMfloat * aPoint
     aPoint[i] = gridIdx[i] * aGrid->mSize[i] + aGrid->mMin[i];
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _compareVertex() - Comparator for the vertex sorting.
 //-----------------------------------------------------------------------------
@@ -191,7 +196,9 @@ static int _compareVertex(const void * elem1, const void * elem2)
   else
     return 0;
 }
+#endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmSortVertices() - Setup the vertex array. Assign each vertex to a grid
 // box, and sort all vertices.
@@ -217,7 +224,9 @@ static void _ctmSortVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
   // scondly by their x coordinates.
   qsort((void *) aSortVertices, self->mVertexCount, sizeof(_CTMsortvertex), _compareVertex);
 }
+#endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmReIndexIndices() - Re-index all indices, based on the sorted vertices.
 //-----------------------------------------------------------------------------
@@ -247,7 +256,9 @@ static int _ctmReIndexIndices(_CTMcontext * self, _CTMsortvertex * aSortVertices
 
   return CTM_TRUE;
 }
+#endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _compareTriangle() - Comparator for the triangle sorting.
 //-----------------------------------------------------------------------------
@@ -260,7 +271,9 @@ static int _compareTriangle(const void * elem1, const void * elem2)
   else
     return tri1[1] - tri2[1];
 }
+#endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmReArrangeTriangles() - Re-arrange all triangles for optimal
 // compression.
@@ -293,7 +306,9 @@ static void _ctmReArrangeTriangles(_CTMcontext * self, CTMuint * aIndices)
   // Step 2: Sort the triangles based on the first triangle index
   qsort((void *) aIndices, self->mTriangleCount, sizeof(CTMuint) * 3, _compareTriangle);
 }
+#endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmMakeIndexDeltas() - Calculate various forms of derivatives in order to
 // reduce data entropy.
@@ -320,6 +335,7 @@ static void _ctmMakeIndexDeltas(_CTMcontext * self, CTMuint * aIndices)
       aIndices[i * 3] -= aIndices[(i - 1) * 3];
   }
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmRestoreIndices() - Restore original indices (inverse derivative
@@ -349,6 +365,7 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
   }
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmMakeVertexDeltas() - Calculate various forms of derivatives in order to
 // reduce data entropy.
@@ -393,6 +410,7 @@ static void _ctmMakeVertexDeltas(_CTMcontext * self, CTMint * aIntVertices,
     prevDeltaX = deltaX;
   }
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmRestoreVertices() - Calculate inverse derivatives of the vertices.
@@ -534,6 +552,7 @@ static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
   y[2] = z[0] * x[1] - z[1] * x[0];
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmMakeNormalDeltas() - Convert the normals to a new coordinate system:
 // magnitude, phi, theta (relative to predicted smooth normals).
@@ -620,6 +639,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 
   return CTM_TRUE;
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmRestoreNormals() - Convert the normals back to cartesian coordinates.
@@ -683,6 +703,7 @@ static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMuint * aIndices,
   return CTM_TRUE;
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmMakeUVCoordDeltas() - Calculate various forms of derivatives in order
 // to reduce data entropy.
@@ -717,6 +738,7 @@ static void _ctmMakeUVCoordDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
     prevV = v;
   }
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmRestoreUVCoords() - Calculate inverse derivatives of the UV
@@ -748,6 +770,7 @@ static void _ctmRestoreUVCoords(_CTMcontext * self, _CTMfloatmap * aMap,
   }
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmMakeAttribDeltas() - Calculate various forms of derivatives in order
 // to reduce data entropy.
@@ -783,6 +806,7 @@ static void _ctmMakeAttribDeltas(_CTMcontext * self, _CTMfloatmap * aMap,
     }
   }
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmRestoreAttribs() - Calculate inverse derivatives of the vertex
@@ -813,6 +837,7 @@ static void _ctmRestoreAttribs(_CTMcontext * self, _CTMfloatmap * aMap,
   }
 }
 
+#ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmCompressMesh_MG2() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
@@ -1103,6 +1128,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 
   return CTM_TRUE;
 }
+#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // _ctmUncompressMesh_MG2() - Uncmpress the mesh from the input stream in the
