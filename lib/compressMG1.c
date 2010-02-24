@@ -237,6 +237,19 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 }
 #endif
 
+#ifdef _CTM_SUPPORT_SAVE
+//-----------------------------------------------------------------------------
+// _ctmCompressFrame_MG1() - Compress the next frame that is stored in the CTM
+// context using the MG1 method, and write it the the output stream in the CTM
+// context.
+//-----------------------------------------------------------------------------
+int _ctmCompressFrame_MG1(_CTMcontext * self)
+{
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+}
+#endif // _CTM_SUPPORT_SAVE
+
 //-----------------------------------------------------------------------------
 // _ctmUncompressMesh_MG1() - Uncmpress the mesh from the input stream in the
 // CTM context, and store the resulting mesh in the CTM context.
@@ -302,7 +315,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
     {
       self->mError = CTM_BAD_FORMAT;
-      return 0;
+      return CTM_FALSE;
     }
     if(!_ctmStreamReadPackedFloatArray(self, &map->mArray, self->mVertexCount, 2))
       return CTM_FALSE;
@@ -316,7 +329,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
     if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
     {
       self->mError = CTM_BAD_FORMAT;
-      return 0;
+      return CTM_FALSE;
     }
     if(!_ctmStreamReadPackedFloatArray(self, &map->mArray, self->mVertexCount, 4))
       return CTM_FALSE;
@@ -324,6 +337,17 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
   }
 
   return CTM_TRUE;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmUncompressFrame_MG1() - Uncmpress the next frame from the input stream
+// in the CTM context using the MG1 method, and store the resulting mesh in the
+// CTM context.
+//-----------------------------------------------------------------------------
+int _ctmUncompressFrame_MG1(_CTMcontext * self)
+{
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
 }
 
 #endif // _CTM_SUPPORT_MG1

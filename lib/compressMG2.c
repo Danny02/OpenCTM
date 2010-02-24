@@ -1130,6 +1130,19 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 }
 #endif // _CTM_SUPPORT_SAVE
 
+#ifdef _CTM_SUPPORT_SAVE
+//-----------------------------------------------------------------------------
+// _ctmCompressFrame_MG2() - Compress the next frame that is stored in the CTM
+// context using the MG2 method, and write it the the output stream in the CTM
+// context.
+//-----------------------------------------------------------------------------
+int _ctmCompressFrame_MG2(_CTMcontext * self)
+{
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+}
+#endif // _CTM_SUPPORT_SAVE
+
 //-----------------------------------------------------------------------------
 // _ctmUncompressMesh_MG2() - Uncmpress the mesh from the input stream in the
 // CTM context, and store the resulting mesh in the CTM context.
@@ -1453,6 +1466,17 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
 #endif
 
   return CTM_TRUE;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmUncompressFrame_MG2() - Uncmpress the next frame from the input stream
+// in the CTM context using the MG2 method, and store the resulting mesh in the
+// CTM context.
+//-----------------------------------------------------------------------------
+int _ctmUncompressFrame_MG2(_CTMcontext * self)
+{
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
 }
 
 #endif // _CTM_SUPPORT_MG2

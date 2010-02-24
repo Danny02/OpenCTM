@@ -163,17 +163,23 @@ int _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMu
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_RAW(_CTMcontext * self);
 int _ctmUncompressMesh_RAW(_CTMcontext * self);
+int _ctmCompressFrame_RAW(_CTMcontext * self);
+int _ctmUncompressFrame_RAW(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for compressMG1.c
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_MG1(_CTMcontext * self);
 int _ctmUncompressMesh_MG1(_CTMcontext * self);
+int _ctmCompressFrame_MG1(_CTMcontext * self);
+int _ctmUncompressFrame_MG1(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for compressMG2.c
 //-----------------------------------------------------------------------------
 int _ctmCompressMesh_MG2(_CTMcontext * self);
 int _ctmUncompressMesh_MG2(_CTMcontext * self);
+int _ctmCompressFrame_MG2(_CTMcontext * self);
+int _ctmUncompressFrame_MG2(_CTMcontext * self);
 
 #endif // __OPENCTM_INTERNAL_H_

@@ -1674,9 +1674,39 @@ CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext)
     return;
   }
 
-  // FIXME: Still not implemented...
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-  return;
+  // Uncompress from stream
+  switch(self->mMethod)
+  {
+    case CTM_METHOD_RAW:
+#ifdef _CTM_SUPPORT_RAW
+      _ctmUncompressFrame_RAW(self);
+      break;
+#else
+      self->mError = CTM_UNSUPPORTED_OPERATION;
+      return;
+#endif
+
+    case CTM_METHOD_MG1:
+#ifdef _CTM_SUPPORT_MG1
+      _ctmUncompressFrame_MG1(self);
+      break;
+#else
+      self->mError = CTM_UNSUPPORTED_OPERATION;
+      return;
+#endif
+
+    case CTM_METHOD_MG2:
+#ifdef _CTM_SUPPORT_MG2
+      _ctmUncompressFrame_MG2(self);
+      break;
+#else
+      self->mError = CTM_UNSUPPORTED_OPERATION;
+      return;
+#endif
+
+    default:
+      self->mError = CTM_INTERNAL_ERROR;
+  }
 
   // We are done with the frame, on to the next...
   ++ self->mCurrentFrame;
@@ -1872,9 +1902,31 @@ CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext)
     return;
   }
 
-  // FIXME: Still not implemented...
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-  return;
+  // Compress to stream
+  switch(self->mMethod)
+  {
+#ifdef _CTM_SUPPORT_RAW
+    case CTM_METHOD_RAW:
+      _ctmCompressFrame_RAW(self);
+      break;
+#endif
+
+#ifdef _CTM_SUPPORT_MG1
+    case CTM_METHOD_MG1:
+      _ctmCompressFrame_MG1(self);
+      break;
+#endif
+
+#ifdef _CTM_SUPPORT_MG2
+    case CTM_METHOD_MG2:
+      _ctmCompressFrame_MG2(self);
+      break;
+#endif
+
+    default:
+      self->mError = CTM_INTERNAL_ERROR;
+      return;
+  }
 
   // We are done with the frame, on to the next...
   ++ self->mCurrentFrame;
