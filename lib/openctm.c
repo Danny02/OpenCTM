@@ -338,6 +338,7 @@ CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode)
   memset(self, 0, sizeof(_CTMcontext));
   self->mMode = aMode;
   self->mFrameCount = 1;
+  self->mCurrentFrame = -1;
   self->mError = CTM_NONE;
 #if defined(_CTM_SUPPORT_MG1)
   self->mMethod = CTM_METHOD_MG1;
@@ -723,7 +724,7 @@ CTMEXPORT void CTMCALL ctmVertexCount(CTMcontext aContext, CTMuint aCount)
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change the vertex count in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -745,7 +746,7 @@ CTMEXPORT void CTMCALL ctmTriangleCount(CTMcontext aContext, CTMuint aCount)
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change the triangle count in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -849,6 +850,13 @@ CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
   if(!self) return CTM_NONE;
 
 #ifdef _CTM_SUPPORT_SAVE
+  // You are only allowed to add UV maps in export mode
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return CTM_NONE;
+  }
+
   // Add a new UV map to the UV map list
   map = _ctmAddFloatMap(self, aName, aFileName, &self->mUVMaps);
   if(!map)
@@ -879,6 +887,13 @@ CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
   if(!self) return CTM_NONE;
 
 #ifdef _CTM_SUPPORT_SAVE
+  // You are only allowed to add attribute maps in export mode
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return CTM_NONE;
+  }
+
   // Add a new attribute map to the attribute map list
   map = _ctmAddFloatMap(self, aName, (const char *) 0, &self->mAttribMaps);
   if(!map)
@@ -912,6 +927,12 @@ CTMEXPORT void CTMCALL ctmArrayPointer(CTMcontext aContext, CTMenum aTarget,
   // argument
   if(aTarget == CTM_INDICES)
   {
+    // You are only allowed to change the index pointer for the first frame
+    if(self->mCurrentFrame >= 1)
+    {
+      self->mError = CTM_INVALID_OPERATION;
+      return;
+    }
     if(aSize != 3)
     {
       self->mError = CTM_INVALID_ARGUMENT;
@@ -1035,7 +1056,7 @@ CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change file attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1078,7 +1099,7 @@ CTMEXPORT void CTMCALL ctmFrameCount(CTMcontext aContext, CTMuint aCount)
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change the animation frame count in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1101,7 +1122,7 @@ CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1156,7 +1177,7 @@ CTMEXPORT void CTMCALL ctmCompressionLevel(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1187,7 +1208,7 @@ CTMEXPORT void CTMCALL ctmVertexPrecision(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1222,7 +1243,7 @@ CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1289,7 +1310,7 @@ CTMEXPORT void CTMCALL ctmNormalPrecision(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1324,7 +1345,7 @@ CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1373,7 +1394,7 @@ CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
 
 #ifdef _CTM_SUPPORT_SAVE
   // You are only allowed to change compression attributes in export mode
-  if(self->mMode != CTM_EXPORT)
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1425,8 +1446,9 @@ CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
-  // You are only allowed to load data in import mode
-  if(self->mMode != CTM_IMPORT)
+  // Are we allowed to read the file?
+  if((self->mMode != CTM_IMPORT) || (self->mCurrentFrame >= 0) ||
+     self->mFileStream)
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1486,8 +1508,8 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   _CTMfloatmap * map;
   if(!self) return;
 
-  // You are only allowed to load data in import mode
-  if(self->mMode != CTM_IMPORT)
+  // Are we allowed to read the file?
+  if((self->mMode != CTM_IMPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1592,7 +1614,7 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
     }
   }
 
-  // Clear the frame counter (no frames have been read yet)
+  // Reset the frame counter (no frames have been read yet)
   self->mCurrentFrame = 0;
 }
 
@@ -1604,8 +1626,8 @@ CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
-  // Is this the first frame?
-  if(self->mCurrentFrame != 0)
+  // Are we allowed to read the first frame?
+  if((self->mMode != CTM_IMPORT) || (self->mCurrentFrame != 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1667,8 +1689,9 @@ CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
-  // Are we trying to read more frames than this animation has?
-  if(self->mCurrentFrame >= self->mFrameCount)
+  // Are we allowed to read the next frame?
+  if((self->mMode != CTM_IMPORT) || (self->mCurrentFrame < 1) ||
+     (self->mCurrentFrame >= self->mFrameCount))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1733,8 +1756,9 @@ CTMEXPORT void CTMCALL ctmSaveFile(CTMcontext aContext,
   if(!self) return;
 
 #ifdef _CTM_SUPPORT_SAVE
-  // You are only allowed to save data in export mode
-  if(self->mMode != CTM_EXPORT)
+  // Are we allowed to write the mesh (=first frame)?
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0) ||
+     self->mFileStream)
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1769,8 +1793,8 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   if(!self) return;
 
 #ifdef _CTM_SUPPORT_SAVE
-  // You are only allowed to save data in export mode
-  if(self->mMode != CTM_EXPORT)
+  // Are we allowed to write the mesh (=first frame)?
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame >= 0))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1888,15 +1912,9 @@ CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext)
   if(!self) return;
 
 #ifdef _CTM_SUPPORT_SAVE
-  // You are only allowed to save data in export mode
-  if(self->mMode != CTM_EXPORT)
-  {
-    self->mError = CTM_INVALID_OPERATION;
-    return;
-  }
-
-  // Are we trying to write more frames than this animation has?
-  if(self->mCurrentFrame >= self->mFrameCount)
+  // Are we allowed to save this frame?
+  if((self->mMode != CTM_EXPORT) || (self->mCurrentFrame < 1) ||
+     (self->mCurrentFrame >= self->mFrameCount))
   {
     self->mError = CTM_INVALID_OPERATION;
     return;
@@ -1943,7 +1961,7 @@ CTMEXPORT void CTMCALL ctmClose(CTMcontext aContext)
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
 
-  // Close the file stream
+  // Close the file stream (if any)
   if(self->mFileStream)
   {
     fclose(self->mFileStream);
@@ -1954,4 +1972,7 @@ CTMEXPORT void CTMCALL ctmClose(CTMcontext aContext)
   self->mReadFn = (CTMreadfn) 0;
   self->mWriteFn = (CTMwritefn) 0;
   self->mUserData = (void *) 0;
+
+  // Unset the internal frame counter (ready for writing/reading new files)
+  self->mCurrentFrame = -1;
 }

@@ -152,7 +152,6 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
 int _ctmCompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
-  _CTMfloatmap * map;
   CTMuint i, j;
 
 #ifdef __DEBUG_
@@ -187,6 +186,21 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 
   // Free temporary resources
   free((void *) indices);
+
+  // The vertex data format is the same as for all frames
+  return _ctmCompressFrame_MG1(self);
+}
+#endif
+
+#ifdef _CTM_SUPPORT_SAVE
+//-----------------------------------------------------------------------------
+// _ctmCompressFrame_MG1() - Compress the next frame that is stored in the CTM
+// context using the MG1 method, and write it the the output stream in the CTM
+// context.
+//-----------------------------------------------------------------------------
+int _ctmCompressFrame_MG1(_CTMcontext * self)
+{
+  _CTMfloatmap * map;
 
   // Write vertices
 #ifdef __DEBUG_
@@ -235,19 +249,6 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 
   return CTM_TRUE;
 }
-#endif
-
-#ifdef _CTM_SUPPORT_SAVE
-//-----------------------------------------------------------------------------
-// _ctmCompressFrame_MG1() - Compress the next frame that is stored in the CTM
-// context using the MG1 method, and write it the the output stream in the CTM
-// context.
-//-----------------------------------------------------------------------------
-int _ctmCompressFrame_MG1(_CTMcontext * self)
-{
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-  return CTM_FALSE;
-}
 #endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
@@ -257,7 +258,6 @@ int _ctmCompressFrame_MG1(_CTMcontext * self)
 int _ctmUncompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
-  _CTMfloatmap * map;
   CTMuint i, j;
 
   // Allocate memory for the indices
@@ -286,6 +286,19 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
 
   // Free temporary resources
   free(indices);
+
+  // The vertex data format is the same as for all frames
+  return _ctmUncompressFrame_MG1(self);
+}
+
+//-----------------------------------------------------------------------------
+// _ctmUncompressFrame_MG1() - Uncmpress the next frame from the input stream
+// in the CTM context using the MG1 method, and store the resulting mesh in the
+// CTM context.
+//-----------------------------------------------------------------------------
+int _ctmUncompressFrame_MG1(_CTMcontext * self)
+{
+  _CTMfloatmap * map;
 
   // Read vertices
   if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
@@ -337,17 +350,6 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
   }
 
   return CTM_TRUE;
-}
-
-//-----------------------------------------------------------------------------
-// _ctmUncompressFrame_MG1() - Uncmpress the next frame from the input stream
-// in the CTM context using the MG1 method, and store the resulting mesh in the
-// CTM context.
-//-----------------------------------------------------------------------------
-int _ctmUncompressFrame_MG1(_CTMcontext * self)
-{
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-  return CTM_FALSE;
 }
 
 #endif // _CTM_SUPPORT_MG1

@@ -72,10 +72,10 @@ typedef struct {
   CTMenum mMode;
 
   // Animation frame count
-  CTMuint mFrameCount;
+  CTMint mFrameCount;
 
   // Current animation frame (zero index)
-  CTMuint mCurrentFrame;
+  CTMint mCurrentFrame;
 
   // Indices
   _CTMarray mIndices;
