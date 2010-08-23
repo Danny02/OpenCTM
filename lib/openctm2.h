@@ -107,14 +107,16 @@ extern "C" {
 
 // Get system specific type definitions for sized integers. We use the C99
 // standard stdint.h for this.
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
   // MS Visual Studio does not support C99
-  typedef char int8_t;
-  typedef unsigned char uint8_t;
-  typedef short int16_t;
-  typedef unsigned short uint16_t;
-  typedef int int32_t;
-  typedef unsigned int uint32_t;
+  typedef char             int8_t;
+  typedef unsigned char    uint8_t;
+  typedef short            int16_t;
+  typedef unsigned short   uint16_t;
+  typedef int              int32_t;
+  typedef unsigned int     uint32_t;
+  typedef __int64          int64_t;
+  typedef unsigned __int64 uint64_t;
 #else
   #include <stdint.h>
 #endif
