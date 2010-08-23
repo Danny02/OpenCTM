@@ -29,8 +29,9 @@
 #ifndef __OPENCTM_CONFIG_H_
 #define __OPENCTM_CONFIG_H_
 
+
 //-----------------------------------------------------------------------------
-// Configuration defines
+// Enable/disable parts of the library.
 //-----------------------------------------------------------------------------
 
 // Enable support for the RAW method.
@@ -44,5 +45,26 @@
 
 // Enable support for saving OpenCTM files.
 #define _CTM_SUPPORT_SAVE
+
+
+//-----------------------------------------------------------------------------
+// Default compression parameters.
+//-----------------------------------------------------------------------------
+
+// Default LZMA compression level (0 - 9)·
+#define _CTM_DEFAULT_LZMA_LEVEL 1
+
+// Default vertex coordinate precision.
+#define _CTM_DEFAULT_VERTEX_PRECISION (1.0f / 1024.0f)
+
+// Default normal precision.
+#define _CTM_DEFAULT_NORMAL_PRECISION (1.0f / 256.0f)
+
+// Default UV coordinate precision
+#define _CTM_DEFAULT_UV_PRECISION (1.0f / 4096.0f)
+
+// Default vertex attribute precision
+#define _CTM_DEFAULT_ATTRIB_PRECISION (1.0f / 256.0f)
+
 
 #endif // __OPENCTM_CONFIG_H_

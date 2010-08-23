@@ -347,9 +347,9 @@ CTMEXPORT CTMcontext CTMCALL ctmNewContext(CTMenum aMode)
 #else
   self->mMethod = CTM_METHOD_MG2;
 #endif
-  self->mCompressionLevel = 1;
-  self->mVertexPrecision = 1.0f / 1024.0f;
-  self->mNormalPrecision = 1.0f / 256.0f;
+  self->mCompressionLevel = _CTM_DEFAULT_LZMA_LEVEL;
+  self->mVertexPrecision = _CTM_DEFAULT_VERTEX_PRECISION;
+  self->mNormalPrecision = _CTM_DEFAULT_NORMAL_PRECISION;
 
   return (CTMcontext) self;
 }
@@ -863,8 +863,8 @@ CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
     return CTM_NONE;
   else
   {
-    // The default UV coordinate precision is 2^-12
-    map->mPrecision = 1.0f / 4096.0f;
+    // Set the default UV coordinate precision
+    map->mPrecision = _CTM_DEFAULT_UV_PRECISION;
     ++ self->mUVMapCount;
     return CTM_UV_MAP_1 + self->mUVMapCount - 1;
   }
@@ -900,8 +900,8 @@ CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
     return CTM_NONE;
   else
   {
-    // The default vertex attribute precision is 2^-8
-    map->mPrecision = 1.0f / 256.0f;
+    // Set the default vertex attribute precision
+    map->mPrecision = _CTM_DEFAULT_ATTRIB_PRECISION;
     ++ self->mAttribMapCount;
     return CTM_ATTRIB_MAP_1 + self->mAttribMapCount - 1;
   }
