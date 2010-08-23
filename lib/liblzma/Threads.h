@@ -18,7 +18,9 @@
   #include <pthread.h>
 #endif
 
-
+//----------------------------------------------------------------------------
+// CThread - thread class
+//----------------------------------------------------------------------------
 typedef struct _CThread
 {
 #ifdef _USE_WIN32_THREADS
@@ -35,13 +37,20 @@ typedef unsigned THREAD_FUNC_RET_TYPE;
 #define THREAD_FUNC_CALL_TYPE MY_STD_CALL
 #define THREAD_FUNC_DECL THREAD_FUNC_RET_TYPE THREAD_FUNC_CALL_TYPE
 
-WRes Thread_Create(CThread *thread, THREAD_FUNC_RET_TYPE (THREAD_FUNC_CALL_TYPE *startAddress)(void *), LPVOID parameter);
+WRes Thread_Create(CThread *thread, THREAD_FUNC_RET_TYPE (THREAD_FUNC_CALL_TYPE *startAddress)(void *), void *parameter);
 WRes Thread_Wait(CThread *thread);
 WRes Thread_Close(CThread *thread);
 
+//----------------------------------------------------------------------------
+// CEvent - event classes
+//----------------------------------------------------------------------------
 typedef struct _CEvent
 {
+#ifdef _USE_WIN32_THREADS
   HANDLE handle;
+#else
+  void * handle; // FIXME!
+#endif
 } CEvent;
 
 typedef CEvent CAutoResetEvent;
@@ -59,10 +68,16 @@ WRes Event_Reset(CEvent *event);
 WRes Event_Wait(CEvent *event);
 WRes Event_Close(CEvent *event);
 
-
+//----------------------------------------------------------------------------
+// CSemaphore - semaphore class
+//----------------------------------------------------------------------------
 typedef struct _CSemaphore
 {
+#ifdef _USE_WIN32_THREADS
   HANDLE handle;
+#else
+  void * handle; // FIXME!
+#endif
 } CSemaphore;
 
 #define Semaphore_Construct(p) (p)->handle = NULL
@@ -73,6 +88,9 @@ WRes Semaphore_Release1(CSemaphore *p);
 WRes Semaphore_Wait(CSemaphore *p);
 WRes Semaphore_Close(CSemaphore *p);
 
+//----------------------------------------------------------------------------
+// CCriticalSection - mutex class
+//----------------------------------------------------------------------------
 #ifdef _USE_WIN32_THREADS
 typedef CRITICAL_SECTION CCriticalSection;
 #else
@@ -91,5 +109,4 @@ WRes CriticalSection_Init(CCriticalSection *p);
 #define CriticalSection_Leave(p) pthread_mutex_unlock(p)
 #endif
 
-#endif
-
+#endif // __7Z_THRESDS_H
