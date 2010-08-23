@@ -40,6 +40,131 @@
 #endif
 
 
+//=============================================================================
+// Private internal helper functions.
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+// _ctmClearArray() - Clear a typed array (set default values).
+//-----------------------------------------------------------------------------
+static void _ctmClearArray(_CTMarray * aArray)
+{
+  aArray->mData = (void *) 0;
+  aArray->mType = CTM_FLOAT;
+  aArray->mSize = 0;
+  aArray->mStride = 0;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmAllocateFloatMaps()
+//-----------------------------------------------------------------------------
+static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
+  _CTMfloatmap ** aMapListPtr, CTMuint aCount)
+{
+  _CTMfloatmap ** mapListPtr;
+  CTMuint i;
+
+  mapListPtr = aMapListPtr;
+  for(i = 0; i < aCount; ++ i)
+  {
+    // Allocate & clear memory for this map
+    *mapListPtr = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
+    if(!*mapListPtr)
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      return CTM_FALSE;
+    }
+    memset(*mapListPtr, 0, sizeof(_CTMfloatmap));
+
+    // Clear the array
+    _ctmClearArray(&(*mapListPtr)->mArray);
+
+    // Next map...
+    mapListPtr = &(*mapListPtr)->mNext;
+  }
+
+  return CTM_TRUE;
+}
+
+#ifdef _CTM_SUPPORT_SAVE
+//-----------------------------------------------------------------------------
+// _ctmAddFloatMap()
+//-----------------------------------------------------------------------------
+static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
+  const char * aName, const char * aFileName,
+  _CTMfloatmap ** aList)
+{
+  _CTMfloatmap * map;
+  CTMuint len;
+
+  // Allocate memory for a new map list item and append it to the list
+  if(!*aList)
+  {
+    *aList = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
+    map = *aList;
+  }
+  else
+  {
+    map = *aList;
+    while(map->mNext)
+      map = map->mNext;
+    map->mNext = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
+    map = map->mNext;
+  }
+  if(!map)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return (_CTMfloatmap *) 0;
+  }
+
+  // Init the map item
+  memset(map, 0, sizeof(_CTMfloatmap));
+  map->mPrecision = 1.0f / 1024.0f;
+
+  // Set name of the map
+  if(aName)
+  {
+    // Get length of string (if empty, do nothing)
+    len = strlen(aName);
+    if(len)
+    {
+      // Copy the string
+      map->mName = (char *) malloc(len + 1);
+      if(!map->mName)
+      {
+        self->mError = CTM_OUT_OF_MEMORY;
+        free(map);
+        return (_CTMfloatmap *) 0;
+      }
+      strcpy(map->mName, aName);
+    }
+  }
+
+  // Set file name reference for the map
+  if(aFileName)
+  {
+    // Get length of string (if empty, do nothing)
+    len = strlen(aFileName);
+    if(len)
+    {
+      // Copy the string
+      map->mFileName = (char *) malloc(len + 1);
+      if(!map->mFileName)
+      {
+        self->mError = CTM_OUT_OF_MEMORY;
+        if(map->mName)
+          free(map->mName);
+        free(map);
+        return (_CTMfloatmap *) 0;
+      }
+      strcpy(map->mFileName, aFileName);
+    }
+  }
+
+  return map;
+}
+#endif // _CTM_SUPPORT_SAVE
+
 //-----------------------------------------------------------------------------
 // _ctmFreeMapList() - Free a float map list.
 //-----------------------------------------------------------------------------
@@ -61,17 +186,6 @@ static void _ctmFreeMapList(_CTMfloatmap * aMapList)
     free(map);
     map = nextMap;
   }
-}
-
-//-----------------------------------------------------------------------------
-// _ctmClearArray() - Clear a typed array (set default values).
-//-----------------------------------------------------------------------------
-static void _ctmClearArray(_CTMarray * aArray)
-{
-  aArray->mData = (void *) 0;
-  aArray->mType = CTM_FLOAT;
-  aArray->mSize = 0;
-  aArray->mStride = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -101,7 +215,6 @@ static void _ctmClearMesh(_CTMcontext * self)
 // _ctmCheckMeshIntegrity() - Check if a mesh is valid (i.e. is non-empty, and
 // contains valid data).
 //-----------------------------------------------------------------------------
-
 static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
 {
   CTMuint i, j;
@@ -168,6 +281,31 @@ static CTMint _ctmCheckMeshIntegrity(_CTMcontext * self)
 
   return CTM_TRUE;
 }
+
+//-----------------------------------------------------------------------------
+// _ctmDefaultRead()
+//-----------------------------------------------------------------------------
+static CTMuint CTMCALL _ctmDefaultRead(void * aBuf, CTMuint aCount,
+  void * aUserData)
+{
+  return (CTMuint) fread(aBuf, 1, (size_t) aCount, (FILE *) aUserData);
+}
+
+#ifdef _CTM_SUPPORT_SAVE
+//-----------------------------------------------------------------------------
+// _ctmDefaultWrite()
+//-----------------------------------------------------------------------------
+static CTMuint CTMCALL _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
+  void * aUserData)
+{
+  return (CTMuint) fwrite(aBuf, 1, (size_t) aCount, (FILE *) aUserData);
+}
+#endif
+
+
+//=============================================================================
+// Public API functions.
+//=============================================================================
 
 //-----------------------------------------------------------------------------
 // ctmNewContext()
@@ -609,85 +747,6 @@ CTMEXPORT void CTMCALL ctmTriangleCount(CTMcontext aContext, CTMuint aCount)
   self->mError = CTM_INVALID_OPERATION;
 #endif
 }
-
-#ifdef _CTM_SUPPORT_SAVE
-//-----------------------------------------------------------------------------
-// _ctmAddFloatMap()
-//-----------------------------------------------------------------------------
-static _CTMfloatmap * _ctmAddFloatMap(_CTMcontext * self,
-  const char * aName, const char * aFileName,
-  _CTMfloatmap ** aList)
-{
-  _CTMfloatmap * map;
-  CTMuint len;
-
-  // Allocate memory for a new map list item and append it to the list
-  if(!*aList)
-  {
-    *aList = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
-    map = *aList;
-  }
-  else
-  {
-    map = *aList;
-    while(map->mNext)
-      map = map->mNext;
-    map->mNext = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
-    map = map->mNext;
-  }
-  if(!map)
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
-    return (_CTMfloatmap *) 0;
-  }
-
-  // Init the map item
-  memset(map, 0, sizeof(_CTMfloatmap));
-  map->mPrecision = 1.0f / 1024.0f;
-
-  // Set name of the map
-  if(aName)
-  {
-    // Get length of string (if empty, do nothing)
-    len = strlen(aName);
-    if(len)
-    {
-      // Copy the string
-      map->mName = (char *) malloc(len + 1);
-      if(!map->mName)
-      {
-        self->mError = CTM_OUT_OF_MEMORY;
-        free(map);
-        return (_CTMfloatmap *) 0;
-      }
-      strcpy(map->mName, aName);
-    }
-  }
-
-  // Set file name reference for the map
-  if(aFileName)
-  {
-    // Get length of string (if empty, do nothing)
-    len = strlen(aFileName);
-    if(len)
-    {
-      // Copy the string
-      map->mFileName = (char *) malloc(len + 1);
-      if(!map->mFileName)
-      {
-        self->mError = CTM_OUT_OF_MEMORY;
-        if(map->mName)
-          free(map->mName);
-        free(map);
-        return (_CTMfloatmap *) 0;
-      }
-      strcpy(map->mFileName, aFileName);
-    }
-  }
-
-  return map;
-}
-#endif // _CTM_SUPPORT_SAVE
 
 //-----------------------------------------------------------------------------
 // ctmAddUVMap()
@@ -1281,15 +1340,6 @@ CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmDefaultRead()
-//-----------------------------------------------------------------------------
-static CTMuint CTMCALL _ctmDefaultRead(void * aBuf, CTMuint aCount,
-  void * aUserData)
-{
-  return (CTMuint) fread(aBuf, 1, (size_t) aCount, (FILE *) aUserData);
-}
-
-//-----------------------------------------------------------------------------
 // ctmOpenReadFile()
 //-----------------------------------------------------------------------------
 CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
@@ -1316,37 +1366,6 @@ CTMEXPORT void CTMCALL ctmOpenReadFile(CTMcontext aContext,
 
   // ...continue with the custom function
   ctmOpenReadCustom(aContext, _ctmDefaultRead, self->mFileStream);
-}
-
-//-----------------------------------------------------------------------------
-// _ctmAllocateFloatMaps()
-//-----------------------------------------------------------------------------
-static CTMuint _ctmAllocateFloatMaps(_CTMcontext * self,
-  _CTMfloatmap ** aMapListPtr, CTMuint aCount)
-{
-  _CTMfloatmap ** mapListPtr;
-  CTMuint i;
-
-  mapListPtr = aMapListPtr;
-  for(i = 0; i < aCount; ++ i)
-  {
-    // Allocate & clear memory for this map
-    *mapListPtr = (_CTMfloatmap *) malloc(sizeof(_CTMfloatmap));
-    if(!*mapListPtr)
-    {
-      self->mError = CTM_OUT_OF_MEMORY;
-      return CTM_FALSE;
-    }
-    memset(*mapListPtr, 0, sizeof(_CTMfloatmap));
-
-    // Clear the array
-    _ctmClearArray(&(*mapListPtr)->mArray);
-
-    // Next map...
-    mapListPtr = &(*mapListPtr)->mNext;
-  }
-
-  return CTM_TRUE;
 }
 
 //-----------------------------------------------------------------------------
@@ -1586,17 +1605,6 @@ CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext)
   // We are done with the frame, on to the next...
   ++ self->mCurrentFrame;
 }
-
-#ifdef _CTM_SUPPORT_SAVE
-//-----------------------------------------------------------------------------
-// _ctmDefaultWrite()
-//-----------------------------------------------------------------------------
-static CTMuint CTMCALL _ctmDefaultWrite(const void * aBuf, CTMuint aCount,
-  void * aUserData)
-{
-  return (CTMuint) fwrite(aBuf, 1, (size_t) aCount, (FILE *) aUserData);
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // ctmSaveFile()
