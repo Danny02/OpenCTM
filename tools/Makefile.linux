@@ -56,7 +56,7 @@ ctmconv: $(CTMCONVOBJS) $(TINYXMLDIR)/libtinyxml.a libopenctm2.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) $(CTMCONVOBJS) -Wl,-rpath,. -lopenctm2 -ltinyxml
 
 ctmviewer: $(CTMVIEWEROBJS) $(JPEGDIR)/libjpeg.a $(TINYXMLDIR)/libtinyxml.a $(ZLIBDIR)/libz.a libopenctm2.so
-	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -Wl,-rpath,. -lopenctm2 -ltinyxml -ljpeg -lz -lglut `pkg-config --libs gtk+-2.0`
+	$(CPP) -s -o $@ -L$(OPENCTMDIR) -L$(TINYXMLDIR) -L$(JPEGDIR) -L$(ZLIBDIR) $(CTMVIEWEROBJS) -Wl,-rpath,. -lopenctm2 -ltinyxml -ljpeg -lz -lglut -lGL -lGLU `pkg-config --libs gtk+-2.0`
 
 ctmbench: $(CTMBENCHOBJS) libopenctm2.so
 	$(CPP) -s -o $@ -L$(OPENCTMDIR) $(CTMBENCHOBJS) -Wl,-rpath,. -lopenctm2
