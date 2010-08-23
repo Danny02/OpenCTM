@@ -7,8 +7,9 @@ Public domain */
 
 #ifdef _USE_WIN32_THREADS
   #include <process.h>
+#else
+  #include <unistd.h>
 #endif
-
 
 //============================================================================
 // Private helper functions
@@ -102,6 +103,23 @@ WRes Thread_Close(CThread *thread)
   thread->handle = 0;
   return err;
 #endif
+}
+
+unsigned int Thread_HardwareConcurrency(void)
+{
+  long nproc;
+#if defined(_USE_WIN32_THREADS)
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+  nproc = (long) si.dwNumberOfProcessors;
+#elif defined(_SC_NPROCESSORS_ONLN)
+  nproc = sysconf(_SC_NPROCESSORS_ONLN);
+#elif defined(_SC_NPROC_ONLN)
+  nproc = sysconf(_SC_NPROC_ONLN);
+#else
+  nproc = 1;
+#endif
+  return nproc > 0 ? (unsigned int) nproc : 1;
 }
 
 //----------------------------------------------------------------------------

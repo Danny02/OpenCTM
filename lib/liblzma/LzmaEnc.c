@@ -20,6 +20,7 @@
 #include "LzFind.h"
 #ifdef COMPRESS_MF_MT
 #include "LzFindMt.h"
+#include "Threads.h"
 #endif
 
 #ifdef SHOW_STAT
@@ -72,7 +73,7 @@ void LzmaEncProps_Normalize(CLzmaEncProps *p)
   if (p->numThreads < 0)
     p->numThreads =
       #ifdef COMPRESS_MF_MT
-      ((p->btMode && p->algo) ? 2 : 1);
+      ((p->btMode && p->algo) ? Thread_HardwareConcurrency() : 1);
       #else
       1;
       #endif

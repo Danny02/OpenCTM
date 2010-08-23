@@ -46,6 +46,8 @@ WRes Thread_Create(CThread *thread, THREAD_FUNC_RET_TYPE (THREAD_FUNC_CALL_TYPE 
 WRes Thread_Wait(CThread *thread);
 WRes Thread_Close(CThread *thread);
 
+unsigned int Thread_HardwareConcurrency(void);
+
 //----------------------------------------------------------------------------
 // CEvent - event classes
 //----------------------------------------------------------------------------
