@@ -278,7 +278,6 @@ WRes CriticalSection_Init(CCriticalSection *p)
   __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
   return 0;
 #else
-  pthread_mutex_init(p, NULL);
-  return 0;
+  return pthread_mutex_init(p, NULL);
 #endif
 }
