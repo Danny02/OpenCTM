@@ -37,7 +37,7 @@ RC = windres
 DYNAMICLIB = openctm2.dll
 LINKLIB = libopenctm2.a
 
-OBJS = openctm.o \
+OBJS = openctm2.o \
        stream.o \
        compressRAW.o \
        compressMG1.o \
@@ -49,7 +49,7 @@ LZMA_OBJS = Alloc.o \
             LzmaEnc.o \
             LzmaLib.o
 
-SRCS = openctm.c \
+SRCS = openctm2.c \
        stream.c \
        compressRAW.c \
        compressMG1.c \
@@ -66,14 +66,14 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
 all: $(DYNAMICLIB)
 
 clean:
-	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm-res.o
+	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm2-res.o
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-mingw1.def openctm-mingw2.def openctm-res.o
-	dllwrap --def openctm-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS) openctm-res.o
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm2-mingw1.def openctm2-mingw2.def openctm2-res.o
+	dllwrap --def openctm2-mingw1.def -o $@ $(OBJS) $(LZMA_OBJS) openctm2-res.o
 	strip $@
-	dlltool --kill-at --output-lib $(LINKLIB) --def openctm-mingw2.def
+	dlltool --kill-at --output-lib $(LINKLIB) --def openctm2-mingw2.def
 
-openctm-res.o: openctm.rc
+openctm2-res.o: openctm2.rc
 	$(RC) $< $@
 
 %.o: %.c

@@ -36,7 +36,7 @@ RC = rc
 DYNAMICLIB = openctm2.dll
 LINKLIB = openctm2.lib
 
-OBJS = openctm.obj \
+OBJS = openctm2.obj \
        stream.obj \
        compressRAW.obj \
        compressMG1.obj \
@@ -48,7 +48,7 @@ LZMA_OBJS = Alloc.obj \
             LzmaEnc.obj \
             LzmaLib.obj
 
-SRCS = openctm.c \
+SRCS = openctm2.c \
        stream.c \
        compressRAW.c \
        compressMG1.c \
@@ -65,15 +65,15 @@ all: $(DYNAMICLIB)
 .PHONY: clean
 
 clean:
-	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm.res
+	$(RM) $(DYNAMICLIB) $(LINKLIB) $(OBJS) $(LZMA_OBJS) openctm2.res
 
-$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm-msvc.def openctm.res
-	link /nologo /out:$@ /dll /implib:$(LINKLIB) /def:openctm-msvc.def $(OBJS) $(LZMA_OBJS) openctm.res
+$(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm2-msvc.def openctm2.res
+	link /nologo /out:$@ /dll /implib:$(LINKLIB) /def:openctm2-msvc.def $(OBJS) $(LZMA_OBJS) openctm2.res
 
-openctm.res: openctm.rc
-	$(RC) openctm.rc
+openctm2.res: openctm2.rc
+	$(RC) openctm2.rc
 
-openctm.obj: openctm.c openctm2.h internal.h config.h
+openctm2.obj: openctm2.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) openctm.c
 
 stream.obj: stream.c openctm2.h internal.h config.h

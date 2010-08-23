@@ -36,7 +36,7 @@ DEPEND = $(CPP) -MM
 
 DYNAMICLIB = libopenctm2.so
 
-OBJS = openctm.o \
+OBJS = openctm2.o \
        stream.o \
        compressRAW.o \
        compressMG1.o \
@@ -48,7 +48,7 @@ LZMA_OBJS = Alloc.o \
             LzmaEnc.o \
             LzmaLib.o
 
-SRCS = openctm.c \
+SRCS = openctm2.c \
        stream.c \
        compressRAW.c \
        compressMG1.c \
