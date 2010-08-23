@@ -30,11 +30,6 @@
 
 #ifdef _CTM_SUPPORT_RAW
 
-#ifdef __DEBUG_
-#include <stdio.h>
-#endif
-
-
 #ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _ctmCompressMesh_RAW() - Compress the mesh that is stored in the CTM

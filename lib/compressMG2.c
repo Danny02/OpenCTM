@@ -32,10 +32,6 @@
 
 #ifdef _CTM_SUPPORT_MG2
 
-#ifdef __DEBUG_
-#include <stdio.h>
-#endif
-
 // We need PI
 #ifndef PI
 #define PI 3.141592653589793238462643f

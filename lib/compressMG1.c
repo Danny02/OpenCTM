@@ -32,11 +32,6 @@
 
 #ifdef _CTM_SUPPORT_MG1
 
-#ifdef __DEBUG_
-#include <stdio.h>
-#endif
-
-
 #ifdef _CTM_SUPPORT_SAVE
 //-----------------------------------------------------------------------------
 // _compareTriangle() - Comparator for the triangle sorting.
