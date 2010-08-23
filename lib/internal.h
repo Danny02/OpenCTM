@@ -135,7 +135,7 @@ typedef struct {
                     (((CTMuint) str[2]) << 16) | (((CTMuint) str[3]) << 24))
 
 //-----------------------------------------------------------------------------
-// Function prototypes for openctm.c
+// Function prototypes for array.c
 //-----------------------------------------------------------------------------
 CTMuint _ctmGetArrayi(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent);
 CTMfloat _ctmGetArrayf(_CTMarray * aArray, CTMuint aElement, CTMuint aComponent);

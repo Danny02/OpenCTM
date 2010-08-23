@@ -1,4 +1,5 @@
 openctm2.o: openctm2.c openctm2.h internal.h config.h
+array.o: array.c internal.h config.h
 stream.o: stream.c openctm2.h internal.h config.h
 compressRAW.o: compressRAW.c openctm2.h internal.h config.h
 compressMG1.o: compressMG1.c openctm2.h internal.h config.h

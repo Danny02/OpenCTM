@@ -37,6 +37,7 @@ DYNAMICLIB = openctm2.dll
 LINKLIB = openctm2.lib
 
 OBJS = openctm2.obj \
+       array.obj \
        stream.obj \
        compressRAW.obj \
        compressMG1.obj \
@@ -49,6 +50,7 @@ LZMA_OBJS = Alloc.obj \
             LzmaLib.obj
 
 SRCS = openctm2.c \
+       array.c \
        stream.c \
        compressRAW.c \
        compressMG1.c \
@@ -75,6 +77,9 @@ openctm2.res: openctm2.rc
 
 openctm2.obj: openctm2.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) openctm.c
+
+array.obj: array.c internal.h config.h
+	$(CC) $(CFLAGS) array.c
 
 stream.obj: stream.c openctm2.h internal.h config.h
 	$(CC) $(CFLAGS) stream.c

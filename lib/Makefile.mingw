@@ -38,6 +38,7 @@ DYNAMICLIB = openctm2.dll
 LINKLIB = libopenctm2.a
 
 OBJS = openctm2.o \
+       array.o \
        stream.o \
        compressRAW.o \
        compressMG1.o \
@@ -50,6 +51,7 @@ LZMA_OBJS = Alloc.o \
             LzmaLib.o
 
 SRCS = openctm2.c \
+       array.c \
        stream.c \
        compressRAW.c \
        compressMG1.c \
