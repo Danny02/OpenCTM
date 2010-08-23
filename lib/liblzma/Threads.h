@@ -30,9 +30,14 @@ typedef struct _CThread
 #endif
 } CThread;
 
-#define Thread_Construct(thread) (thread)->handle = NULL
-#define Thread_WasCreated(thread) ((thread)->handle != NULL)
- 
+#ifdef _USE_WIN32_THREADS
+  #define Thread_Construct(thread) (thread)->handle = NULL
+  #define Thread_WasCreated(thread) ((thread)->handle != NULL)
+#else
+  #define Thread_Construct(thread) (thread)->handle = 0
+  #define Thread_WasCreated(thread) ((thread)->handle != 0)
+#endif
+
 typedef unsigned THREAD_FUNC_RET_TYPE;
 #define THREAD_FUNC_CALL_TYPE MY_STD_CALL
 #define THREAD_FUNC_DECL THREAD_FUNC_RET_TYPE THREAD_FUNC_CALL_TYPE
