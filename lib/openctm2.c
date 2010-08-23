@@ -722,6 +722,7 @@ CTMEXPORT void CTMCALL ctmVertexCount(CTMcontext aContext, CTMuint aCount)
 
   self->mVertexCount = aCount;
 #else
+  DUMMYUSE(aCount);
   self->mError = CTM_INVALID_OPERATION;
 #endif
 }
@@ -744,6 +745,7 @@ CTMEXPORT void CTMCALL ctmTriangleCount(CTMcontext aContext, CTMuint aCount)
 
   self->mTriangleCount = aCount;
 #else
+  DUMMYUSE(aCount);
   self->mError = CTM_INVALID_OPERATION;
 #endif
 }
@@ -780,6 +782,8 @@ CTMEXPORT CTMenum CTMCALL ctmAddUVMap(CTMcontext aContext, const char * aName,
     return CTM_UV_MAP_1 + self->mUVMapCount - 1;
   }
 #else
+  DUMMYUSE(aName);
+  DUMMYUSE(aFileName);
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_NONE;
 #endif
@@ -817,6 +821,7 @@ CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
     return CTM_ATTRIB_MAP_1 + self->mAttribMapCount - 1;
   }
 #else
+  DUMMYUSE(aName);
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_NONE;
 #endif
@@ -996,6 +1001,7 @@ CTMEXPORT void CTMCALL ctmFileComment(CTMcontext aContext,
   }
   strcpy(self->mFileComment, aFileComment);
 #else
+  DUMMYUSE(aFileComment);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1018,6 +1024,7 @@ CTMEXPORT void CTMCALL ctmFrameCount(CTMcontext aContext, CTMuint aCount)
 
   self->mFrameCount = aCount;
 #else
+  DUMMYUSE(aCount);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1073,6 +1080,7 @@ CTMEXPORT void CTMCALL ctmCompressionMethod(CTMcontext aContext,
   // Set method
   self->mMethod = aMethod;
 #else
+  DUMMYUSE(aMethod);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1104,6 +1112,7 @@ CTMEXPORT void CTMCALL ctmCompressionLevel(CTMcontext aContext,
   // Set the compression level
   self->mCompressionLevel = aLevel;
 #else
+  DUMMYUSE(aLevel);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1135,6 +1144,7 @@ CTMEXPORT void CTMCALL ctmVertexPrecision(CTMcontext aContext,
   // Set precision
   self->mVertexPrecision = aPrecision;
 #else
+  DUMMYUSE(aPrecision);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1206,6 +1216,7 @@ CTMEXPORT void CTMCALL ctmVertexPrecisionRel(CTMcontext aContext,
   // Set precision
   self->mVertexPrecision = aRelPrecision * avgEdgeLength;
 #else
+  DUMMYUSE(aRelPrecision);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1237,6 +1248,7 @@ CTMEXPORT void CTMCALL ctmNormalPrecision(CTMcontext aContext,
   // Set precision
   self->mNormalPrecision = aPrecision;
 #else
+  DUMMYUSE(aPrecision);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1286,6 +1298,8 @@ CTMEXPORT void CTMCALL ctmUVCoordPrecision(CTMcontext aContext,
   // Update the precision
   map->mPrecision = aPrecision;
 #else
+  DUMMYUSE(aUVMap);
+  DUMMYUSE(aPrecision);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1335,6 +1349,8 @@ CTMEXPORT void CTMCALL ctmAttribPrecision(CTMcontext aContext,
   // Update the precision
   map->mPrecision = aPrecision;
 #else
+  DUMMYUSE(aAttribMap);
+  DUMMYUSE(aPrecision);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1635,6 +1651,7 @@ CTMEXPORT void CTMCALL ctmSaveFile(CTMcontext aContext,
   // Continue with the custom write function...
   ctmSaveCustom(aContext, _ctmDefaultWrite, self->mFileStream);
 #else
+  DUMMYUSE(aFileName);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }
@@ -1759,6 +1776,8 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
   // We are done with the frame, on to the next...
   self->mCurrentFrame = 1;
 #else
+  DUMMYUSE(aWriteFn);
+  DUMMYUSE(aUserData);
   self->mError = CTM_UNSUPPORTED_OPERATION;
 #endif
 }

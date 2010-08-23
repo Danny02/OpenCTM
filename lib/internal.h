@@ -131,8 +131,13 @@ typedef struct {
 //-----------------------------------------------------------------------------
 // Macros
 //-----------------------------------------------------------------------------
+
+// Generate a FourCC 32-bit unsigned integer from a string.
 #define FOURCC(str) (((CTMuint) str[0]) | (((CTMuint) str[1]) << 8) | \
                     (((CTMuint) str[2]) << 16) | (((CTMuint) str[3]) << 24))
+
+// Use this macro to avoid compiler warnings for unused function parameters.
+#define DUMMYUSE(x) (void) (x)
 
 //-----------------------------------------------------------------------------
 // Function prototypes for array.c
