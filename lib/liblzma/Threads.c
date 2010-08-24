@@ -226,10 +226,18 @@ WRes Semaphore_Create(CSemaphore *p, UInt32 initiallyCount, UInt32 maxCount)
   p->handle = CreateSemaphore(NULL, (LONG)initiallyCount, (LONG)maxCount, NULL);
   return HandleToWRes(p->handle);
 #else
-  // FIXME!
-  (void) p;
-  (void) initiallyCount;
-  (void) maxCount;
+  if (pthread_mutex_init(&p->lock, NULL) == 0)
+  {
+    if (pthread_cond_init(&p->nonZero, NULL) == 0)
+    {
+      p->count = initiallyCount;
+      p->maxCount = maxCount;
+      p->init = 1;
+      return 0;
+    }
+    else
+      pthread_mutex_destroy(&p->lock);
+  }
   return 1;
 #endif
 }
@@ -239,22 +247,22 @@ WRes Semaphore_ReleaseN(CSemaphore *p, UInt32 releaseCount)
 #ifdef _USE_WIN32_THREADS
   return Semaphore_Release(p, (LONG)releaseCount, NULL);
 #else
-  // FIXME!
-  (void) p;
-  (void) releaseCount;
-  return 1;
+  pthread_mutex_lock(&p->lock);
+  if ((p->count + releaseCount) > p->maxCount)
+  {
+    pthread_mutex_unlock(&p->lock);
+    return 1;
+  }
+  p->count += releaseCount;
+  pthread_mutex_unlock(&p->lock);
+  pthread_cond_broadcast(&p->nonZero);
+  return 0;
 #endif
 }
 
 WRes Semaphore_Release1(CSemaphore *p)
 {
-#ifdef _USE_WIN32_THREADS
   return Semaphore_ReleaseN(p, 1);
-#else
-  // FIXME!
-  (void) p;
-  return 1;
-#endif
 }
 
 WRes Semaphore_Wait(CSemaphore *p)
@@ -262,9 +270,12 @@ WRes Semaphore_Wait(CSemaphore *p)
 #ifdef _USE_WIN32_THREADS
   return WaitObject(p->handle);
 #else
-  // FIXME!
-  (void) p;
-  return 1;
+  pthread_mutex_lock(&p->lock);
+  while (p->count == 0)
+    pthread_cond_wait(&p->nonZero, &p->lock);
+  -- p->count;
+  pthread_mutex_unlock(&p->lock);
+  return 0;
 #endif
 }
 
@@ -273,9 +284,13 @@ WRes Semaphore_Close(CSemaphore *p)
 #ifdef _USE_WIN32_THREADS
   return MyCloseHandle(&p->handle);
 #else
-  // FIXME!
-  (void) p;
-  return 1;
+  if (p->init)
+  {
+    pthread_cond_destroy(&p->nonZero);
+    pthread_mutex_destroy(&p->lock);
+    p->init = 0;
+  }
+  return 0;
 #endif
 }
 

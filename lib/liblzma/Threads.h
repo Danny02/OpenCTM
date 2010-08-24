@@ -83,11 +83,19 @@ typedef struct _CSemaphore
 #ifdef _USE_WIN32_THREADS
   HANDLE handle;
 #else
-  void * handle; // FIXME!
+  pthread_mutex_t lock;
+  pthread_cond_t nonZero;
+  unsigned int count;
+  unsigned int maxCount;
+  int init;
 #endif
 } CSemaphore;
 
-#define Semaphore_Construct(p) (p)->handle = NULL
+#ifdef _USE_WIN32_THREADS
+  #define Semaphore_Construct(p) (p)->handle = NULL
+#else
+  #define Semaphore_Construct(p) (p)->init = 0
+#endif
 
 WRes Semaphore_Create(CSemaphore *p, UInt32 initiallyCount, UInt32 maxCount);
 WRes Semaphore_ReleaseN(CSemaphore *p, UInt32 num);
