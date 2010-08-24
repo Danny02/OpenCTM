@@ -46,7 +46,9 @@ LZMA_OBJS = Alloc.o \
             LzFind.o \
             LzmaDec.o \
             LzmaEnc.o \
-            LzmaLib.o
+            LzmaLib.o \
+            LzFindMt.o \
+            Threads.o
 
 SRCS = openctm2.c \
        array.c \
@@ -59,7 +61,9 @@ LZMA_SRCS = $(LZMADIR)/Alloc.c \
             $(LZMADIR)/LzFind.c \
             $(LZMADIR)/LzmaDec.c \
             $(LZMADIR)/LzmaEnc.c \
-            $(LZMADIR)/LzmaLib.c
+            $(LZMADIR)/LzmaLib.c \
+            $(LZMADIR)/LzFindMt.c \
+            $(LZMADIR)/Threads.c
 
 .phony: all clean depend
 
@@ -69,7 +73,7 @@ clean:
 	$(RM) $(DYNAMICLIB) $(OBJS) $(LZMA_OBJS)
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
-	gcc -dynamiclib -o $@ $(OBJS) $(LZMA_OBJS)
+	gcc -dynamiclib -o $@ $(OBJS) $(LZMA_OBJS) -lpthread
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<

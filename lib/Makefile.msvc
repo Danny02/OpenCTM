@@ -47,7 +47,9 @@ LZMA_OBJS = Alloc.obj \
             LzFind.obj \
             LzmaDec.obj \
             LzmaEnc.obj \
-            LzmaLib.obj
+            LzmaLib.obj \
+            LzFindMt.obj \
+            Threads.obj
 
 SRCS = openctm2.c \
        array.c \
@@ -60,7 +62,9 @@ LZMA_SRCS = $(LZMADIR)\Alloc.c \
             $(LZMADIR)\LzFind.c \
             $(LZMADIR)\LzmaDec.c \
             $(LZMADIR)\LzmaEnc.c \
-            $(LZMADIR)\LzmaLib.c
+            $(LZMADIR)\LzmaLib.c \
+            $(LZMADIR)\LzFindMt.c \
+            $(LZMADIR)\Threads.c
 
 all: $(DYNAMICLIB)
 
@@ -102,8 +106,14 @@ LzFind.obj: $(LZMADIR)\LzFind.c $(LZMADIR)\LzFind.h $(LZMADIR)\Types.h $(LZMADIR
 LzmaDec.obj: $(LZMADIR)\LzmaDec.c $(LZMADIR)\LzmaDec.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzmaDec.c
 
-LzmaEnc.obj: $(LZMADIR)\LzmaEnc.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzFind.h config.h
+LzmaEnc.obj: $(LZMADIR)\LzmaEnc.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzFind.h config.h $(LZMADIR)\LzFindMt.h $(LZMADIR)\Threads.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzmaEnc.c
 
 LzmaLib.obj: $(LZMADIR)\LzmaLib.c $(LZMADIR)\LzmaEnc.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzmaDec.h $(LZMADIR)\Alloc.h $(LZMADIR)\LzmaLib.h config.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzmaLib.c
+
+LzFindMt.obj: $(LZMADIR)\LzFindMt.c config.h $(LZMADIR)\LzHash.h $(LZMADIR)\LzFindMt.h $(LZMADIR)\Threads.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h $(LZMADIR)\LzFind.h
+	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\LzFindMt.c
+
+Threads.obj: $(LZMADIR)\Threads.c $(LZMADIR)\Threads.h $(LZMADIR)\Types.h $(LZMADIR)\NameMangle.h config.h
+	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\Threads.c

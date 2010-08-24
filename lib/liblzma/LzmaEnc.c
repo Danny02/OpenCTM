@@ -4,7 +4,9 @@
 /* OpenCTM configuration */
 #include "../config.h"
 #ifdef _CTM_SUPPORT_SAVE
-
+#ifdef _CTM_SUPPORT_MT
+  #define COMPRESS_MF_MT
+#endif
 
 #include <string.h>
 

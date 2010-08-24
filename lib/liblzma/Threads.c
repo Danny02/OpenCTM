@@ -3,6 +3,10 @@
 Igor Pavlov
 Public domain */
 
+/* OpenCTM configuration */
+#include "../config.h"
+#if defined(_CTM_SUPPORT_SAVE) && defined(_CTM_SUPPORT_MT)
+
 #include "Threads.h"
 
 #ifdef _USE_WIN32_THREADS
@@ -330,3 +334,8 @@ WRes CriticalSection_Init(CCriticalSection *p)
   return pthread_mutex_init(p, NULL);
 #endif
 }
+
+#else
+  // Dummy code (ISO C does not like empty source files)
+  void __myDummyFunc4(void) {}
+#endif // defined(_CTM_SUPPORT_SAVE) && defined(_CTM_SUPPORT_MT)

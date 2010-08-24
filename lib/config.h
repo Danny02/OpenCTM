@@ -46,6 +46,8 @@
 // Enable support for saving OpenCTM files.
 #define _CTM_SUPPORT_SAVE
 
+// Enable multi threaded operation.
+#define _CTM_SUPPORT_MT
 
 //-----------------------------------------------------------------------------
 // Default compression parameters.

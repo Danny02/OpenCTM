@@ -1,6 +1,10 @@
 /* LzFindMt.c -- multithreaded Match finder for LZ algorithms
 2008-10-04 : Igor Pavlov : Public domain */
 
+/* OpenCTM configuration */
+#include "../config.h"
+#if defined(_CTM_SUPPORT_SAVE) && defined(_CTM_SUPPORT_MT)
+
 #include "LzHash.h"
 
 #include "LzFindMt.h"
@@ -791,3 +795,8 @@ void MatchFinderMt_CreateVTable(CMatchFinderMt *p, IMatchFinder *vTable)
     */
   }
 }
+
+#else
+  // Dummy code (ISO C does not like empty source files)
+  void __myDummyFunc3(void) {}
+#endif // defined(_CTM_SUPPORT_SAVE) && defined(_CTM_SUPPORT_MT)
