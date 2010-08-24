@@ -131,22 +131,24 @@ WRes ManualResetEvent_Create(CManualResetEvent *p, int initialSignaled)
 #ifdef _USE_WIN32_THREADS
   return Event_Create(p, TRUE, initialSignaled);
 #else
-  // FIXME!
-  (void) p;
-  (void) initialSignaled;
+  if (pthread_mutex_init(&p->lock, NULL) == 0)
+  {
+    if (pthread_cond_init(&p->trigger, NULL) == 0)
+    {
+      p->signaled = initialSignaled;
+      p->state = _CEVENT_MANUAL_RESET;
+      return 0;
+    }
+    else
+      pthread_mutex_destroy(&p->lock);
+  }
   return 1;
 #endif
 }
 
 WRes ManualResetEvent_CreateNotSignaled(CManualResetEvent *p)
 {
-#ifdef _USE_WIN32_THREADS
   return ManualResetEvent_Create(p, 0);
-#else
-  // FIXME!
-  (void) p;
-  return 1;
-#endif
 }
 
 WRes AutoResetEvent_Create(CAutoResetEvent *p, int initialSignaled)
@@ -154,22 +156,24 @@ WRes AutoResetEvent_Create(CAutoResetEvent *p, int initialSignaled)
 #ifdef _USE_WIN32_THREADS
   return Event_Create(p, FALSE, initialSignaled);
 #else
-  // FIXME!
-  (void) p;
-  (void) initialSignaled;
+  if (pthread_mutex_init(&p->lock, NULL) == 0)
+  {
+    if (pthread_cond_init(&p->trigger, NULL) == 0)
+    {
+      p->signaled = initialSignaled;
+      p->state = _CEVENT_AUTO_RESET;
+      return 0;
+    }
+    else
+      pthread_mutex_destroy(&p->lock);
+  }
   return 1;
 #endif
 }
 
 WRes AutoResetEvent_CreateNotSignaled(CAutoResetEvent *p)
 {
-#ifdef _USE_WIN32_THREADS
   return AutoResetEvent_Create(p, 0);
-#else
-  // FIXME!
-  (void) p;
-  return 1;
-#endif
 }
 
 WRes Event_Set(CEvent *p)
@@ -177,9 +181,11 @@ WRes Event_Set(CEvent *p)
 #ifdef _USE_WIN32_THREADS
   return BOOLToWRes(SetEvent(p->handle));
 #else
-  // FIXME!
-  (void) p;
-  return 1;
+  pthread_mutex_lock(&p->lock);
+  p->signaled = 1;
+  pthread_mutex_unlock(&p->lock);
+  pthread_cond_broadcast(&p->trigger);
+  return 0;
 #endif
 }
 
@@ -188,9 +194,11 @@ WRes Event_Reset(CEvent *p)
 #ifdef _USE_WIN32_THREADS
   return BOOLToWRes(ResetEvent(p->handle));
 #else
-  // FIXME!
-  (void) p;
-  return 1;
+  pthread_mutex_lock(&p->lock);
+  p->signaled = 0;
+  pthread_mutex_unlock(&p->lock);
+  pthread_cond_broadcast(&p->trigger);
+  return 0;
 #endif
 }
 
@@ -199,9 +207,13 @@ WRes Event_Wait(CEvent *p)
 #ifdef _USE_WIN32_THREADS
   return WaitObject(p->handle);
 #else
-  // FIXME!
-  (void) p;
-  return 1;
+  pthread_mutex_lock(&p->lock);
+  while (p->signaled == 0)
+    pthread_cond_wait(&p->trigger, &p->lock);
+  if(p->state == _CEVENT_AUTO_RESET)
+    p->signaled = 0;
+  pthread_mutex_unlock(&p->lock);
+  return 0;
 #endif
 }
 
@@ -210,9 +222,13 @@ WRes Event_Close(CEvent *p)
 #ifdef _USE_WIN32_THREADS
   return MyCloseHandle(&p->handle);
 #else
-  // FIXME!
-  (void) p;
-  return 1;
+  if (p->state != _CEVENT_UNINITIALIZED)
+  {
+    pthread_cond_destroy(&p->trigger);
+    pthread_mutex_destroy(&p->lock);
+    p->state = _CEVENT_UNINITIALIZED;
+  }
+  return 0;
 #endif
 }
 

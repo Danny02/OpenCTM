@@ -56,15 +56,29 @@ typedef struct _CEvent
 #ifdef _USE_WIN32_THREADS
   HANDLE handle;
 #else
-  void * handle; // FIXME!
+  pthread_mutex_t lock;
+  pthread_cond_t trigger;
+  unsigned int signaled;
+  int state;
 #endif
 } CEvent;
+
+#ifdef _USE_POSIX_THREADS
+  #define _CEVENT_UNINITIALIZED 0
+  #define _CEVENT_MANUAL_RESET  1
+  #define _CEVENT_AUTO_RESET    2
+#endif
 
 typedef CEvent CAutoResetEvent;
 typedef CEvent CManualResetEvent;
 
-#define Event_Construct(event) (event)->handle = NULL
-#define Event_IsCreated(event) ((event)->handle != NULL)
+#ifdef _USE_WIN32_THREADS
+  #define Event_Construct(event) (event)->handle = NULL
+  #define Event_IsCreated(event) ((event)->handle != NULL)
+#else
+  #define Event_Construct(event) (event)->state = _CEVENT_UNINITIALIZED
+  #define Event_IsCreated(event) ((event)->state != _CEVENT_UNINITIALIZED)
+#endif
 
 WRes ManualResetEvent_Create(CManualResetEvent *event, int initialSignaled);
 WRes ManualResetEvent_CreateNotSignaled(CManualResetEvent *event);
