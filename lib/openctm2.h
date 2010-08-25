@@ -42,7 +42,7 @@
  *
  * @section usage_sec Usage
  *
- * For information about how to use the OpenCTM API, see openctm.h.
+ * For information about how to use the OpenCTM API, see openctm2.h.
  *
  * For information about the C++ wrapper classes, see CTMimporter and
  * CTMexporter.
@@ -247,7 +247,7 @@ typedef enum {
 /// @param[in] aBuf Pointer to the memory buffer to which data should be read.
 /// @param[in] aCount The number of bytes to read.
 /// @param[in] aUserData The custom user data that was passed to the
-///            ctmLoadCustom() function.
+///            ctmOpenReadCustom() function.
 /// @return The number of bytes actually read (if this is less than aCount, it
 ///         indicates that an error occured or the end of file was reached
 ///         before all bytes were read).
@@ -465,7 +465,7 @@ CTMEXPORT CTMenum CTMCALL ctmAddAttribMap(CTMcontext aContext,
 /// @param[in] aTarget Which array to define (CTM_INDICES, CTM_VERTICES,
 ///             CTM_NORMALS, CTM_UV_MAP_x or CTM_ATTRIB_MAP_x).
 /// @param[in] aSize The number of components of each element (1, 2, 3 or 4).
-/// @param[in] aType The type of each element (CTM_CHAR, CTM_UCHAR, CTM_SHORT,
+/// @param[in] aType The type of each element (CTM_BYTE, CTM_UBYTE, CTM_SHORT,
 ///             CTM_UCHORT, CTM_INT, CTM_UINT, CTM_FLOAT or CTM_DOUBLE).
 /// @param[in] aStride Specifies the byte offset between consecutive elements.
 ///             If the special value zero (0) is given, the elements are
