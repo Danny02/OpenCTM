@@ -31,6 +31,10 @@
 #include <stdio.h>
 #include "config.h"
 
+#ifdef _CTM_SUPPORT_V5_FILES
+  #include "v5compat.h"
+#endif
+
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
@@ -126,6 +130,11 @@ typedef struct {
 
   // If we use our own file handle, set this handle (otherwise nil)
   FILE * mFileStream;
+
+#ifdef _CTM_SUPPORT_V5_FILES
+  // v5 compatibility data
+  _CTMv5compat * mV5Compat;
+#endif
 } _CTMcontext;
 
 //-----------------------------------------------------------------------------
@@ -186,5 +195,13 @@ int _ctmCompressMesh_MG2(_CTMcontext * self);
 int _ctmUncompressMesh_MG2(_CTMcontext * self);
 int _ctmCompressFrame_MG2(_CTMcontext * self);
 int _ctmUncompressFrame_MG2(_CTMcontext * self);
+
+//-----------------------------------------------------------------------------
+// Function prototypes for v5compat.c
+//-----------------------------------------------------------------------------
+#ifdef _CTM_SUPPORT_V5_FILES
+int _ctmLoadV5FileToMem(_CTMcontext * self);
+void _ctmCleanupV5Data(_CTMcontext * self);
+#endif
 
 #endif // __OPENCTM_INTERNAL_H_

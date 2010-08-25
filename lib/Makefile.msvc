@@ -41,7 +41,8 @@ OBJS = openctm2.obj \
        stream.obj \
        compressRAW.obj \
        compressMG1.obj \
-       compressMG2.obj
+       compressMG2.obj \
+	   v5compat.obj
 
 LZMA_OBJS = Alloc.obj \
             LzFind.obj \
@@ -56,7 +57,8 @@ SRCS = openctm2.c \
        stream.c \
        compressRAW.c \
        compressMG1.c \
-       compressMG2.c
+       compressMG2.c \
+	   v5compat.c
 
 LZMA_SRCS = $(LZMADIR)\Alloc.c \
             $(LZMADIR)\LzFind.c \
@@ -79,23 +81,26 @@ $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS) openctm2-msvc.def openctm2.res
 openctm2.res: openctm2.rc
 	$(RC) openctm2.rc
 
-openctm2.obj: openctm2.c openctm2.h internal.h config.h
+openctm2.obj: openctm2.c openctm2.h internal.h config.h v5compat.h
 	$(CC) $(CFLAGS) openctm2.c
 
-array.obj: array.c internal.h config.h
+array.obj: array.c internal.h config.h v5compat.h
 	$(CC) $(CFLAGS) array.c
 
-stream.obj: stream.c openctm2.h internal.h config.h
+stream.obj: stream.c openctm2.h internal.h config.h v5compat.h
 	$(CC) $(CFLAGS) stream.c
 
-compressRAW.obj: compressRAW.c openctm2.h internal.h config.h
+compressRAW.obj: compressRAW.c openctm2.h internal.h config.h v5compat.h
 	$(CC) $(CFLAGS) compressRAW.c
 
-compressMG1.obj: compressMG1.c openctm2.h internal.h config.h
+compressMG1.obj: compressMG1.c openctm2.h internal.h config.h v5compat.h
 	$(CC) $(CFLAGS) compressMG1.c
 
-compressMG2.obj: compressMG2.c openctm2.h internal.h config.h
+compressMG2.obj: compressMG2.c openctm2.h internal.h config.h v5compat.h
 	$(CC) $(CFLAGS) compressMG2.c
+
+v5compat.obj: v5compat.c openctm2.h internal.h config.h v5compat.h
+	$(CC) $(CFLAGS) v5compat.c
 
 Alloc.obj: $(LZMADIR)\Alloc.c $(LZMADIR)\Alloc.h $(LZMADIR)\NameMangle.h
 	$(CC) $(CFLAGS_LZMA) $(LZMADIR)\Alloc.c

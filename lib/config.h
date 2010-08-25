@@ -49,6 +49,9 @@
 // Enable multi threaded operation.
 #define _CTM_SUPPORT_MT
 
+// Enable support for loading file format v5 (OpenCTM 1.x files).
+#define _CTM_SUPPORT_V5_FILES
+
 //-----------------------------------------------------------------------------
 // Default compression parameters.
 //-----------------------------------------------------------------------------
