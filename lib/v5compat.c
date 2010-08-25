@@ -17,7 +17,7 @@
 //               2) The API does not support seek:ing in the source data
 //                  stream (by design), so the entire file has to be read into
 //                  memory to make it seek:able.
-//               3) The v6 format reader should not cluttered with v5
+//               3) The v6 format reader should not be cluttered with v5
 //                  compatibility hacks.
 //
 //              Also, some extra necessary conversion functions are implemented
@@ -222,5 +222,5 @@ void _ctmCleanupV5Data(_CTMcontext * self)
 
 #else
   // Dummy code (ISO C does not like empty source files)
-  void _ctm_v5compat_dummy(void a) {};
+  void _ctm_v5compat_dummy(void) {}
 #endif // _CTM_SUPPORT_V5_FILES
