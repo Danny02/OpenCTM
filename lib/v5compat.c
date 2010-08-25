@@ -109,6 +109,28 @@ static void _ctmAppendMemChunkLast(_CTMchunklist ** aList,
 }
 
 //-----------------------------------------------------------------------------
+// _ctmSetUINT()
+//-----------------------------------------------------------------------------
+void _ctmSetUINT(CTMubyte * aBuf, CTMuint aValue)
+{
+  aBuf[0] = (CTMubyte)aValue;
+  aBuf[1] = (CTMubyte)(aValue >> 8);
+  aBuf[2] = (CTMubyte)(aValue >> 16);
+  aBuf[3] = (CTMubyte)(aValue >> 24);
+}
+
+//-----------------------------------------------------------------------------
+// _ctmGetUINT()
+//-----------------------------------------------------------------------------
+CTMuint _ctmGetUINT(CTMubyte * aBuf)
+{
+  return ((CTMuint)aBuf[0]) |
+         (((CTMuint)aBuf[1]) << 8) |
+         (((CTMuint)aBuf[2]) << 16) |
+         (((CTMuint)aBuf[2]) << 24);
+}
+
+//-----------------------------------------------------------------------------
 // _ctmMemChunkRead()
 //-----------------------------------------------------------------------------
 static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
@@ -159,6 +181,9 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
 //-----------------------------------------------------------------------------
 int _ctmLoadV5FileToMem(_CTMcontext * self)
 {
+  _CTMchunklist *chunk, *preUVInfoChunk;
+  CTMuint len;
+
   // Already initialized?
   if(self->mV5Compat)
     _ctmCleanupV5Data(self);
@@ -172,8 +197,25 @@ int _ctmLoadV5FileToMem(_CTMcontext * self)
   }
   memset((void *) self->mV5Compat, 0, sizeof(_CTMv5compat));
 
-  // Load and convert the file...
-  // ...
+  // Load header
+  if(!(chunk = _ctmNewMemChunk(self, 28)))
+    return CTM_FALSE;
+  _ctmAppendMemChunkLast(&self->mV5Compat->mFirstChunk, chunk);
+  _ctmStreamRead(self, chunk->mData, 24);
+  _ctmSetUINT(&chunk->mData[24], 0); // mFrameCount = 0
+
+  // Load file comment
+  len = _ctmStreamReadUINT(self);
+  if(!(chunk = _ctmNewMemChunk(self, 4 + len)))
+    return CTM_FALSE;
+  _ctmAppendMemChunkLast(&self->mV5Compat->mFirstChunk, chunk);
+  _ctmSetUINT(&chunk->mData[0], len);
+  _ctmStreamRead(self, &chunk->mData[4], len);
+
+  // Here is where we would want to insert UV and attrib map info (if any)...
+  preUVInfoChunk = chunk;
+
+  // Load the rest of the file (method dependent)
   // FIXME!
 
   // Reset the buffer pointer ("seek" back to the start)

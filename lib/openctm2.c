@@ -189,11 +189,12 @@ static void _ctmFreeMapList(_CTMfloatmap * aMapList)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmClearMesh() - Clear the mesh in a CTM context.
+// _ctmFreeContextData() - Clear all the context data in a CTM context,
+// and clear external mesh array assignments.
 //-----------------------------------------------------------------------------
-static void _ctmClearMesh(_CTMcontext * self)
+static void _ctmFreeContextData(_CTMcontext * self)
 {
-  // Clear externally assigned mesh arrays
+  // Clear external mesh array assignments
   _ctmClearArray(&self->mVertices);
   self->mVertexCount = 0;
   _ctmClearArray(&self->mIndices);
@@ -209,6 +210,15 @@ static void _ctmClearMesh(_CTMcontext * self)
   _ctmFreeMapList(self->mAttribMaps);
   self->mAttribMaps = (_CTMfloatmap *) 0;
   self->mAttribMapCount = 0;
+
+  // Free the file comment
+  if(self->mFileComment)
+    free(self->mFileComment);
+
+#ifdef _CTM_SUPPORT_V5_FILES
+  // Free v5 compatibility data
+  _ctmCleanupV5Data(self);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -357,11 +367,7 @@ CTMEXPORT void CTMCALL ctmFreeContext(CTMcontext aContext)
     fclose(self->mFileStream);
 
   // Free all mesh resources
-  _ctmClearMesh(self);
-
-  // Free the file comment
-  if(self->mFileComment)
-    free(self->mFileComment);
+  _ctmFreeContextData(self);
 
   // Free the context
   free(self);
@@ -1406,21 +1412,33 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   self->mReadFn = aReadFn;
   self->mUserData = aUserData;
 
-  // Clear any old mesh arrays
-  _ctmClearMesh(self);
+  // Clear any old mesh data
+  _ctmFreeContextData(self);
 
-  // Read header from stream
+  // Read magic ID and file version number from the stream
   if(_ctmStreamReadUINT(self) != FOURCC("OCTM"))
   {
     self->mError = CTM_BAD_FORMAT;
     return;
   }
   formatVersion = _ctmStreamReadUINT(self);
+
+  // Check if this is a supported version
+#ifdef _CTM_SUPPORT_V5_FILES
+  if(formatVersion == 5)
+  {
+    if(!_ctmLoadV5FileToMem(self))
+      return;
+  }
+  else
+#endif
   if(formatVersion != _CTM_FORMAT_VERSION)
   {
     self->mError = CTM_UNSUPPORTED_FORMAT_VERSION;
     return;
   }
+
+  // Read the rest of the header
   method = _ctmStreamReadUINT(self);
   if(method == FOURCC("RAW\0"))
     self->mMethod = CTM_METHOD_RAW;
@@ -1457,13 +1475,11 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   // Allocate memory for the UV and attribute maps (if any)
   if(!_ctmAllocateFloatMaps(self, &self->mUVMaps, self->mUVMapCount))
   {
-    _ctmClearMesh(self);
     self->mError = CTM_OUT_OF_MEMORY;
     return;
   }
   if(!_ctmAllocateFloatMaps(self, &self->mAttribMaps, self->mAttribMapCount))
   {
-    _ctmClearMesh(self);
     self->mError = CTM_OUT_OF_MEMORY;
     return;
   }
@@ -1528,7 +1544,7 @@ CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext)
       _ctmUncompressMesh_RAW(self);
       break;
 #else
-      _ctmClearMesh(self);
+      _ctmFreeContextData(self);
       self->mError = CTM_UNSUPPORTED_OPERATION;
       return;
 #endif
@@ -1538,7 +1554,7 @@ CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext)
       _ctmUncompressMesh_MG1(self);
       break;
 #else
-      _ctmClearMesh(self);
+      _ctmFreeContextData(self);
       self->mError = CTM_UNSUPPORTED_OPERATION;
       return;
 #endif
@@ -1548,7 +1564,7 @@ CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext)
       _ctmUncompressMesh_MG2(self);
       break;
 #else
-      _ctmClearMesh(self);
+      _ctmFreeContextData(self);
       self->mError = CTM_UNSUPPORTED_OPERATION;
       return;
 #endif
