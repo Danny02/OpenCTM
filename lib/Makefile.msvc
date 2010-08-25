@@ -80,7 +80,7 @@ openctm2.res: openctm2.rc
 	$(RC) openctm2.rc
 
 openctm2.obj: openctm2.c openctm2.h internal.h config.h
-	$(CC) $(CFLAGS) openctm.c
+	$(CC) $(CFLAGS) openctm2.c
 
 array.obj: array.c internal.h config.h
 	$(CC) $(CFLAGS) array.c

@@ -162,7 +162,7 @@ void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue)
 
   // Get string length
   if(aValue)
-    len = strlen(aValue);
+    len = (CTMuint) strlen(aValue);
   else
     len = 0;
 
@@ -202,7 +202,7 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-  _ctmStreamRead(self, (void *) packed, packedSize);
+  _ctmStreamRead(self, (void *) packed, (CTMuint) packedSize);
 
   // Allocate memory for interleaved array
   tmp = (unsigned char *) malloc(aCount * aSize * 4);
@@ -384,7 +384,7 @@ int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-  _ctmStreamRead(self, (void *) packed, packedSize);
+  _ctmStreamRead(self, (void *) packed, (CTMuint) packedSize);
 
   // Allocate memory for interleaved array
   tmp = (unsigned char *) malloc(aCount * aSize * 4);
