@@ -85,12 +85,12 @@ typedef int Bool;
 #define False 0
 
 
-#ifdef _MSC_VER
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
 
-#if _MSC_VER >= 1300
-#define MY_NO_INLINE __declspec(noinline)
+#if defined(_MSC_VER) && (_MSC_VER >= 1300)
+  #define MY_NO_INLINE __declspec(noinline)
 #else
-#define MY_NO_INLINE
+  #define MY_NO_INLINE
 #endif
 
 #define MY_CDECL __cdecl

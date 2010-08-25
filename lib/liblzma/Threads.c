@@ -322,13 +322,7 @@ WRes Semaphore_Close(CSemaphore *p)
 WRes CriticalSection_Init(CCriticalSection *p)
 {
 #ifdef _USE_WIN32_THREADS
-  /* InitializeCriticalSection can raise only STATUS_NO_MEMORY exception */
-  __try
-  {
-    InitializeCriticalSection(p);
-    /* InitializeCriticalSectionAndSpinCount(p, 0); */
-  }
-  __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+  InitializeCriticalSection(p);
   return 0;
 #else
   return pthread_mutex_init(p, NULL);
