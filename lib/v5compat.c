@@ -259,7 +259,7 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   len = _ctmStreamReadSTRING(self, &fileComment);
 
 #ifdef __DEBUG_
-  printf(" v5 compat: comment =\"%s\"\n", fileComment);
+  printf(" v5 compat: comment = \"%s\"\n", fileComment);
 #endif
 
   // Construct v6 format header (excluding UV and attrib map info)
@@ -274,8 +274,10 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   _ctmSetUINT(&chunk->mData[24], frameCount);
   _ctmSetUINT(&chunk->mData[28], len);
   if(len > 0)
+  {
     memcpy((void *) &chunk->mData[32], (void *) fileComment, len);
-  free((void *) fileComment);
+    free((void *) fileComment);
+  }
 
   // Here is where we want to insert UV and attrib map info later on...
   self->mV5Compat.mLastHeadChunk = chunk;
@@ -355,7 +357,7 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
     if(i == 0)
     {
       // For the first item, add a UINF identifier
-      if(!(chunk = _ctmAppendTailChunk(self, 4)))
+      if(!(chunk = _ctmAppendHeadChunk(self, 4)))
         return CTM_FALSE;
       _ctmSetUINT(&chunk->mData[0], FOURCC("UINF"));
     }
@@ -366,9 +368,17 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
     if(!(chunk = _ctmAppendHeadChunk(self, 8 + len + len2)))
       return CTM_FALSE;
     _ctmSetUINT(&chunk->mData[0], len);
-    memcpy((void *) &chunk->mData[4], (void *) name, len);
+    if(len > 0)
+    {
+      memcpy((void *) &chunk->mData[4], (void *) name, len);
+      free((void *) name);
+    }
     _ctmSetUINT(&chunk->mData[4+len], len2);
-    memcpy((void *) &chunk->mData[8+len], (void *) fileName, len2);
+    if(len2 > 0)
+    {
+      memcpy((void *) &chunk->mData[8+len], (void *) fileName, len2);
+      free((void *) fileName);
+    }
 
     // Read texture coordinates for this map
     len = self->mV5Compat.mVertexCount * 2 * 4;
@@ -400,7 +410,11 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
     if(!(chunk = _ctmAppendHeadChunk(self, 4 + len)))
       return CTM_FALSE;
     _ctmSetUINT(&chunk->mData[0], len);
-    memcpy((void *) &chunk->mData[4], (void *) name, len);
+    if(len > 0)
+    {
+      memcpy((void *) &chunk->mData[4], (void *) name, len);
+      free((void *) name);
+    }
 
     // Read vertex attributes for this map
     len = self->mV5Compat.mVertexCount * 4 * 4;
