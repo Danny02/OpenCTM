@@ -56,7 +56,7 @@
 #ifdef _CTM_SUPPORT_V5_FILES
 
 //=============================================================================
-// Private helper functions
+// Memory chunk list management functions
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ static void _ctmAppendMemChunkLast(_CTMchunklist ** aList,
 }
 
 //-----------------------------------------------------------------------------
-// _ctmSetUINT()
+// _ctmSetUINT() - Set an integer value in a byte buffer.
 //-----------------------------------------------------------------------------
 static void _ctmSetUINT(CTMubyte * aBuf, CTMuint aValue)
 {
@@ -120,7 +120,7 @@ static void _ctmSetUINT(CTMubyte * aBuf, CTMuint aValue)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmMemChunkRead()
+// _ctmMemChunkRead() - Read function for reading the chunk list as a stream.
 //-----------------------------------------------------------------------------
 static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
   void * aUserData)
@@ -163,6 +163,11 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
 
   return bytesRead;
 }
+
+
+//=============================================================================
+// Version 5 format parsing functions
+//=============================================================================
 
 //-----------------------------------------------------------------------------
 // _ctmLoadV5_Header() - Load file header.
