@@ -45,6 +45,8 @@ struct _CTMchunklist_struct {
 typedef struct {
   // Chunk list data stream
   _CTMchunklist * mFirstChunk;    // First chunk in the list (0 = empty list)
+  _CTMchunklist * mLastHeadChunk; // Last chunk in the file header (used for
+                                  // appending the UV map & attrib map info)
   _CTMchunklist * mCurrentChunk;  // Current chunk in stream (0 = end of file)
   CTMuint mChunkPos;              // Current offset (relative to mCurrentChunk)
 
@@ -55,8 +57,6 @@ typedef struct {
   CTMuint mHasNormals;            // Non-zero if normals are present
   CTMuint mUVMapCount;            // UV map count
   CTMuint mAttribMapCount;        // Attribute map count
-  _CTMchunklist * mLastHeadChunk; // Last chunk in the file header (used for
-                                  // appending the UV map & attrib map info)
 } _CTMv5compat;
 
 #endif // __OPENCTM_V5COMPAT_H_

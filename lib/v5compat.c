@@ -66,6 +66,10 @@ static _CTMchunklist * _ctmNewMemChunk(CTMuint aSize)
 {
   _CTMchunklist *chunk;
 
+#ifdef __DEBUG_
+  printf(" v5 compat: new chunk, %d bytes\n", aSize);
+#endif
+
   // Allocate memory for the object
   chunk = (_CTMchunklist *) malloc(sizeof(_CTMchunklist));
   if(!chunk)
@@ -85,27 +89,51 @@ static _CTMchunklist * _ctmNewMemChunk(CTMuint aSize)
 }
 
 //-----------------------------------------------------------------------------
-// _ctmInsertMemChunk() - Insert the given chunk after aPrevious (insert
-// it before the next item).
+// _ctmAppendHeadChunk() - Append a new memory chunk at the end of the header
+// (effectively inserting it before the first chunk after the head).
 //-----------------------------------------------------------------------------
-static void _ctmInsertMemChunk(_CTMchunklist * aPrevious,
-  _CTMchunklist * aChunk)
+static _CTMchunklist * _ctmAppendHeadChunk(_CTMcontext * self, CTMuint aSize)
 {
-  aChunk->mNext = aPrevious->mNext;
-  aPrevious->mNext = aChunk;
+  // Create chunk
+  _CTMchunklist * chunk = _ctmNewMemChunk(aSize);
+  if(!chunk)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return (_CTMchunklist *) 0;
+  }
+
+  // Append to head
+  chunk->mNext = self->mV5Compat.mLastHeadChunk->mNext;
+  self->mV5Compat.mLastHeadChunk->mNext = chunk;
+  self->mV5Compat.mLastHeadChunk = chunk;
+
+  return chunk;
 }
 
 //-----------------------------------------------------------------------------
-// _ctmAppendMemChunkLast() - Append the given chunk at the end of the chunk
+// _ctmAppendTailChunk() - Append a new memory chunk at the end of the chunk
 // list.
 //-----------------------------------------------------------------------------
-static void _ctmAppendMemChunkLast(_CTMchunklist ** aList,
-  _CTMchunklist * aChunk)
+static _CTMchunklist * _ctmAppendTailChunk(_CTMcontext * self, CTMuint aSize)
 {
-  _CTMchunklist **chunkptr = aList;
+  _CTMchunklist **chunkptr;
+  _CTMchunklist * chunk;
+
+  // Create chunk
+  chunk = _ctmNewMemChunk(aSize);
+  if(!chunk)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return (_CTMchunklist *) 0;
+  }
+
+  // Append to tail
+  chunkptr = &self->mV5Compat.mFirstChunk;
   while(*chunkptr)
     chunkptr = &(*chunkptr)->mNext;
-  *chunkptr = aChunk;
+  *chunkptr = chunk;
+
+  return chunk;
 }
 
 //-----------------------------------------------------------------------------
@@ -130,6 +158,10 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
   _CTMv5compat * v5compat = (_CTMv5compat *) aUserData;
   _CTMchunklist * chunk;
 
+#ifdef __DEBUG_
+//  printf(" v5 compat reader: reading %d bytes\n", aCount);
+#endif
+
   // End of stream?
   if(!v5compat->mCurrentChunk)
     return 0;
@@ -138,7 +170,7 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
   chunk = v5compat->mCurrentChunk;
   pos = v5compat->mChunkPos;
   dst = (CTMubyte *) aBuf;
-  src = chunk->mData;
+  src = &chunk->mData[pos];
   for(bytesRead = 0; bytesRead < aCount; ++ bytesRead)
   {
     // Copy one byte
@@ -161,6 +193,10 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
   v5compat->mCurrentChunk = chunk;
   v5compat->mChunkPos = pos;
 
+#ifdef __DEBUG_
+//  printf(" v5 compat reader: new pos = %d chunk = 0x%08x\n",  pos, chunk);
+#endif
+
   return bytesRead;
 }
 
@@ -178,7 +214,11 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   CTMuint len;
   CTMuint method, vertexCount, triangleCount, uvMapCount, attribMapCount;
   CTMuint flags, frameCount;
-  char * fileComment;
+  char * fileComment = 0;
+
+#ifdef __DEBUG_
+  printf(" v5 compat: loading header\n");
+#endif
 
   // Load file header information
   method = _ctmStreamReadUINT(self);
@@ -188,6 +228,10 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   attribMapCount = _ctmStreamReadUINT(self);
   flags = _ctmStreamReadUINT(self);
   frameCount = 1;
+
+#ifdef __DEBUG_
+  printf(" v5 compat: %d tris, %d verts\n", triangleCount, vertexCount);
+#endif
 
   // Check which method we are using
   if(method == FOURCC("RAW\0"))
@@ -214,13 +258,13 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   // bogus string if this is a badly formatted file).
   len = _ctmStreamReadSTRING(self, &fileComment);
 
+#ifdef __DEBUG_
+  printf(" v5 compat: comment =\"%s\"\n", fileComment);
+#endif
+
   // Construct v6 format header (excluding UV and attrib map info)
-  if(!(chunk = _ctmNewMemChunk(32 + len)))
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
+  if(!(chunk = _ctmAppendTailChunk(self, 32 + len)))
     return CTM_FALSE;
-  }
-  _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
   _ctmSetUINT(&chunk->mData[0], method);
   _ctmSetUINT(&chunk->mData[4], vertexCount);
   _ctmSetUINT(&chunk->mData[8], triangleCount);
@@ -229,7 +273,8 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   _ctmSetUINT(&chunk->mData[20], (flags & 0x00000001) ? _CTM_HAS_NORMALS_BIT : 0);
   _ctmSetUINT(&chunk->mData[24], frameCount);
   _ctmSetUINT(&chunk->mData[28], len);
-  memcpy((void *) &chunk->mData[32], (void *) fileComment, len);
+  if(len > 0)
+    memcpy((void *) &chunk->mData[32], (void *) fileComment, len);
   free((void *) fileComment);
 
   // Here is where we want to insert UV and attrib map info later on...
@@ -252,7 +297,12 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
 {
 #ifdef _CTM_SUPPORT_RAW
   _CTMchunklist * chunk;
-  CTMuint len, i;
+  CTMuint len, len2, i;
+  char *name = 0, *fileName = 0;
+
+#ifdef __DEBUG_
+  printf(" v5 compat: loading RAW format mesh\n");
+#endif
 
   // Read triangle indices
   if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
@@ -261,12 +311,8 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
     return CTM_FALSE;
   }
   len = self->mV5Compat.mTriangleCount * 3 * 4;
-  if(!(chunk = _ctmNewMemChunk(4 + len)))
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
+  if(!(chunk = _ctmAppendTailChunk(self, 4 + len)))
     return CTM_FALSE;
-  }
-  _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
   _ctmSetUINT(&chunk->mData[0], FOURCC("INDX"));
   _ctmStreamRead(self, &chunk->mData[4], len);
 
@@ -277,12 +323,8 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
     return CTM_FALSE;
   }
   len = self->mV5Compat.mVertexCount * 3 * 4;
-  if(!(chunk = _ctmNewMemChunk(4 + len)))
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
+  if(!(chunk = _ctmAppendTailChunk(self, 4 + len)))
     return CTM_FALSE;
-  }
-  _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
   _ctmSetUINT(&chunk->mData[0], FOURCC("VERT"));
   _ctmStreamRead(self, &chunk->mData[4], len);
 
@@ -295,12 +337,8 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
       return CTM_FALSE;
     }
     len = self->mV5Compat.mVertexCount * 3 * 4;
-    if(!(chunk = _ctmNewMemChunk(4 + len)))
-    {
-      self->mError = CTM_OUT_OF_MEMORY;
+    if(!(chunk = _ctmAppendTailChunk(self, 4 + len)))
       return CTM_FALSE;
-    }
-    _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
     _ctmSetUINT(&chunk->mData[0], FOURCC("NORM"));
     _ctmStreamRead(self, &chunk->mData[4], len);
   }
@@ -313,28 +351,63 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
       self->mError = CTM_BAD_FORMAT;
       return CTM_FALSE;
     }
-/*
-    _ctmStreamReadSTRING(self, &map->mName);
-    _ctmStreamReadSTRING(self, &map->mFileName);
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
-      map->mValues[i] = _ctmStreamReadFLOAT(self);
-*/
+
+    if(i == 0)
+    {
+      // For the first item, add a UINF identifier
+      if(!(chunk = _ctmAppendTailChunk(self, 4)))
+        return CTM_FALSE;
+      _ctmSetUINT(&chunk->mData[0], FOURCC("UINF"));
+    }
+
+    // Copy strings to UV map info
+    len = _ctmStreamReadSTRING(self, &name);
+    len2 = _ctmStreamReadSTRING(self, &fileName);
+    if(!(chunk = _ctmAppendHeadChunk(self, 8 + len + len2)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], len);
+    memcpy((void *) &chunk->mData[4], (void *) name, len);
+    _ctmSetUINT(&chunk->mData[4+len], len2);
+    memcpy((void *) &chunk->mData[8+len], (void *) fileName, len2);
+
+    // Read texture coordinates for this map
+    len = self->mV5Compat.mVertexCount * 2 * 4;
+    if(!(chunk = _ctmAppendTailChunk(self, 4 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], FOURCC("TEXC"));
+    _ctmStreamRead(self, &chunk->mData[4], len);
   }
 
   // Read attribute maps
-  for(i = 0; i < self->mV5Compat.mUVMapCount; ++ i)
+  for(i = 0; i < self->mV5Compat.mAttribMapCount; ++ i)
   {
     if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
     {
       self->mError = CTM_BAD_FORMAT;
       return CTM_FALSE;
     }
-/*
-    _ctmStreamReadSTRING(self, &map->mName);
-    _ctmStreamReadSTRING(self, &map->mFileName);
-    for(i = 0; i < self->mVertexCount * 2; ++ i)
-      map->mValues[i] = _ctmStreamReadFLOAT(self);
-*/
+
+    if(i == 0)
+    {
+      // For the first item, add a UINF identifier
+      if(!(chunk = _ctmAppendHeadChunk(self, 4)))
+        return CTM_FALSE;
+      _ctmSetUINT(&chunk->mData[0], FOURCC("AINF"));
+    }
+
+    // Copy string to attrib map info
+    len = _ctmStreamReadSTRING(self, &name);
+    if(!(chunk = _ctmAppendHeadChunk(self, 4 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], len);
+    memcpy((void *) &chunk->mData[4], (void *) name, len);
+
+    // Read vertex attributes for this map
+    len = self->mV5Compat.mVertexCount * 4 * 4;
+    if(!(chunk = _ctmAppendTailChunk(self, 4 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], FOURCC("ATTR"));
+    _ctmStreamRead(self, &chunk->mData[4], len);
   }
 
   return CTM_TRUE;
@@ -388,6 +461,10 @@ int _ctmLoadV5FileToMem(_CTMcontext * self)
 {
   int ok;
 
+#ifdef __DEBUG_
+  printf("\n v5 compat: starting conversion\n");
+#endif
+
   // Un-initialize if necessary
   _ctmCleanupV5Data(self);
 
@@ -427,6 +504,10 @@ int _ctmLoadV5FileToMem(_CTMcontext * self)
   }
   self->mReadFn = _ctmMemChunkRead;
   self->mUserData = (void *) &self->mV5Compat;
+
+#ifdef __DEBUG_
+  printf(" v5 compat: conversion done\n");
+#endif
 
   return CTM_TRUE;
 }
