@@ -55,27 +55,27 @@
 
 #ifdef _CTM_SUPPORT_V5_FILES
 
+//=============================================================================
+// Private helper functions
+//=============================================================================
+
 //-----------------------------------------------------------------------------
 // _ctmNewMemChunk() - Allocate memory for a new chunk.
 //-----------------------------------------------------------------------------
-static _CTMchunklist * _ctmNewMemChunk(_CTMcontext * self, CTMuint aSize)
+static _CTMchunklist * _ctmNewMemChunk(CTMuint aSize)
 {
   _CTMchunklist *chunk;
 
   // Allocate memory for the object
   chunk = (_CTMchunklist *) malloc(sizeof(_CTMchunklist));
   if(!chunk)
-  {
-    self->mError = CTM_OUT_OF_MEMORY;
     return (_CTMchunklist *) 0;
-  }
 
   // Initialize the object
   chunk->mData = (CTMubyte *) malloc(aSize);
   if(!chunk->mData)
   {
     free((void *) chunk);
-    self->mError = CTM_OUT_OF_MEMORY;
     return (_CTMchunklist *) 0;
   }
   chunk->mSize = aSize;
@@ -111,23 +111,12 @@ static void _ctmAppendMemChunkLast(_CTMchunklist ** aList,
 //-----------------------------------------------------------------------------
 // _ctmSetUINT()
 //-----------------------------------------------------------------------------
-void _ctmSetUINT(CTMubyte * aBuf, CTMuint aValue)
+static void _ctmSetUINT(CTMubyte * aBuf, CTMuint aValue)
 {
   aBuf[0] = (CTMubyte)aValue;
   aBuf[1] = (CTMubyte)(aValue >> 8);
   aBuf[2] = (CTMubyte)(aValue >> 16);
   aBuf[3] = (CTMubyte)(aValue >> 24);
-}
-
-//-----------------------------------------------------------------------------
-// _ctmGetUINT()
-//-----------------------------------------------------------------------------
-CTMuint _ctmGetUINT(CTMubyte * aBuf)
-{
-  return ((CTMuint)aBuf[0]) |
-         (((CTMuint)aBuf[1]) << 8) |
-         (((CTMuint)aBuf[2]) << 16) |
-         (((CTMuint)aBuf[2]) << 24);
 }
 
 //-----------------------------------------------------------------------------
@@ -176,51 +165,146 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
 }
 
 //-----------------------------------------------------------------------------
-// Load a v5 file into memory. While loading the data, convert it to the file
-// format version that is supported by the current library.
+// _ctmLoadV5_Header() - Load file header.
 //-----------------------------------------------------------------------------
-int _ctmLoadV5FileToMem(_CTMcontext * self)
+static int _ctmLoadV5_Header(_CTMcontext * self)
 {
-  _CTMchunklist *chunk, *preUVInfoChunk;
+  _CTMchunklist * chunk;
   CTMuint len;
+  CTMuint method, vertexCount, triangleCount, uvMapCount, attribMapCount;
+  CTMuint flags, frameCount;
+  char * fileComment;
 
-  // Already initialized?
-  if(self->mV5Compat)
-    _ctmCleanupV5Data(self);
+  // Load file header information
+  method = _ctmStreamReadUINT(self);
+  vertexCount = _ctmStreamReadUINT(self);
+  triangleCount = _ctmStreamReadUINT(self);
+  uvMapCount = _ctmStreamReadUINT(self);
+  attribMapCount = _ctmStreamReadUINT(self);
+  flags = _ctmStreamReadUINT(self);
+  frameCount = 0;
 
-  // Initialize the v5 compatibility object
-  self->mV5Compat = (_CTMv5compat *) malloc(sizeof(_CTMv5compat));
-  if(!self->mV5Compat)
+  // Check which method we are using
+  if(method == FOURCC("RAW\0"))
+    self->mV5Compat.mMethod = CTM_METHOD_RAW;
+  else if(method == FOURCC("MG1\0"))
+    self->mV5Compat.mMethod = CTM_METHOD_MG1;
+  else if(method == FOURCC("MG2\0"))
+    self->mV5Compat.mMethod = CTM_METHOD_MG2;
+  else
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return CTM_FALSE;
+  }
+
+  // Sanity check...
+  if((vertexCount == 0) || (triangleCount == 0))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return CTM_FALSE;
+  }
+
+  // Load file comment (Note: we want to load this after doing initial
+  // integrity checking, to avoid trying to load a potentially very long
+  // bogus string if this is a badly formatted file).
+  len = _ctmStreamReadSTRING(self, &fileComment);
+
+  // Construct v6 format header (excluding UV and attrib map info)
+  if(!(chunk = _ctmNewMemChunk(32 + len)))
   {
     self->mError = CTM_OUT_OF_MEMORY;
     return CTM_FALSE;
   }
-  memset((void *) self->mV5Compat, 0, sizeof(_CTMv5compat));
+  _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
+  _ctmSetUINT(&chunk->mData[0], method);
+  _ctmSetUINT(&chunk->mData[4], vertexCount);
+  _ctmSetUINT(&chunk->mData[8], triangleCount);
+  _ctmSetUINT(&chunk->mData[12], uvMapCount);
+  _ctmSetUINT(&chunk->mData[16], attribMapCount);
+  _ctmSetUINT(&chunk->mData[20], flags);
+  _ctmSetUINT(&chunk->mData[24], frameCount);
+  _ctmSetUINT(&chunk->mData[28], len);
+  memcpy((void *) &chunk->mData[32], (void *) fileComment, len);
 
-  // Load header
-  if(!(chunk = _ctmNewMemChunk(self, 28)))
-    return CTM_FALSE;
-  _ctmAppendMemChunkLast(&self->mV5Compat->mFirstChunk, chunk);
-  _ctmStreamRead(self, chunk->mData, 24);
-  _ctmSetUINT(&chunk->mData[24], 0); // mFrameCount = 0
+  // Here is where we want to insert UV and attrib map info later on...
+  self->mV5Compat.mLastHeadChunk = chunk;
 
-  // Load file comment
-  len = _ctmStreamReadUINT(self);
-  if(!(chunk = _ctmNewMemChunk(self, 4 + len)))
-    return CTM_FALSE;
-  _ctmAppendMemChunkLast(&self->mV5Compat->mFirstChunk, chunk);
-  _ctmSetUINT(&chunk->mData[0], len);
-  _ctmStreamRead(self, &chunk->mData[4], len);
+  return CTM_TRUE;
+}
 
-  // Here is where we would want to insert UV and attrib map info (if any)...
-  preUVInfoChunk = chunk;
-
-  // Load the rest of the file (method dependent)
+//-----------------------------------------------------------------------------
+// _ctmLoadV5_RAW() - Load RAW format mesh.
+//-----------------------------------------------------------------------------
+static int _ctmLoadV5_RAW(_CTMcontext * self)
+{
   // FIXME!
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmLoadV5_MG1() - Load MG1 format mesh.
+//-----------------------------------------------------------------------------
+static int _ctmLoadV5_MG1(_CTMcontext * self)
+{
+  // FIXME!
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+}
+
+//-----------------------------------------------------------------------------
+// _ctmLoadV5_MG2() - Load MG2 format mesh.
+//-----------------------------------------------------------------------------
+static int _ctmLoadV5_MG2(_CTMcontext * self)
+{
+  // FIXME!
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+}
+
+
+//=============================================================================
+// Public functions (API internal)
+//=============================================================================
+
+//-----------------------------------------------------------------------------
+// _ctmLoadV5FileToMem() - Load a v5 file into memory. While loading the data,
+// convert it to the file format version that is supported by the current
+// library.
+//-----------------------------------------------------------------------------
+int _ctmLoadV5FileToMem(_CTMcontext * self)
+{
+  int ok;
+
+  // Un-initialize if necessary
+  _ctmCleanupV5Data(self);
+
+  // Load file header
+  if(!_ctmLoadV5_Header(self))
+    return CTM_FALSE;
+
+  // Load the rest of the file (compression method dependent)
+  switch(self->mV5Compat.mMethod)
+  {
+    case CTM_METHOD_RAW:
+      ok = _ctmLoadV5_RAW(self);
+      break;
+    case CTM_METHOD_MG1:
+      ok = _ctmLoadV5_MG1(self);
+      break;
+    case CTM_METHOD_MG2:
+      ok = _ctmLoadV5_MG2(self);
+      break;
+    default:
+      self->mError = CTM_INTERNAL_ERROR;
+      ok = CTM_FALSE;
+  }
+  if(!ok)
+    return CTM_FALSE;
 
   // Reset the buffer pointer ("seek" back to the start)
-  self->mV5Compat->mCurrentChunk = self->mV5Compat->mFirstChunk;
-  self->mV5Compat->mChunkPos = 0;
+  self->mV5Compat.mCurrentChunk = self->mV5Compat.mFirstChunk;
+  self->mV5Compat.mChunkPos = 0;
 
   // Re-assign the file loader routine so that it will read the converted
   // memory buffer.
@@ -230,7 +314,7 @@ int _ctmLoadV5FileToMem(_CTMcontext * self)
     self->mFileStream = (FILE *) 0;
   }
   self->mReadFn = _ctmMemChunkRead;
-  self->mUserData = (void *) self->mV5Compat;
+  self->mUserData = (void *) &self->mV5Compat;
 
   return CTM_TRUE;
 }
@@ -242,24 +326,19 @@ void _ctmCleanupV5Data(_CTMcontext * self)
 {
   _CTMchunklist *chunk, *next;
 
-  // Nothing to do?
-  if(!self->mV5Compat)
-    return;
-
   // Free the chunk list
-  chunk = self->mV5Compat->mFirstChunk;
+  chunk = self->mV5Compat.mFirstChunk;
   while(chunk)
   {
     if(chunk->mData)
       free(chunk->mData);
     next = chunk->mNext;
-    free(chunk);
+    free((void *) chunk);
     chunk = next;
   }
 
-  // Free the v5 compat object
-  free((void *) self->mV5Compat);
-  self->mV5Compat = (_CTMv5compat *) 0;
+  // Clear the v5 compatibility object
+  memset((void *) &self->mV5Compat, 0, sizeof(_CTMv5compat));
 }
 
 #else

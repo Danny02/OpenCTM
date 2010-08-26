@@ -43,9 +43,15 @@ struct _CTMchunklist_struct {
 // _CTMv5compat - Context for handling v5 specific data and state.
 //-----------------------------------------------------------------------------
 typedef struct {
-  _CTMchunklist * mFirstChunk;
-  _CTMchunklist * mCurrentChunk;
-  CTMuint mChunkPos;
+  // Chunk list data stream
+  _CTMchunklist * mFirstChunk;    // First chunk in the list (0 = empty list)
+  _CTMchunklist * mCurrentChunk;  // Current chunk in stream (0 = end of file)
+  CTMuint mChunkPos;              // Current offset (relative to mCurrentChunk)
+
+  // Internal state
+  CTMuint mMethod;                // Compression method
+  _CTMchunklist * mLastHeadChunk; // Last chunk in the file header (used for
+                                  // appending the UV map & attrib map info)
 } _CTMv5compat;
 
 #endif // __OPENCTM_V5COMPAT_H_

@@ -123,8 +123,9 @@ void _ctmStreamWriteFLOAT(_CTMcontext * self, CTMfloat aValue)
 // _ctmStreamReadSTRING() - Read a string value from a stream. The format of
 // the string in the stream is: an unsigned integer (string length) followed by
 // the string (without null termination).
+// The function returns the string length (number of bytes).
 //-----------------------------------------------------------------------------
-void _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue)
+CTMuint _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue)
 {
   CTMuint len;
 
@@ -148,6 +149,8 @@ void _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue)
       (*aValue)[len] = 0;
     }
   }
+
+  return len;
 }
 
 #ifdef _CTM_SUPPORT_SAVE

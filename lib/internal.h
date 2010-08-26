@@ -133,7 +133,7 @@ typedef struct {
 
 #ifdef _CTM_SUPPORT_V5_FILES
   // v5 compatibility data
-  _CTMv5compat * mV5Compat;
+  _CTMv5compat mV5Compat;
 #endif
 } _CTMcontext;
 
@@ -165,7 +165,7 @@ CTMuint _ctmStreamReadUINT(_CTMcontext * self);
 void _ctmStreamWriteUINT(_CTMcontext * self, CTMuint aValue);
 CTMfloat _ctmStreamReadFLOAT(_CTMcontext * self);
 void _ctmStreamWriteFLOAT(_CTMcontext * self, CTMfloat aValue);
-void _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue);
+CTMuint _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue);
 void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue);
 int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
 int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
