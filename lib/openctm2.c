@@ -1028,6 +1028,12 @@ CTMEXPORT void CTMCALL ctmFrameCount(CTMcontext aContext, CTMuint aCount)
     return;
   }
 
+  // Set frame count
+  if(aCount < 1)
+  {
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
   self->mFrameCount = aCount;
 #else
   DUMMYUSE(aCount);
@@ -1467,6 +1473,11 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   self->mAttribMapCount = _ctmStreamReadUINT(self);
   flags = _ctmStreamReadUINT(self);
   self->mFrameCount = _ctmStreamReadUINT(self);
+  if(self->mFrameCount == 0)
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return;
+  }
   _ctmStreamReadSTRING(self, &self->mFileComment);
 
   // Decode the flags field

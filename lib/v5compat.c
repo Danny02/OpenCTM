@@ -182,7 +182,7 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   uvMapCount = _ctmStreamReadUINT(self);
   attribMapCount = _ctmStreamReadUINT(self);
   flags = _ctmStreamReadUINT(self);
-  frameCount = 0;
+  frameCount = 1;
 
   // Check which method we are using
   if(method == FOURCC("RAW\0"))
