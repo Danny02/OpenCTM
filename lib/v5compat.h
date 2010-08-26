@@ -50,6 +50,11 @@ typedef struct {
 
   // Internal state
   CTMuint mMethod;                // Compression method
+  CTMuint mVertexCount;           // Vertex count
+  CTMuint mTriangleCount;         // Triangle count
+  CTMuint mHasNormals;            // Non-zero if normals are present
+  CTMuint mUVMapCount;            // UV map count
+  CTMuint mAttribMapCount;        // Attribute map count
   _CTMchunklist * mLastHeadChunk; // Last chunk in the file header (used for
                                   // appending the UV map & attrib map info)
 } _CTMv5compat;

@@ -226,13 +226,21 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
   _ctmSetUINT(&chunk->mData[8], triangleCount);
   _ctmSetUINT(&chunk->mData[12], uvMapCount);
   _ctmSetUINT(&chunk->mData[16], attribMapCount);
-  _ctmSetUINT(&chunk->mData[20], flags);
+  _ctmSetUINT(&chunk->mData[20], (flags & 0x00000001) ? _CTM_HAS_NORMALS_BIT : 0);
   _ctmSetUINT(&chunk->mData[24], frameCount);
   _ctmSetUINT(&chunk->mData[28], len);
   memcpy((void *) &chunk->mData[32], (void *) fileComment, len);
+  free((void *) fileComment);
 
   // Here is where we want to insert UV and attrib map info later on...
   self->mV5Compat.mLastHeadChunk = chunk;
+
+  // Remember vital header information for later on...
+  self->mV5Compat.mVertexCount = vertexCount;
+  self->mV5Compat.mTriangleCount = triangleCount;
+  self->mV5Compat.mHasNormals = (flags & 0x00000001);
+  self->mV5Compat.mUVMapCount = uvMapCount;
+  self->mV5Compat.mAttribMapCount = attribMapCount;
 
   return CTM_TRUE;
 }
@@ -242,9 +250,98 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 static int _ctmLoadV5_RAW(_CTMcontext * self)
 {
-  // FIXME!
+#ifdef _CTM_SUPPORT_RAW
+  _CTMchunklist * chunk;
+  CTMuint len, i;
+
+  // Read triangle indices
+  if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return CTM_FALSE;
+  }
+  len = self->mV5Compat.mTriangleCount * 3 * 4;
+  if(!(chunk = _ctmNewMemChunk(4 + len)))
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+  _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
+  _ctmSetUINT(&chunk->mData[0], FOURCC("INDX"));
+  _ctmStreamRead(self, &chunk->mData[4], len);
+
+  // Read vertex coordinates
+  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return CTM_FALSE;
+  }
+  len = self->mV5Compat.mVertexCount * 3 * 4;
+  if(!(chunk = _ctmNewMemChunk(4 + len)))
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+  _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
+  _ctmSetUINT(&chunk->mData[0], FOURCC("VERT"));
+  _ctmStreamRead(self, &chunk->mData[4], len);
+
+  // Read normals
+  if(self->mV5Compat.mHasNormals)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return CTM_FALSE;
+    }
+    len = self->mV5Compat.mVertexCount * 3 * 4;
+    if(!(chunk = _ctmNewMemChunk(4 + len)))
+    {
+      self->mError = CTM_OUT_OF_MEMORY;
+      return CTM_FALSE;
+    }
+    _ctmAppendMemChunkLast(&self->mV5Compat.mFirstChunk, chunk);
+    _ctmSetUINT(&chunk->mData[0], FOURCC("NORM"));
+    _ctmStreamRead(self, &chunk->mData[4], len);
+  }
+
+  // Read UV maps
+  for(i = 0; i < self->mV5Compat.mUVMapCount; ++ i)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return CTM_FALSE;
+    }
+/*
+    _ctmStreamReadSTRING(self, &map->mName);
+    _ctmStreamReadSTRING(self, &map->mFileName);
+    for(i = 0; i < self->mVertexCount * 2; ++ i)
+      map->mValues[i] = _ctmStreamReadFLOAT(self);
+*/
+  }
+
+  // Read attribute maps
+  for(i = 0; i < self->mV5Compat.mUVMapCount; ++ i)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return CTM_FALSE;
+    }
+/*
+    _ctmStreamReadSTRING(self, &map->mName);
+    _ctmStreamReadSTRING(self, &map->mFileName);
+    for(i = 0; i < self->mVertexCount * 2; ++ i)
+      map->mValues[i] = _ctmStreamReadFLOAT(self);
+*/
+  }
+
+  return CTM_TRUE;
+#else
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_FALSE;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -252,9 +349,14 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 static int _ctmLoadV5_MG1(_CTMcontext * self)
 {
+#ifdef _CTM_SUPPORT_MG1
   // FIXME!
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_FALSE;
+#else
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -262,9 +364,14 @@ static int _ctmLoadV5_MG1(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 static int _ctmLoadV5_MG2(_CTMcontext * self)
 {
+#ifdef _CTM_SUPPORT_MG2
   // FIXME!
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_FALSE;
+#else
+  self->mError = CTM_UNSUPPORTED_OPERATION;
+  return CTM_FALSE;
+#endif
 }
 
 
