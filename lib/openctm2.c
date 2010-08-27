@@ -397,27 +397,27 @@ CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError)
   switch(aError)
   {
     case CTM_INVALID_CONTEXT:
-      return "CTM_INVALID_CONTEXT";
+      return "Invalid context";
     case CTM_INVALID_ARGUMENT:
-      return "CTM_INVALID_ARGUMENT";
+      return "Invalid argument";
     case CTM_INVALID_OPERATION:
-      return "CTM_INVALID_OPERATION";
+      return "Invalid operation";
     case CTM_INVALID_MESH:
-      return "CTM_INVALID_MESH";
+      return "Invalid mesh";
     case CTM_OUT_OF_MEMORY:
-      return "CTM_OUT_OF_MEMORY";
+      return "Out of memory";
     case CTM_FILE_ERROR:
-      return "CTM_FILE_ERROR";
+      return "File I/O error";
     case CTM_BAD_FORMAT:
-      return "CTM_BAD_FORMAT";
+      return "Bad format";
     case CTM_LZMA_ERROR:
-      return "CTM_LZMA_ERROR";
+      return "LZMA error";
     case CTM_INTERNAL_ERROR:
-      return "CTM_INTERNAL_ERROR";
+      return "Internal error";
     case CTM_UNSUPPORTED_FORMAT_VERSION:
-      return "CTM_UNSUPPORTED_FORMAT_VERSION";
+      return "Unsupported format version";
     case CTM_UNSUPPORTED_OPERATION:
-      return "CTM_UNSUPPORTED_OPERATION";
+      return "Unsupported operation";
     default:
       return "Unknown error code";
   }
