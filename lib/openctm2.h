@@ -125,11 +125,16 @@ extern "C" {
 /// OpenCTM API version (2.0).
 #define CTM_API_VERSION 0x00000200
 
-/// Boolean TRUE.
+/// Boolean true.
+/// @note The numeric value of CTM_TRUE is one (1).
 #define CTM_TRUE 1
 
-/// Boolean FALSE.
+/// Boolean false.
+/// @note The numeric value of CTM_FALSE is zero (0).
 #define CTM_FALSE 0
+
+/// Boolean type. Can be either CTM_TRUE or CTM_FALSE.
+typedef int CTMbool;
 
 /// Single precision floating point type (IEEE 754 32 bits wide).
 typedef float CTMfloat;
@@ -297,7 +302,19 @@ CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError);
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aProperty Which property to return.
+/// @param[in] aProperty Which property to return. Valid properties are:
+///            CTM_HAS_NORMALS.
+/// @return A boolean value, representing the OpenCTM context property given
+///         by \c aProperty.
+/// @see CTMenum
+CTMEXPORT CTMbool CTMCALL ctmGetBoolean(CTMcontext aContext, CTMenum aProperty);
+
+/// Get information about an OpenCTM context.
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aProperty Which property to return. Valid properties are:
+///            CTM_VERTEX_COUNT, CTM_TRIANGLE_COUNT, CTM_UV_MAP_COUNT,
+///            CTM_ATTRIB_MAP_COUNT, CTM_COMPRESSION_METHOD, CTM_FRAME_COUNT.
 /// @return An integer value, representing the OpenCTM context property given
 ///         by \c aProperty.
 /// @see CTMenum
@@ -306,7 +323,8 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty);
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aProperty Which property to return.
+/// @param[in] aProperty Which property to return. Valid properties are:
+///            CTM_VERTEX_PRECISION, CTM_NORMAL_PRECISION.
 /// @return A floating point value, representing the OpenCTM context property
 ///         given by \c aProperty.
 /// @see CTMenum
@@ -315,7 +333,8 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty);
 /// Get information about an OpenCTM context.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-/// @param[in] aProperty Which property to return.
+/// @param[in] aProperty Which property to return. Valid properties are:
+///            CTM_FILE_COMMENT.
 /// @return A string value, representing the OpenCTM context property given
 ///         by \c aProperty.
 /// @note The string is only valid as long as the OpenCTM context is valid, or

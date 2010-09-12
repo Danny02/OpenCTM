@@ -182,7 +182,7 @@ void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue)
 // _ctmStreamReadPackedInts() - Read an compressed binary integer data array
 // from a stream, and uncompress it.
 //-----------------------------------------------------------------------------
-int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
+CTMbool _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
   CTMuint aCount, CTMuint aSize, CTMint aSignedInts)
 {
   size_t packedSize, unpackedSize;
@@ -262,7 +262,7 @@ int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData,
 // _ctmStreamWritePackedInts() - Compress a binary integer data array, and
 // write it to a stream.
 //-----------------------------------------------------------------------------
-int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
+CTMbool _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
   CTMuint aCount, CTMuint aSize, CTMint aSignedInts)
 {
   int lzmaRes, lzmaAlgo;
@@ -361,7 +361,7 @@ int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData,
 // _ctmStreamReadPackedFloatArray() - Read an compressed binary float data
 // array from a stream, and uncompress it.
 //-----------------------------------------------------------------------------
-int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
+CTMbool _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
   CTMuint aCount, CTMuint aSize)
 {
   CTMuint i, k;
@@ -438,7 +438,7 @@ int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
 // _ctmStreamWritePackedFloatArray() - Compress a binary float data array, and
 // write it to a stream.
 //-----------------------------------------------------------------------------
-int _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
+CTMbool _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray,
   CTMuint aCount, CTMuint aSize)
 {
   int lzmaRes, lzmaAlgo;

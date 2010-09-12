@@ -226,8 +226,8 @@ static void _ctmSortVertices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
 //-----------------------------------------------------------------------------
 // _ctmReIndexIndices() - Re-index all indices, based on the sorted vertices.
 //-----------------------------------------------------------------------------
-static int _ctmReIndexIndices(_CTMcontext * self, _CTMsortvertex * aSortVertices,
-  CTMuint * aIndices)
+static CTMbool _ctmReIndexIndices(_CTMcontext * self,
+  _CTMsortvertex * aSortVertices, CTMuint * aIndices)
 {
   CTMuint i, j, * indexLUT, * ptr;
 
@@ -553,7 +553,7 @@ static void _ctmMakeNormalCoordSys(CTMfloat * aNormal, CTMfloat * aBasisAxes)
 // _ctmMakeNormalDeltas() - Convert the normals to a new coordinate system:
 // magnitude, phi, theta (relative to predicted smooth normals).
 //-----------------------------------------------------------------------------
-static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
+static CTMbool _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
   CTMfloat * aVertices, CTMuint * aIndices, _CTMsortvertex * aSortVertices)
 {
   CTMuint i, j, oldIdx, intPhi;
@@ -640,7 +640,7 @@ static CTMint _ctmMakeNormalDeltas(_CTMcontext * self, CTMint * aIntNormals,
 //-----------------------------------------------------------------------------
 // _ctmRestoreNormals() - Convert the normals back to cartesian coordinates.
 //-----------------------------------------------------------------------------
-static CTMint _ctmRestoreNormals(_CTMcontext * self, CTMuint * aIndices,
+static CTMbool _ctmRestoreNormals(_CTMcontext * self, CTMuint * aIndices,
   CTMfloat * aVertices, CTMint * aIntNormals)
 {
   CTMuint i, j, intPhi;
@@ -838,7 +838,7 @@ static void _ctmRestoreAttribs(_CTMcontext * self, _CTMfloatmap * aMap,
 // _ctmCompressMesh_MG2() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_MG2(_CTMcontext * self)
+CTMbool _ctmCompressMesh_MG2(_CTMcontext * self)
 {
   _CTMgrid grid;
   _CTMsortvertex * sortVertices;
@@ -1132,7 +1132,7 @@ int _ctmCompressMesh_MG2(_CTMcontext * self)
 // context using the MG2 method, and write it the the output stream in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmCompressFrame_MG2(_CTMcontext * self)
+CTMbool _ctmCompressFrame_MG2(_CTMcontext * self)
 {
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_FALSE;
@@ -1143,7 +1143,7 @@ int _ctmCompressFrame_MG2(_CTMcontext * self)
 // _ctmUncompressMesh_MG2() - Uncmpress the mesh from the input stream in the
 // CTM context, and store the resulting mesh in the CTM context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressMesh_MG2(_CTMcontext * self)
+CTMbool _ctmUncompressMesh_MG2(_CTMcontext * self)
 {
   CTMuint * gridIndices, * indices, i, j, idx;
   CTMint * intVertices, * intNormals, * intUVCoords, * intAttribs;
@@ -1469,7 +1469,7 @@ int _ctmUncompressMesh_MG2(_CTMcontext * self)
 // in the CTM context using the MG2 method, and store the resulting mesh in the
 // CTM context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressFrame_MG2(_CTMcontext * self)
+CTMbool _ctmUncompressFrame_MG2(_CTMcontext * self)
 {
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_FALSE;

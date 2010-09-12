@@ -424,6 +424,26 @@ CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError)
 }
 
 //-----------------------------------------------------------------------------
+// ctmGetBoolean()
+//-----------------------------------------------------------------------------
+CTMEXPORT CTMbool CTMCALL ctmGetBoolean(CTMcontext aContext, CTMenum aProperty)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return CTM_FALSE;
+
+  switch(aProperty)
+  {
+    case CTM_HAS_NORMALS:
+      return self->mHasNormals ? CTM_TRUE : CTM_FALSE;
+
+    default:
+      self->mError = CTM_INVALID_ARGUMENT;
+  }
+
+  return CTM_FALSE;
+}
+
+//-----------------------------------------------------------------------------
 // ctmGetInteger()
 //-----------------------------------------------------------------------------
 CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
@@ -444,9 +464,6 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
 
     case CTM_ATTRIB_MAP_COUNT:
       return self->mAttribMapCount;
-
-    case CTM_HAS_NORMALS:
-      return self->mHasNormals ? CTM_TRUE : CTM_FALSE;
 
     case CTM_COMPRESSION_METHOD:
       return (CTMuint) self->mMethod;

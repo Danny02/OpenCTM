@@ -144,7 +144,7 @@ static void _ctmRestoreIndices(_CTMcontext * self, CTMuint * aIndices)
 // _ctmCompressMesh_MG1() - Compress the mesh that is stored in the CTM
 // context, and write it the the output stream in the CTM context.
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_MG1(_CTMcontext * self)
+CTMbool _ctmCompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
   CTMuint i, j;
@@ -193,7 +193,7 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
 // context using the MG1 method, and write it the the output stream in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmCompressFrame_MG1(_CTMcontext * self)
+CTMbool _ctmCompressFrame_MG1(_CTMcontext * self)
 {
   _CTMfloatmap * map;
 
@@ -250,7 +250,7 @@ int _ctmCompressFrame_MG1(_CTMcontext * self)
 // _ctmUncompressMesh_MG1() - Uncmpress the mesh from the input stream in the
 // CTM context, and store the resulting mesh in the CTM context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressMesh_MG1(_CTMcontext * self)
+CTMbool _ctmUncompressMesh_MG1(_CTMcontext * self)
 {
   CTMuint * indices;
   CTMuint i, j;
@@ -291,7 +291,7 @@ int _ctmUncompressMesh_MG1(_CTMcontext * self)
 // in the CTM context using the MG1 method, and store the resulting mesh in the
 // CTM context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressFrame_MG1(_CTMcontext * self)
+CTMbool _ctmUncompressFrame_MG1(_CTMcontext * self)
 {
   _CTMfloatmap * map;
 

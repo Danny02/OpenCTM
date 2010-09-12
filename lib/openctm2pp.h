@@ -98,6 +98,14 @@ class CTMimporter {
       ctmFreeContext(mContext);
     }
 
+    /// Wrapper for ctmGetBoolean()
+    CTMbool GetBoolean(CTMenum aProperty)
+    {
+      CTMbool res = ctmGetBoolean(mContext, aProperty);
+      CheckError();
+      return res;
+    }
+
     /// Wrapper for ctmGetInteger()
     CTMuint GetInteger(CTMenum aProperty)
     {
@@ -225,19 +233,7 @@ class CTMimporter {
 /// OpenCTM exporter class. This is a C++ wrapper class for an OpenCTM export
 /// context. Usage example:
 /// @code
-/// void MySaveFile(CTMuint aVertCount, CTMuint aTriCount, CTMfloat * aVertices,
-///   CTMuint * aIndices, const char * aFileName)
-/// {
-///   // Create a new OpenCTM exporter object
-///   CTMexporter ctm;
-///
-///   // Define our mesh representation to OpenCTM (store references to it in
-///   // the context)
-///   ctm.DefineMesh(aVertices, aVertCount, aIndices, aTriCount, NULL);
-///
-///   // Save the OpenCTM file
-///   ctm.Save(aFileName);
-/// }
+///   TBD
 /// @endcode
 
 class CTMexporter {

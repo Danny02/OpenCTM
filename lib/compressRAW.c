@@ -36,7 +36,7 @@
 // context using the RAW method, and write it the the output stream in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_RAW(_CTMcontext * self)
+CTMbool _ctmCompressMesh_RAW(_CTMcontext * self)
 {
   CTMuint i, j;
 
@@ -64,7 +64,7 @@ int _ctmCompressMesh_RAW(_CTMcontext * self)
 // context using the RAW method, and write it the the output stream in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmCompressFrame_RAW(_CTMcontext * self)
+CTMbool _ctmCompressFrame_RAW(_CTMcontext * self)
 {
   CTMuint i, j;
   _CTMfloatmap * map;
@@ -127,7 +127,7 @@ int _ctmCompressFrame_RAW(_CTMcontext * self)
 // CTM context using the RAW method, and store the resulting mesh in the CTM
 // context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressMesh_RAW(_CTMcontext * self)
+CTMbool _ctmUncompressMesh_RAW(_CTMcontext * self)
 {
   CTMuint i, j;
 
@@ -150,7 +150,7 @@ int _ctmUncompressMesh_RAW(_CTMcontext * self)
 // in the CTM context using the RAW method, and store the resulting mesh in the
 // CTM context.
 //-----------------------------------------------------------------------------
-int _ctmUncompressFrame_RAW(_CTMcontext * self)
+CTMbool _ctmUncompressFrame_RAW(_CTMcontext * self)
 {
   CTMuint i, j;
   _CTMfloatmap * map;

@@ -170,42 +170,42 @@ CTMfloat _ctmStreamReadFLOAT(_CTMcontext * self);
 void _ctmStreamWriteFLOAT(_CTMcontext * self, CTMfloat aValue);
 CTMuint _ctmStreamReadSTRING(_CTMcontext * self, char ** aValue);
 void _ctmStreamWriteSTRING(_CTMcontext * self, const char * aValue);
-int _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
-int _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
-int _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMuint aCount, CTMuint aSize);
-int _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMuint aCount, CTMuint aSize);
+CTMbool _ctmStreamReadPackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
+CTMbool _ctmStreamWritePackedInts(_CTMcontext * self, CTMint * aData, CTMuint aCount, CTMuint aSize, CTMint aSignedInts);
+CTMbool _ctmStreamReadPackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMuint aCount, CTMuint aSize);
+CTMbool _ctmStreamWritePackedFloatArray(_CTMcontext * self, _CTMarray * aArray, CTMuint aCount, CTMuint aSize);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for compressRAW.c
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_RAW(_CTMcontext * self);
-int _ctmUncompressMesh_RAW(_CTMcontext * self);
-int _ctmCompressFrame_RAW(_CTMcontext * self);
-int _ctmUncompressFrame_RAW(_CTMcontext * self);
+CTMbool _ctmCompressMesh_RAW(_CTMcontext * self);
+CTMbool _ctmUncompressMesh_RAW(_CTMcontext * self);
+CTMbool _ctmCompressFrame_RAW(_CTMcontext * self);
+CTMbool _ctmUncompressFrame_RAW(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for compressMG1.c
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_MG1(_CTMcontext * self);
-int _ctmUncompressMesh_MG1(_CTMcontext * self);
-int _ctmCompressFrame_MG1(_CTMcontext * self);
-int _ctmUncompressFrame_MG1(_CTMcontext * self);
+CTMbool _ctmCompressMesh_MG1(_CTMcontext * self);
+CTMbool _ctmUncompressMesh_MG1(_CTMcontext * self);
+CTMbool _ctmCompressFrame_MG1(_CTMcontext * self);
+CTMbool _ctmUncompressFrame_MG1(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for compressMG2.c
 //-----------------------------------------------------------------------------
-int _ctmCompressMesh_MG2(_CTMcontext * self);
-int _ctmUncompressMesh_MG2(_CTMcontext * self);
-int _ctmCompressFrame_MG2(_CTMcontext * self);
-int _ctmUncompressFrame_MG2(_CTMcontext * self);
+CTMbool _ctmCompressMesh_MG2(_CTMcontext * self);
+CTMbool _ctmUncompressMesh_MG2(_CTMcontext * self);
+CTMbool _ctmCompressFrame_MG2(_CTMcontext * self);
+CTMbool _ctmUncompressFrame_MG2(_CTMcontext * self);
 
 //-----------------------------------------------------------------------------
 // Function prototypes for v5compat.c
 //-----------------------------------------------------------------------------
 #ifdef _CTM_SUPPORT_V5_FILES
-int _ctmLoadV5FileToMem(_CTMcontext * self);
+CTMbool _ctmLoadV5FileToMem(_CTMcontext * self);
+CTMbool _ctmConvertV5MG1Vertices(_CTMcontext * self);
 void _ctmCleanupV5Data(_CTMcontext * self);
-int _ctmConvertV5MG1Vertices(_CTMcontext * self);
 #endif
 
 #endif // __OPENCTM_INTERNAL_H_

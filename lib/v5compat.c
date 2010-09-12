@@ -208,7 +208,7 @@ static CTMuint CTMCALL _ctmMemChunkRead(void * aBuf, CTMuint aCount,
 //-----------------------------------------------------------------------------
 // _ctmLoadV5_Header() - Load file header.
 //-----------------------------------------------------------------------------
-static int _ctmLoadV5_Header(_CTMcontext * self)
+static CTMbool _ctmLoadV5_Header(_CTMcontext * self)
 {
   _CTMchunklist * chunk;
   CTMuint len;
@@ -295,7 +295,7 @@ static int _ctmLoadV5_Header(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 // _ctmLoadV5_RAW() - Load RAW format mesh.
 //-----------------------------------------------------------------------------
-static int _ctmLoadV5_RAW(_CTMcontext * self)
+static CTMbool _ctmLoadV5_RAW(_CTMcontext * self)
 {
 #ifdef _CTM_SUPPORT_RAW
   _CTMchunklist * chunk;
@@ -434,7 +434,7 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 // _ctmLoadV5_MG1() - Load MG1 format mesh.
 //-----------------------------------------------------------------------------
-static int _ctmLoadV5_MG1(_CTMcontext * self)
+static CTMbool _ctmLoadV5_MG1(_CTMcontext * self)
 {
 #ifdef _CTM_SUPPORT_MG1
   _CTMchunklist * chunk;
@@ -578,7 +578,7 @@ static int _ctmLoadV5_MG1(_CTMcontext * self)
 //-----------------------------------------------------------------------------
 // _ctmLoadV5_MG2() - Load MG2 format mesh.
 //-----------------------------------------------------------------------------
-static int _ctmLoadV5_MG2(_CTMcontext * self)
+static CTMbool _ctmLoadV5_MG2(_CTMcontext * self)
 {
 #ifdef _CTM_SUPPORT_MG2
   // FIXME!
@@ -600,9 +600,9 @@ static int _ctmLoadV5_MG2(_CTMcontext * self)
 // convert it to the file format version that is supported by the current
 // library.
 //-----------------------------------------------------------------------------
-int _ctmLoadV5FileToMem(_CTMcontext * self)
+CTMbool _ctmLoadV5FileToMem(_CTMcontext * self)
 {
-  int ok;
+  CTMbool ok;
 
 #ifdef __DEBUG_
   printf("\n v5 compat: starting conversion\n");
@@ -656,32 +656,10 @@ int _ctmLoadV5FileToMem(_CTMcontext * self)
 }
 
 //-----------------------------------------------------------------------------
-// Cleanup v5 specific data from the context.
-//-----------------------------------------------------------------------------
-void _ctmCleanupV5Data(_CTMcontext * self)
-{
-  _CTMchunklist *chunk, *next;
-
-  // Free the chunk list
-  chunk = self->mV5Compat.mFirstChunk;
-  while(chunk)
-  {
-    if(chunk->mData)
-      free(chunk->mData);
-    next = chunk->mNext;
-    free((void *) chunk);
-    chunk = next;
-  }
-
-  // Clear the v5 compatibility object
-  memset((void *) &self->mV5Compat, 0, sizeof(_CTMv5compat));
-}
-
-//-----------------------------------------------------------------------------
 // _ctmConvertV5MG1Vertices() - Convert v5 file format vertices for MG1. The
 // element interleaving in v5 and v6 are different...
 //-----------------------------------------------------------------------------
-int _ctmConvertV5MG1Vertices(_CTMcontext * self)
+CTMbool _ctmConvertV5MG1Vertices(_CTMcontext * self)
 {
   CTMuint i, k, idx, maxIdx;
   CTMfloat * tmpArray, * ptr;
@@ -722,6 +700,28 @@ int _ctmConvertV5MG1Vertices(_CTMcontext * self)
   free(tmpArray);
 
   return CTM_TRUE;
+}
+
+//-----------------------------------------------------------------------------
+// Cleanup v5 specific data from the context.
+//-----------------------------------------------------------------------------
+void _ctmCleanupV5Data(_CTMcontext * self)
+{
+  _CTMchunklist *chunk, *next;
+
+  // Free the chunk list
+  chunk = self->mV5Compat.mFirstChunk;
+  while(chunk)
+  {
+    if(chunk->mData)
+      free(chunk->mData);
+    next = chunk->mNext;
+    free((void *) chunk);
+    chunk = next;
+  }
+
+  // Clear the v5 compatibility object
+  memset((void *) &self->mV5Compat, 0, sizeof(_CTMv5compat));
 }
 
 #else
