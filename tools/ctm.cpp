@@ -60,7 +60,7 @@ void Import_CTM(const char * aFileName, Mesh * aMesh)
   ctm.ArrayPointer(CTM_VERTICES, 3, CTM_FLOAT, 0, &aMesh->mVertices[0].x);
 
   // Allocate memory for the normals
-  if(ctm.GetInteger(CTM_HAS_NORMALS) == CTM_TRUE)
+  if(ctm.GetBoolean(CTM_HAS_NORMALS) == CTM_TRUE)
   {
     aMesh->mNormals.resize(numVertices);
     ctm.ArrayPointer(CTM_NORMALS, 3, CTM_FLOAT, 0, &aMesh->mNormals[0].x);
