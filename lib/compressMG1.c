@@ -304,6 +304,15 @@ int _ctmUncompressFrame_MG1(_CTMcontext * self)
   if(!_ctmStreamReadPackedFloatArray(self, &self->mVertices, self->mVertexCount, 3))
     return CTM_FALSE;
 
+#ifdef _CTM_SUPPORT_V5_FILES
+  // v5 format vertex interleaving fixup..?
+  if(self->mFormatVersion == 5)
+  {
+    if(!_ctmConvertV5MG1Vertices(self))
+      return CTM_FALSE;
+  }
+#endif
+
   // Read normals
   if(self->mHasNormals)
   {

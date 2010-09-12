@@ -437,9 +437,138 @@ static int _ctmLoadV5_RAW(_CTMcontext * self)
 static int _ctmLoadV5_MG1(_CTMcontext * self)
 {
 #ifdef _CTM_SUPPORT_MG1
-  // FIXME!
-  self->mError = CTM_UNSUPPORTED_OPERATION;
-  return CTM_FALSE;
+  _CTMchunklist * chunk;
+  CTMuint len, len2, i;
+  char *name = 0, *fileName = 0;
+
+#ifdef __DEBUG_
+  printf(" v5 compat: loading MG1 format mesh\n");
+#endif
+
+  // Read triangle indices
+  if(_ctmStreamReadUINT(self) != FOURCC("INDX"))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return CTM_FALSE;
+  }
+  len = _ctmStreamReadUINT(self);
+  if(!(chunk = _ctmAppendTailChunk(self, 4 + 4 + 5 + len)))
+    return CTM_FALSE;
+  _ctmSetUINT(&chunk->mData[0], FOURCC("INDX"));
+  _ctmSetUINT(&chunk->mData[4], len);
+  _ctmStreamRead(self, &chunk->mData[8], 5 + len);
+
+  // Read vertex coordinates
+  if(_ctmStreamReadUINT(self) != FOURCC("VERT"))
+  {
+    self->mError = CTM_BAD_FORMAT;
+    return CTM_FALSE;
+  }
+  len = _ctmStreamReadUINT(self);
+  if(!(chunk = _ctmAppendTailChunk(self, 4 + 4 + 5 + len)))
+    return CTM_FALSE;
+  _ctmSetUINT(&chunk->mData[0], FOURCC("VERT"));
+  _ctmSetUINT(&chunk->mData[4], len);
+  _ctmStreamRead(self, &chunk->mData[8], 5 + len);
+
+  // Read normals
+  if(self->mV5Compat.mHasNormals)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("NORM"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return CTM_FALSE;
+    }
+    len = _ctmStreamReadUINT(self);
+    if(!(chunk = _ctmAppendTailChunk(self, 4 + 4 + 5 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], FOURCC("NORM"));
+    _ctmSetUINT(&chunk->mData[4], len);
+    _ctmStreamRead(self, &chunk->mData[8], 5 + len);
+  }
+
+  // Read UV maps
+  for(i = 0; i < self->mV5Compat.mUVMapCount; ++ i)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("TEXC"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return CTM_FALSE;
+    }
+
+    if(i == 0)
+    {
+      // For the first item, add a UINF identifier
+      if(!(chunk = _ctmAppendHeadChunk(self, 4)))
+        return CTM_FALSE;
+      _ctmSetUINT(&chunk->mData[0], FOURCC("UINF"));
+    }
+
+    // Copy strings to UV map info
+    len = _ctmStreamReadSTRING(self, &name);
+    len2 = _ctmStreamReadSTRING(self, &fileName);
+    if(!(chunk = _ctmAppendHeadChunk(self, 8 + len + len2)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], len);
+    if(len > 0)
+    {
+      memcpy((void *) &chunk->mData[4], (void *) name, len);
+      free((void *) name);
+    }
+    _ctmSetUINT(&chunk->mData[4+len], len2);
+    if(len2 > 0)
+    {
+      memcpy((void *) &chunk->mData[8+len], (void *) fileName, len2);
+      free((void *) fileName);
+    }
+
+    // Read texture coordinates for this map
+    len = _ctmStreamReadUINT(self);
+    if(!(chunk = _ctmAppendTailChunk(self, 4 + 4 + 5 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], FOURCC("TEXC"));
+    _ctmSetUINT(&chunk->mData[4], len);
+    _ctmStreamRead(self, &chunk->mData[8], 5 + len);
+  }
+
+  // Read attribute maps
+  for(i = 0; i < self->mV5Compat.mAttribMapCount; ++ i)
+  {
+    if(_ctmStreamReadUINT(self) != FOURCC("ATTR"))
+    {
+      self->mError = CTM_BAD_FORMAT;
+      return CTM_FALSE;
+    }
+
+    if(i == 0)
+    {
+      // For the first item, add a UINF identifier
+      if(!(chunk = _ctmAppendHeadChunk(self, 4)))
+        return CTM_FALSE;
+      _ctmSetUINT(&chunk->mData[0], FOURCC("AINF"));
+    }
+
+    // Copy string to attrib map info
+    len = _ctmStreamReadSTRING(self, &name);
+    if(!(chunk = _ctmAppendHeadChunk(self, 4 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], len);
+    if(len > 0)
+    {
+      memcpy((void *) &chunk->mData[4], (void *) name, len);
+      free((void *) name);
+    }
+
+    // Read vertex attributes for this map
+    len = _ctmStreamReadUINT(self);
+    if(!(chunk = _ctmAppendTailChunk(self, 4 + 4 + 5 + len)))
+      return CTM_FALSE;
+    _ctmSetUINT(&chunk->mData[0], FOURCC("ATTR"));
+    _ctmSetUINT(&chunk->mData[4], len);
+    _ctmStreamRead(self, &chunk->mData[8], 5 + len);
+  }
+
+  return CTM_TRUE;
 #else
   self->mError = CTM_UNSUPPORTED_OPERATION;
   return CTM_FALSE;
@@ -546,6 +675,53 @@ void _ctmCleanupV5Data(_CTMcontext * self)
 
   // Clear the v5 compatibility object
   memset((void *) &self->mV5Compat, 0, sizeof(_CTMv5compat));
+}
+
+//-----------------------------------------------------------------------------
+// _ctmConvertV5MG1Vertices() - Convert v5 file format vertices for MG1. The
+// element interleaving in v5 and v6 are different...
+//-----------------------------------------------------------------------------
+int _ctmConvertV5MG1Vertices(_CTMcontext * self)
+{
+  CTMuint i, k, idx, maxIdx;
+  CTMfloat * tmpArray, * ptr;
+
+  // Nothing to do?
+  if(self->mVertexCount == 0)
+    return CTM_TRUE;
+
+  // Allocate memory for the temporary array
+  tmpArray = (CTMfloat *) malloc(self->mVertexCount * 3 * sizeof(CTMfloat));
+  if(!tmpArray)
+  {
+    self->mError = CTM_OUT_OF_MEMORY;
+    return CTM_FALSE;
+  }
+
+  // Make a copy of the original array
+  ptr = tmpArray;
+  for(i = 0; i < self->mVertexCount; ++ i)
+    for(k = 0; k < 3; ++ k)
+      *ptr ++ = _ctmGetArrayf(&self->mVertices, i, k);
+
+  // Copy the array back to the original array, in the correct order
+  maxIdx = 3 * self->mVertexCount;
+  idx = 0;
+  for(i = 0; i < self->mVertexCount; ++ i)
+  {
+    for(k = 0; k < 3; ++ k)
+    {
+      _ctmSetArrayf(&self->mVertices, i, k, tmpArray[idx]);
+      idx += 3;
+      if(idx >= maxIdx)
+        idx = idx - maxIdx + 1;
+    }
+  }
+
+  // Free the temporary array
+  free(tmpArray);
+
+  return CTM_TRUE;
 }
 
 #else

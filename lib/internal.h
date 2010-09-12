@@ -75,6 +75,9 @@ typedef struct {
   // Context mode (import or export)
   CTMenum mMode;
 
+  // File format version (used for reading files)
+  CTMuint mFormatVersion;
+
   // Animation frame count
   CTMint mFrameCount;
 
@@ -202,6 +205,7 @@ int _ctmUncompressFrame_MG2(_CTMcontext * self);
 #ifdef _CTM_SUPPORT_V5_FILES
 int _ctmLoadV5FileToMem(_CTMcontext * self);
 void _ctmCleanupV5Data(_CTMcontext * self);
+int _ctmConvertV5MG1Vertices(_CTMcontext * self);
 #endif
 
 #endif // __OPENCTM_INTERNAL_H_

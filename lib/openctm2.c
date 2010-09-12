@@ -1403,7 +1403,7 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
   CTMreadfn aReadFn, void * aUserData)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
-  CTMuint formatVersion, flags, method;
+  CTMuint flags, method;
   _CTMfloatmap * map;
   if(!self) return;
 
@@ -1427,18 +1427,18 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
     self->mError = CTM_BAD_FORMAT;
     return;
   }
-  formatVersion = _ctmStreamReadUINT(self);
+  self->mFormatVersion = _ctmStreamReadUINT(self);
 
   // Check if this is a supported version
 #ifdef _CTM_SUPPORT_V5_FILES
-  if(formatVersion == 5)
+  if(self->mFormatVersion == 5)
   {
     if(!_ctmLoadV5FileToMem(self))
       return;
   }
   else
 #endif
-  if(formatVersion != _CTM_FORMAT_VERSION)
+  if(self->mFormatVersion != _CTM_FORMAT_VERSION)
   {
     self->mError = CTM_UNSUPPORTED_FORMAT_VERSION;
     return;
