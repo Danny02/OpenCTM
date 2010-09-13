@@ -1,5 +1,5 @@
 /* NameMangle.h -- Name mangling to avoid linking conflicts
-2009-04-15 : Marcus Geelnard : Public domain */
+2010-09-13 : Marcus Geelnard : Public domain */
 
 #ifndef __7Z_NAMEMANGLE_H
 #define __7Z_NAMEMANGLE_H
@@ -74,10 +74,38 @@
 #define LzmaEnc_Encode _ctm_LzmaEnc_Encode
 #define LzmaEnc_WriteProperties _ctm_LzmaEnc_WriteProperties
 #define LzmaEnc_MemEncode _ctm_LzmaEnc_MemEncode
+#define LzmaEncode _ctm_LzmaEncode
 
 /* LzmaLib.c */
 #define LzmaCompress _ctm_LzmaCompress
 #define LzmaUncompress _ctm_LzmaUncompress
+
+/* LzFindMt.c */
+#define MatchFinderMt_Construct _ctm_MatchFinderMt_Construct
+#define MatchFinderMt_Destruct _ctm_MatchFinderMt_Destruct
+#define MatchFinderMt_Create _ctm_MatchFinderMt_Create
+#define MatchFinderMt_CreateVTable _ctm_MatchFinderMt_CreateVTable
+#define MatchFinderMt_ReleaseStream _ctm_MatchFinderMt_ReleaseStream
+
+/* Threads.c */
+#define Thread_Close _ctm_Thread_Close
+#define Thread_Create _ctm_Thread_Create
+#define Thread_Wait _ctm_Thread_Wait
+#define Thread_HardwareConcurrency _ctm_Thread_HardwareConcurrency
+#define ManualResetEvent_Create _ctm_ManualResetEvent_Create
+#define ManualResetEvent_CreateNotSignaled _ctm_ManualResetEvent_CreateNotSignaled
+#define AutoResetEvent_Create _ctm_AutoResetEvent_Create
+#define AutoResetEvent_CreateNotSignaled _ctm_AutoResetEvent_CreateNotSignaled
+#define Event_Close _ctm_Event_Close
+#define Event_Reset _ctm_Event_Reset
+#define Event_Set _ctm_Event_Set
+#define Event_Wait _ctm_Event_Wait
+#define Semaphore_Create _ctm_Semaphore_Create
+#define Semaphore_ReleaseN _ctm_Semaphore_ReleaseN
+#define Semaphore_Release1 _ctm_Semaphore_Release1
+#define Semaphore_Wait _ctm_Semaphore_Wait
+#define Semaphore_Close _ctm_Semaphore_Close
+#define CriticalSection_Init _ctm_CriticalSection_Init
 
 #endif /* LZMA_PREFIX_CTM */
 
