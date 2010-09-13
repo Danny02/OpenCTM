@@ -4,6 +4,7 @@ EXPORTS
     ctmFreeContext = ctmFreeContext@4
     ctmGetError = ctmGetError@4
     ctmErrorString = ctmErrorString@4
+    ctmGetBoolean = ctmGetBoolean@8
     ctmGetInteger = ctmGetInteger@8
     ctmGetFloat = ctmGetFloat@8
     ctmGetString = ctmGetString@8

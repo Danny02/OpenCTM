@@ -43,7 +43,7 @@ OBJS = openctm2.o \
        compressRAW.o \
        compressMG1.o \
        compressMG2.o \
-	   v5compat.o
+       v5compat.o
 
 LZMA_OBJS = Alloc.o \
             LzFind.o \
@@ -59,7 +59,7 @@ SRCS = openctm2.c \
        compressRAW.c \
        compressMG1.c \
        compressMG2.c \
-	   v5compat.c
+       v5compat.c
 
 LZMA_SRCS = $(LZMADIR)/Alloc.c \
             $(LZMADIR)/LzFind.c \
