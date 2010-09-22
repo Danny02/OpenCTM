@@ -4,7 +4,7 @@ stream.o: stream.c openctm2.h internal.h config.h v5compat.h
 compressRAW.o: compressRAW.c openctm2.h internal.h config.h v5compat.h
 compressMG1.o: compressMG1.c openctm2.h internal.h config.h v5compat.h
 compressMG2.o: compressMG2.c openctm2.h internal.h config.h v5compat.h
-v5compat.o: v5compat.c internal.h config.h v5compat.h
+v5compat.o: v5compat.c openctm2.h internal.h config.h v5compat.h
 Alloc.o: liblzma/Alloc.c liblzma/Alloc.h liblzma/NameMangle.h
 LzFind.o: liblzma/LzFind.c liblzma/../config.h liblzma/LzFind.h \
  liblzma/Types.h liblzma/NameMangle.h liblzma/LzHash.h

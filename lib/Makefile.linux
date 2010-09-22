@@ -2,7 +2,8 @@
 # Product:     OpenCTM
 # File:        Makefile.linux
 # Description: Makefile for Linux systems (should work on most Un*x-like
-#              systems with gcc, e.g. OpenSolaris).
+#              systems with gcc, e.g. OpenSolaris). Please use GNU make
+#              (called gmake on some systems).
 ###############################################################################
 # Copyright (c) 2009-2010 Marcus Geelnard
 #
@@ -29,10 +30,25 @@
 # Compiler settings etc.
 LZMADIR = liblzma
 CC = gcc
-CFLAGS = -O3 -W -Wall -c -fPIC -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
-CFLAGS_LZMA = -O3 -W -Wall -c -fPIC -DLZMA_PREFIX_CTM -std=c99 -pedantic
+CFLAGS = -W -Wall -c -fPIC -DOPENCTM_BUILD -I$(LZMADIR) -DLZMA_PREFIX_CTM -std=c99 -pedantic
+CFLAGS_LZMA = -W -Wall -c -fPIC -DLZMA_PREFIX_CTM -std=c99 -pedantic
 RM = rm -f
 DEPEND = $(CPP) -MM
+LFLAGS = -shared
+
+# To build a debug version, use: make -f Makefile.linux DEBUG=YES
+# The default is to build a release version.
+ifeq ($(RELEASE),YES)
+  DEBUG = NO
+endif
+ifeq ($(DEBUG),YES)
+  CFLAGS += -g
+  CFLAGS_LZMA += -g
+else
+  CFLAGS += -O3
+  CFLAGS_LZMA += -O3
+  LFLAGS += -s
+endif
 
 # Support for hiding private functions in the shared library (comment out for
 # GCC versions < 4.0)
@@ -81,13 +97,13 @@ clean:
 	$(RM) $(DYNAMICLIB) $(OBJS) $(LZMA_OBJS)
 
 $(DYNAMICLIB): $(OBJS) $(LZMA_OBJS)
-	gcc -shared -s -Wl,-soname,$@ -o $@ $(OBJS) $(LZMA_OBJS) -lm -lpthread
+	$(CC) $(LFLAGS) -Wl,-soname,$@ -o $@ $(OBJS) $(LZMA_OBJS) -lm -lpthread
 
 %.o: %.c
-	$(CC) $(CFLAGS) $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 %.o: $(LZMADIR)/%.c
-	$(CC) $(CFLAGS_LZMA) $<
+	$(CC) $(CFLAGS_LZMA) -o $@ $<
 
 depend:
 	$(DEPEND) $(SRCS) $(LZMA_SRCS) > make.depend
