@@ -297,7 +297,7 @@ CTMEXPORT CTMenum CTMCALL ctmGetError(CTMcontext aContext);
 /// @param[in] aError An OpenCTM error code, as returned by ctmGetError().
 /// @return A zero terminated string that describes the error. For instance,
 ///         if \c aError is CTM_INVALID_OPERATION, then the return value will
-///         be "CTM_INVALID_OPERATION".
+///         be "Invalid operation".
 /// @see CTMenum
 CTMEXPORT const char * CTMCALL ctmErrorString(CTMenum aError);
 
