@@ -34,5 +34,5 @@ EXPORTS
     ctmReadNextFrame@4
     ctmSaveFile@8
     ctmSaveCustom@12
-    ctmWriteNextFrame@4
+    ctmWriteNextFrame@8
     ctmClose@4

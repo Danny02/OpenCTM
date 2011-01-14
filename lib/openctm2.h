@@ -3,7 +3,7 @@
 // File:        openctm2.h
 // Description: OpenCTM API definition.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009-2010 Marcus Geelnard
+// Copyright (c) 2009-2011 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -208,6 +208,8 @@ typedef enum {
   CTM_COMPRESSION_METHOD = 0x0308, ///< Compression method (integer).
   CTM_FILE_COMMENT      = 0x0309, ///< File comment (string).
   CTM_FRAME_COUNT       = 0x030A, ///< Number of animation frames (integer).
+  CTM_FRAME_TIME        = 0x030B, ///< Current animation frame time (float).
+  CTM_FRAME_INDEX       = 0x030C, ///< Current animation frame index (integer).
 
   // UV/attribute map queries
   CTM_NAME              = 0x0501, ///< Unique name (UV/attrib map string).
@@ -654,7 +656,17 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
 /// Write the next frame in an animated mesh to an opened file.
 /// @param[in] aContext An OpenCTM context that has been created by
 ///            ctmNewContext().
-CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext);
+/// @param[in] aFrameTime Time stamp for the frame. The unit for the time 
+///            variable is not dictated by the library. It can be whatever
+///            fits the target application best (e.g. seconds, frames, or
+///            percentage of the entire animation). It is, however, required
+///            that the frame time is strictly incremental for consecutive
+///            animation frames (otherwise the function will generate the error
+///            CTM_INVALID_ARGUMENT).
+/// @note The frame time for the first frame (written by ctmSaveFile() or
+///       ctmSaveCustom()) is always zero (0.0).
+CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext,
+  CTMfloat aFrameTime);
 
 /// Close an opened file.
 /// @param[in] aContext An OpenCTM context that has been created by

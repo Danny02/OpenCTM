@@ -3,7 +3,7 @@
 // File:        openctm2pp.h
 // Description: C++ wrapper for the OpenCTM API.
 //-----------------------------------------------------------------------------
-// Copyright (c) 2009-2010 Marcus Geelnard
+// Copyright (c) 2009-2011 Marcus Geelnard
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -379,9 +379,9 @@ class CTMexporter {
     }
 
     /// Wrapper for ctmWriteNextFrame()
-    void WriteNextFrame()
+    void WriteNextFrame(CTMfloat aFrameTime)
     {
-      ctmWriteNextFrame(mContext);
+      ctmWriteNextFrame(mContext, aFrameTime);
       CheckError();
     }
 

@@ -471,6 +471,9 @@ CTMEXPORT CTMuint CTMCALL ctmGetInteger(CTMcontext aContext, CTMenum aProperty)
     case CTM_FRAME_COUNT:
       return self->mFrameCount;
 
+    case CTM_FRAME_INDEX:
+      return self->mCurrentFrame - 1;
+
     default:
       self->mError = CTM_INVALID_ARGUMENT;
   }
@@ -493,6 +496,9 @@ CTMEXPORT CTMfloat CTMCALL ctmGetFloat(CTMcontext aContext, CTMenum aProperty)
 
     case CTM_NORMAL_PRECISION:
       return self->mNormalPrecision;
+
+    case CTM_FRAME_TIME:
+      return self->mFrameTime;
 
     default:
       self->mError = CTM_INVALID_ARGUMENT;
@@ -1547,6 +1553,9 @@ CTMEXPORT void CTMCALL ctmOpenReadCustom(CTMcontext aContext,
 
   // Reset the frame counter (no frames have been read yet)
   self->mCurrentFrame = 0;
+
+  // Reset the frame time
+  self->mFrameTime = 0.0f;
 }
 
 //-----------------------------------------------------------------------------
@@ -1563,6 +1572,9 @@ CTMEXPORT void CTMCALL ctmReadMesh(CTMcontext aContext)
     self->mError = CTM_INVALID_OPERATION;
     return;
   }
+
+  // Animation properties for the first frame
+  self->mFrameTime = 0.0f;
 
   // Uncompress from stream
   switch(self->mMethod)
@@ -1627,6 +1639,9 @@ CTMEXPORT void CTMCALL ctmReadNextFrame(CTMcontext aContext)
     self->mError = CTM_INVALID_OPERATION;
     return;
   }
+
+  // Read frame header
+  self->mFrameTime = _ctmStreamReadFLOAT(self);
 
   // Uncompress from stream
   switch(self->mMethod)
@@ -1829,7 +1844,8 @@ CTMEXPORT void CTMCALL ctmSaveCustom(CTMcontext aContext,
 //-----------------------------------------------------------------------------
 // ctmWriteNextFrame()
 //-----------------------------------------------------------------------------
-CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext)
+CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext,
+  CTMfloat aFrameTime)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
   if(!self) return;
@@ -1842,6 +1858,17 @@ CTMEXPORT void CTMCALL ctmWriteNextFrame(CTMcontext aContext)
     self->mError = CTM_INVALID_OPERATION;
     return;
   }
+
+  // Write frame header
+  if(aFrameTime <= self->mFrameTime)
+  {
+    // Frame times must be incremental. Rationale: applications would be very
+    // confused if they had to re-sort the animation frames.
+    self->mError = CTM_INVALID_ARGUMENT;
+    return;
+  }
+  self->mFrameTime = aFrameTime;
+  _ctmStreamWriteFLOAT(self, self->mFrameTime);
 
   // Compress to stream
   switch(self->mMethod)

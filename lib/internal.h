@@ -81,6 +81,9 @@ typedef struct {
   // Animation frame count
   CTMint mFrameCount;
 
+  // Animation frame time
+  CTMfloat mFrameTime;
+
   // Current animation frame (zero index)
   CTMint mCurrentFrame;
 
