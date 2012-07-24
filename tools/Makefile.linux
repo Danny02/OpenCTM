@@ -41,7 +41,8 @@ CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS)
 CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_gtk.o convoptions.o glew.o pnglite.o $(MESHOBJS)
 CTMBENCHOBJS = ctmbench.o systimer.o
 
-all: ctmconv ctmviewer ctmbench
+#all: ctmconv ctmviewer ctmbench
+all: ctmconv ctmbench
 
 clean:
 	rm -f ctmconv ctmviewer ctmbench $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c phong_frag.h phong_vert.h

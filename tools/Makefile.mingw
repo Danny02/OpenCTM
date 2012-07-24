@@ -42,7 +42,8 @@ CTMCONVOBJS = ctmconv.o common.o systimer.o convoptions.o $(MESHOBJS) ctmconv-re
 CTMVIEWEROBJS = ctmviewer.o common.o image.o systimer.o sysdialog_win.o convoptions.o glew.o pnglite.o $(MESHOBJS) ctmviewer-res.o
 CTMBENCHOBJS = ctmbench.o systimer.o
 
-all: ctmconv.exe ctmviewer.exe ctmbench.exe
+#all: ctmconv.exe ctmviewer.exe ctmbench.exe
+all: ctmconv.exe ctmbench.exe
 
 clean:
 	del /Q ctmconv.exe ctmviewer.exe ctmbench.exe $(CTMCONVOBJS) $(CTMVIEWEROBJS) $(CTMBENCHOBJS) bin2c.exe phong_frag.h phong_vert.h
