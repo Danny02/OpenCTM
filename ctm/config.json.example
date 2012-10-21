@@ -1,0 +1,4 @@
+{
+	"vtkSurfacePath" : "/opt/vtkSurface/bin/",
+	"ctmConvPath" : "/opt/OpenCTM/tools/"
+}

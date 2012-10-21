@@ -1,0 +1,20 @@
+{
+	"actions" : [
+    {
+        "parameters":[
+            {
+                "name":"input_mesh",
+                "type":"file",
+                "required":"true"
+            }
+        ],
+        "name":"mesh2ctm",
+        "attributes":
+        {
+            "name":"mesh2ctm",
+            "js" : "ctm/mesh2ctm",
+            "permissions":"0"
+        }
+    }
+    ]
+}
