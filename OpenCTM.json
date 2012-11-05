@@ -1,6 +1,6 @@
 {
-	"actions" : [
-    {
+	"actions" : {
+    "mesh2ctm" : {
         "parameters":[
             {
                 "name":"input_mesh",
@@ -8,13 +8,11 @@
                 "required":"true"
             }
         ],
-        "name":"mesh2ctm",
         "attributes":
         {
-            "name":"mesh2ctm",
             "js" : "js/mesh2ctm",
             "permissions":"0"
         }
     }
-    ]
+    }
 }
