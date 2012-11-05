@@ -1,14 +1,14 @@
 var exec = require('child_process').exec,
-	libPath=require('path'),
-	settings=require('./config.json');
+	libPath=require('path');
 
-var vtkSurfacePath = settings.vtkSurfacePath;
 var ctmConvPath = __dirname + '/../tools/';
 
 var ctmConvCommand = ctmConvPath + "ctmconv";
 var ctmVConvEnv = {LD_LIBRARY_PATH : ctmConvPath};
 
 exports.execute = function (parameters, callback) {
+	var vtkSurfacePath = parameters.HackActionsHandler.getAction('mesh2vtk').attributes.path + '/';
+
 	var filesRoot = parameters.filesRoot;
 	var inputMesh = filesRoot+parameters.input_mesh;
 	var outputDirectory = filesRoot+parameters.output_directory;
