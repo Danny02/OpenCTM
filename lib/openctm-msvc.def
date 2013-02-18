@@ -30,3 +30,5 @@ EXPORTS
     ctmUVCoordPrecision
     ctmVertexPrecision
     ctmVertexPrecisionRel
+    ctmSaveToBuffer
+    ctmFreeBuffer
