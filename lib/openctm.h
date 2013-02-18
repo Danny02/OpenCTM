@@ -163,6 +163,7 @@ extern "C" {
   #include <stdint.h>
 #endif
 
+#include <stddef.h> /* for size_t */
 
 /// OpenCTM API version (1.0).
 #define CTM_API_VERSION 0x00000100
@@ -628,6 +629,17 @@ CTMEXPORT void CTMCALL ctmLoadCustom(CTMcontext aContext, CTMreadfn aReadFn,
 ///            ctmNewContext().
 /// @param[in] aFileName The name of the file to be saved.
 CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName);
+
+/// Save an OpenCTM format file to buffer allocated by malloc.
+/// The mesh must have been defined by ctmDefineMesh().
+/// @param[in] aContext An OpenCTM context that has been created by
+///            ctmNewContext().
+/// @param[in] aBufferSize Pointer to the size of the buffer.
+/// @return    allocated buffer
+CTMEXPORT void * CTMCALL ctmSaveToBuffer(CTMcontext aContext, size_t *aBufferSize);
+
+CTMEXPORT void CTMCALL ctmFreeBuffer(void *buffer);
+
 
 /// Save an OpenCTM format file using a custom stream write function. The mesh
 /// must have been defined by ctmDefineMesh().

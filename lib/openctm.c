@@ -1341,6 +1341,72 @@ CTMEXPORT void CTMCALL ctmSave(CTMcontext aContext, const char * aFileName)
 }
 
 //-----------------------------------------------------------------------------
+// _ctmWriteToBuffer()
+//-----------------------------------------------------------------------------
+
+typedef struct {
+    size_t size;
+    size_t capacity;
+    void * buffer;
+} _CTMdynbuf;
+
+static CTMuint CTMCALL _ctmWriteToBuffer(const void * aBuf, CTMuint aCount,
+  void * aUserData)
+{
+  _CTMdynbuf *dynBuf = (_CTMdynbuf*)aUserData;
+  // if there enough space ?
+  size_t needSpace = dynBuf->size + aCount;
+  if (dynBuf->capacity < needSpace)
+  {
+    // create new buffer twice as big as required
+    size_t newSize = dynBuf->capacity * 2;
+    while (newSize < needSpace)
+      newSize *= 2;
+    void * newBuf = malloc(newSize);
+    // copy old buffer to new, free old buffer
+    memcpy(newBuf, dynBuf->buffer, dynBuf->size);
+    free(dynBuf->buffer);
+    dynBuf->buffer = newBuf;
+    dynBuf->capacity = newSize;
+  }
+  //assert(dynBuf.buffer.length >= needSpace);
+  memcpy((char*)dynBuf->buffer + dynBuf->size, aBuf, aCount);
+  dynBuf->size += aCount;
+  return aCount;
+}
+
+//-----------------------------------------------------------------------------
+// ctmSaveToBuffer()
+//-----------------------------------------------------------------------------
+CTMEXPORT void * CTMCALL ctmSaveToBuffer(CTMcontext aContext, size_t *aBufferSize)
+{
+  _CTMcontext * self = (_CTMcontext *) aContext;
+  if(!self) return NULL;
+
+  // You are only allowed to save data in export mode
+  if(self->mMode != CTM_EXPORT)
+  {
+    self->mError = CTM_INVALID_OPERATION;
+    return NULL;
+  }
+  _CTMdynbuf dynBuf;
+  dynBuf.size = 0;
+  dynBuf.capacity = 1024;
+  dynBuf.buffer = malloc(dynBuf.capacity);
+
+  // Save the file
+  ctmSaveCustom(self, _ctmWriteToBuffer, &dynBuf);
+  if (aBufferSize)
+      *aBufferSize = dynBuf.size;
+  return dynBuf.buffer;
+}
+
+CTMEXPORT void CTMCALL ctmFreeBuffer(void *buffer)
+{
+  free(buffer);
+}
+
+//-----------------------------------------------------------------------------
 // ctmSaveCustom()
 //-----------------------------------------------------------------------------
 void CTMCALL ctmSaveCustom(CTMcontext aContext, CTMwritefn aWriteFn,
