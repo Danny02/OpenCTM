@@ -102,7 +102,11 @@ exports.CTM_ATTRIB_MAP_8 = 0x0807;
 
 // Functions
 
-var openctm = ffi.Library('libopenctm', {
+switch (process.platform) {
+	case 'win32': libname = 'openctm'; break;
+	default: libname = 'libopenctm'; break;
+}
+var openctm = ffi.Library(libname, {
     'ctmNewContext' : [CTMcontext, [CTMenum]],
     'ctmFreeContext' : ['void', [CTMcontext]],
     'ctmGetError' : [CTMenum, [CTMcontext]],
@@ -143,4 +147,3 @@ for (name in openctm) {
         exports[name] = openctm[name];
     }
 }
-

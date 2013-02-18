@@ -1354,6 +1354,7 @@ static CTMuint CTMCALL _ctmWriteToBuffer(const void * aBuf, CTMuint aCount,
   void * aUserData)
 {
   _CTMdynbuf *dynBuf = (_CTMdynbuf*)aUserData;
+  void * newBuf = NULL;
   // if there enough space ?
   size_t needSpace = dynBuf->size + aCount;
   if (dynBuf->capacity < needSpace)
@@ -1362,7 +1363,7 @@ static CTMuint CTMCALL _ctmWriteToBuffer(const void * aBuf, CTMuint aCount,
     size_t newSize = dynBuf->capacity * 2;
     while (newSize < needSpace)
       newSize *= 2;
-    void * newBuf = malloc(newSize);
+    newBuf = malloc(newSize);
     // copy old buffer to new, free old buffer
     memcpy(newBuf, dynBuf->buffer, dynBuf->size);
     free(dynBuf->buffer);
@@ -1381,6 +1382,7 @@ static CTMuint CTMCALL _ctmWriteToBuffer(const void * aBuf, CTMuint aCount,
 CTMEXPORT void * CTMCALL ctmSaveToBuffer(CTMcontext aContext, size_t *aBufferSize)
 {
   _CTMcontext * self = (_CTMcontext *) aContext;
+  _CTMdynbuf dynBuf;
   if(!self) return NULL;
 
   // You are only allowed to save data in export mode
@@ -1389,7 +1391,7 @@ CTMEXPORT void * CTMCALL ctmSaveToBuffer(CTMcontext aContext, size_t *aBufferSiz
     self->mError = CTM_INVALID_OPERATION;
     return NULL;
   }
-  _CTMdynbuf dynBuf;
+
   dynBuf.size = 0;
   dynBuf.capacity = 1024;
   dynBuf.buffer = malloc(dynBuf.capacity);
