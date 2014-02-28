@@ -54,7 +54,10 @@ target_compile_definitions(openctmstatic PUBLIC ${DEFINITIONS_CTM_STATIC})
 target_compile_options(openctm PUBLIC ${CFLAGS_CTM})
 target_compile_options(openctmstatic PUBLIC ${CFLAGS_CTM_STATIC})
 
-target_link_libraries(openctm m)
+if(NOT WIN32)
+	target_link_libraries(openctm m)
+endif()
+
 
 install(TARGETS openctm openctmstatic
 	RUNTIME DESTINATION bin
