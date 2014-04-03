@@ -1,12 +1,3 @@
-if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
-	function(target_compile_options target scope)
-		set(args ${ARGV})
-		list(REMOVE_AT args 0 1)
-      string(REPLACE ";" " " CFLAGS_STRING "${args}")
-		set_target_properties(${target} PROPERTIES COMPILE_FLAGS "${CFLAGS_STRING}")
-	endfunction()
-endif()
-
 set(liblzma_DIR liblzma)
 
 set(openctm_SOURCES
