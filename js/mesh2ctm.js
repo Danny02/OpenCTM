@@ -1,28 +1,29 @@
 var exec = require('child_process').exec,
-	libPath=require('path');
+	libPath = require('path');
 
-var ctmConvPath = __dirname + '/../tools/';
+var ctmConvPath = libPath.join(__dirname, '/../tools/');
 
-var ctmConvCommand = ctmConvPath + "ctmconv";
+var ctmConvCommand = libPath.join(ctmConvPath, "ctmconv");
 var ctmVConvEnv = {LD_LIBRARY_PATH : ctmConvPath};
 
 exports.execute = function (parameters, callback) {
-	var vtkSurfacePath = parameters.HackActionsHandler.getAction('mesh2vtk').attributes.path + '/';
+	var vtkSurfacePath = parameters.HackActionsHandler.getAction('mesh2vtk').attributes.path;
 
 	var filesRoot = parameters.filesRoot;
-	var inputMesh = filesRoot+parameters.input_mesh;
-	var outputDirectory = filesRoot+parameters.output_directory;
+	var inputMesh = libPath.join(filesRoot, parameters.input_mesh);
+	var outputDirectory = libPath.join(filesRoot, parameters.output_directory);
 
 	var execOptions = {cwd :outputDirectory, env: ctmVConvEnv};
 	var plyMesh = "mesh.ply";
 
-	switch (libPath.extname(inputMesh))
-	{
+	switch (libPath.extname(inputMesh)) {
 	case ".vtk":
-		exec(vtkSurfacePath + "vtk2ply " + inputMesh, execOptions, ctmConv);
+		exec(libPath.join(vtkSurfacePath, "vtk2ply") + " " + inputMesh,
+			execOptions, ctmConv);
 		break;
 	case ".stl":
-		exec(vtkSurfacePath + "stl2ply " + inputMesh, execOptions, ctmConv);
+		exec(libPath.join(vtkSurfacePath, "stl2ply") + " " + inputMesh,
+			execOptions, ctmConv);
 		break;
 	default:
 		plyMesh = inputMesh;
