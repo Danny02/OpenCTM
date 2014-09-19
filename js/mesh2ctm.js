@@ -34,8 +34,6 @@ exports.execute = function (parameters, callback) {
 		if (err) {
 			callback(err, stdout, stderr);
 		}
-		exec(ctmConvCommand + " " + plyMesh + " mesh.ctm", execOptions, function (err, stdout, stderr) {
-				callback(err, stdout, stderr);
-		});
+		exec(ctmConvCommand + " " + plyMesh + " mesh.ctm", execOptions, callback);
 	}
 }

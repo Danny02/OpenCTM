@@ -60,6 +60,7 @@ class Options {
     CTMfloat mNormalPrecision;
     CTMfloat mTexMapPrecision;
     CTMfloat mColorPrecision;
+    CTMfloat mAttributePrecision;
 
     std::string mComment;
     std::string mTexFileName;

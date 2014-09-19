@@ -1,18 +1,21 @@
 {
 	"actions" : {
-    "mesh2ctm" : {
-        "parameters":[
-            {
-                "name":"input_mesh",
-                "type":"file",
-                "required":"true"
-            }
-        ],
-        "attributes":
-        {
-            "js" : "js/mesh2ctm",
-            "permissions":"0"
-        }
-    }
+		"mesh2ctm" : {
+			"parameters":[
+				{
+					"name":"input_mesh",
+					"type":"file",
+					"required":true
+				},
+				{
+					"text" : "mesh.ctm"
+				}
+			],
+			"attributes":
+			{
+				"executable" : "mesh2ctm",
+				"permissions":"0"
+			}
+		}
     }
 }

@@ -52,6 +52,7 @@ Options::Options()
   mNormalPrecision = 1.0f / 256.0f;
   mTexMapPrecision = 1.0f / 4096.0f;
   mColorPrecision = 1.0f / 256.0f;
+  mAttributePrecision = 1.0f / 4096.0f;
   mComment = string("");
   mTexFileName = string("");
 }

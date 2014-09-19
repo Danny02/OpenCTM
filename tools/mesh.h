@@ -139,6 +139,7 @@ class Mesh {
     Mesh()
     {
       mOriginalNormals = true;
+      attributesName = 0;
     }
 
     /// Clear the mesh
@@ -172,13 +173,22 @@ class Mesh {
       return (mTexCoords.size() > 0) && (mTexCoords.size() == mVertices.size());
     }
 
+    /// Check if the mesh has custom attributes
+    bool HasAttributes()
+    {
+      return (mAttributes.size() > 0) && (mAttributes.size() == mVertices.size());
+    }
+
     std::string mComment;
     std::string mTexFileName;
     std::vector<int> mIndices;
     std::vector<Vector3> mVertices;
     std::vector<Vector3> mNormals;
     std::vector<Vector4> mColors;
+    std::vector<Vector4> mAttributes;
     std::vector<Vector2> mTexCoords;
+
+	char *attributesName;
 
   private:
     /// Automatic detection of the optimal normal calculation method

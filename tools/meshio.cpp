@@ -39,6 +39,7 @@
 #include "obj.h"
 #include "lwo.h"
 #include "off.h"
+#include "vtk.h"
 #include "wrl.h"
 #include "common.h"
 
@@ -67,6 +68,8 @@ void ImportMesh(const char * aFileName, Mesh * aMesh)
     Import_OFF(aFileName, aMesh);
   else if(fileExt == string(".WRL"))
     Import_WRL(aFileName, aMesh);
+  else if(fileExt == string(".VTK"))
+    Import_VTK(aFileName, aMesh);
   else
     throw runtime_error("Unknown input file extension.");
 }
