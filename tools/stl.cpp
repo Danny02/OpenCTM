@@ -32,6 +32,14 @@
 #include <algorithm>
 #include "stl.h"
 
+#ifdef VTKINCLUDED
+
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkSTLReader.h>
+
+#endif
+
 #ifdef _MSC_VER
 typedef unsigned int uint32;
 #else
@@ -105,12 +113,50 @@ class SortVertex {
       return (x < v.x) || ((x == v.x) && ((y < v.y) || ((y == v.y) && (z < v.z))));
     }
 };
-
 /// Import an STL file from a file.
 void Import_STL(const char * aFileName, Mesh * aMesh)
 {
   // Clear the mesh
   aMesh->Clear();
+
+#ifdef VTKINCLUDED
+  // Open the STL file
+  vtkSTLReader *reader = vtkSTLReader::New();
+  reader->SetFileName(aFileName);
+  reader->Update();
+
+  vtkPolyData *mesh = reader->GetOutput();
+
+  int faceCount = mesh->GetNumberOfCells();
+  int vertexCount = mesh->GetNumberOfPoints();
+
+  double p[3];
+  for (int i = 0; i < mesh->GetNumberOfPoints(); i++) {
+    mesh->GetPoint(i, p);
+    aMesh->mVertices.push_back(Vector3(p[0], p[1], p[2]));
+  }
+
+  vtkIdType *vertices, nVertices;
+  mesh->BuildCells();
+  for (int i = 0; i < mesh->GetNumberOfCells(); i++) {
+    mesh->GetCellPoints(i, nVertices, vertices);
+    for (int j = 0; j < 3; j++) {
+      aMesh->mIndices.push_back(vertices[j]);
+    }
+  }
+
+  vtkDataArray *pointData = mesh->GetPointData()->GetScalars();
+  if (!pointData) {
+	  return;
+  }
+
+  aMesh->attributesName = pointData->GetName();
+
+  for (int i = 0; i < mesh->GetNumberOfPoints(); i++) {
+    aMesh->mAttributes.push_back(Vector4(pointData->GetTuple1(i), 0, 0, 1));
+  }
+
+#else
 
   // Open the input file
   ifstream f(aFileName, ios::in | ios::binary);
@@ -184,6 +230,9 @@ void Import_STL(const char * aFileName, Mesh * aMesh)
 
   // Close the input file
   f.close();
+
+#endif
+
 }
 
 /// Export an STL file to a file.
