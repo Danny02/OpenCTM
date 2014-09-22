@@ -112,4 +112,5 @@ void SupportedFormats(list<string> &aList)
   aList.push_back(string("LightWave object (.lwo)"));
   aList.push_back(string("Geomview object file format (.off)"));
   aList.push_back(string("VRML 2.0 (.wrl) - export only"));
+  aList.push_back(string("VTK (.vtk) - import only"));
 }
