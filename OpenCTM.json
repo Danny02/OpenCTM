@@ -1,41 +1,38 @@
 {
-	"actions" : {
-		"mesh2ctm" : {
-			"parameters":[
-				{
-					"name" : "input_mesh",
-					"type" : "file",
-					"required" : true
-				},
-				{
-					"text" : "mesh.ctm"
-				},
-				{
-					"name" : "vertex_pecision",
-					"type" : "float",
-					"prefix" : "--vprec "
-				},
-				{
-					"name" : "normal_pecision",
-					"type" : "float",
-					"prefix" : "--nprec "
-				},
-				{
-					"name" : "color_pecision",
-					"type" : "float",
-					"prefix" : "--cprec "
-				},
-				{
-					"name" : "attribute_pecision",
-					"type" : "float",
-					"prefix" : "--aprec "
-				}
-			],
-			"attributes":
-			{
-				"executable" : "mesh2ctm",
-				"permissions" :"0"
-			}
-		}
+  "actions": {
+    "mesh2ctm": {
+      "parameters": [
+        {
+          "name": "input_mesh",
+          "type": "file",
+          "required": true
+        },
+        {
+          "text": "mesh.ctm"
+        },
+        {
+          "name": "vertex_pecision",
+          "type": "float",
+          "prefix": "--vprec "
+        },
+        {
+          "name": "normal_pecision",
+          "type": "float",
+          "prefix": "--nprec "
+        },
+        {
+          "name": "color_pecision",
+          "type": "float",
+          "prefix": "--cprec "
+        },
+        {
+          "name": "attribute_pecision",
+          "type": "float",
+          "prefix": "--aprec "
+        }
+      ],
+      "executable": "mesh2ctm",
+      "permissions": "0"
     }
+  }
 }
