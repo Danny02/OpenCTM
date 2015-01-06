@@ -32,7 +32,7 @@
         }
       ],
       "executable": "mesh2ctm",
-      "permissions": "0"
+      "permissions": 0
     }
   }
 }
