@@ -35,5 +35,5 @@ ADD_EXECUTABLE(mesh2ctm
 	tools/common.cpp
 	${ctm} ${lzma} ${rply} ${tinyxml}
 )
-TARGET_LINK_LIBRARIES(mesh2ctm vtkHybrid)
+TARGET_LINK_LIBRARIES(mesh2ctm ${VTK_LIBRARIES})
 
