@@ -15,3 +15,5 @@ install:
 
 language: cpp
 cache: ccache
+
+script: cmake . -DVTK_DIR=$HOME/VTKBin -DCMAKE_BUILD_TYPE=Release  && make -j 2
