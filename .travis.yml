@@ -1,0 +1,12 @@
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - cmake
+    - libvtk5-dev
+
+language: cpp
+
+script: cmake . && make
