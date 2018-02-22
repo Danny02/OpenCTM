@@ -11,7 +11,9 @@ import openctm
 __author__ = "Jonas Innala"
 __version__ = "0.2"
 
-kPluginTranslatorTypeName = "OpenCTM Exporter"
+kPluginTranslatorTypeName = "ctm"
+kPluginTranslatorOptionsUIFunction = "exportOptions"
+kPluginTranslatorDefaultOptions = "space=world;format=binary;verbose=true;"
 
 
 class OpenCTMExporter(OpenMayaMPx.MPxFileTranslator):
@@ -25,7 +27,7 @@ class OpenCTMExporter(OpenMayaMPx.MPxFileTranslator):
         return True
 
     def haveReadMethod(self):
-        return False
+        return True
 
     def filter(self):
         return "*.ctm"
@@ -173,7 +175,113 @@ class OpenCTMExporter(OpenMayaMPx.MPxFileTranslator):
             return True
 
     def reader(self, fileObject, optionString, accessMode):
-        raise NotImplementedError()
+        try:
+            optionsList = map(lambda x: map(
+                str, x.split('=')), optionString.split(';'))
+            optionsList = [x for x in optionsList if len(x) == 2]
+            options = {}
+            for option in optionsList:
+                options[option[0]] = option[1]
+
+            fullName = fileObject.fullName()
+            # print("ctm::reader - Reading %s" % fullName)
+            # print("ctm::reader - Options %s" % optionString)
+            # print("ctm::reader - Mode    %s" % accessMode)
+
+            # Create Maya mesh data
+            self.importCtm(fullName, options)
+
+        except Exception as e:
+            sys.stderr.write("Failed to read file information\n")
+            raise e
+
+    def importCtm(self, ctmPath, importOptions):
+        verbose = False
+        if importOptions:
+            if ('verbose' in importOptions and
+                    importOptions['verbose'] == 'true'):
+                verbose = True
+
+        context = openctm.ctmNewContext(openctm.CTM_IMPORT)
+
+        # Extract file
+        openctm.ctmLoad(context, ctmPath)
+        e = openctm.ctmGetError(context)
+        if e != 0:
+            s = openctm.ctmErrorString(e)
+            print(s)
+            openctm.ctmFreeContext(context)
+            raise Exception(s)
+        # openctm.ctmCompressionMethod(context, openctm.CTM_METHOD_MG2)
+        # Select compression level (0-9) - default 1
+        # openctm.ctmCompressionLevel(context, 4)
+        fnMesh = OpenMaya.MFnMesh()
+
+        # Extract indices
+        triCount = openctm.ctmGetInteger(context, openctm.CTM_TRIANGLE_COUNT)
+        # ctmIndices = openctm.ctmGetIntegerArray(context, openctm.CTM_INDICES)
+
+        polyCount = [3] * triCount
+        # Extract vertices
+        vertCount = openctm.ctmGetInteger(context, openctm.CTM_VERTEX_COUNT)
+        ctmVertices = openctm.ctmGetFloatArray(context, openctm.CTM_VERTICES)
+        vertices = OpenMaya.MFloatPointArray()
+        vertices.setLength(vertCount)
+
+        pointToIndex = {}
+        nrSkippedVertices = 0
+        newIndices = []
+        for i in range(vertCount):
+            currIndex = i * 3
+            p = (
+                float(ctmVertices[currIndex]),
+                float(ctmVertices[currIndex + 1]),
+                float(ctmVertices[currIndex + 2])
+            )
+            if p not in pointToIndex:
+                index = i - nrSkippedVertices
+                pointToIndex[p] = index
+                vertices[index].x = p[0]
+                vertices[index].y = p[1]
+                vertices[index].z = p[2]
+                newIndices.append(index)
+            else:
+                newIndices.append(pointToIndex[p])
+                nrSkippedVertices += 1
+        vertices.setLength(len(pointToIndex))
+
+        if verbose:
+            print("Vertices Count : %d" % vertCount)
+            print("Unique Vertices Count : %d" % len(pointToIndex))
+            print("Triangles Count: %s" % triCount)
+
+        newMesh = fnMesh.create(vertices, polyCount, newIndices)
+
+        # Extract normals
+        if openctm.ctmGetInteger(context, openctm.CTM_HAS_NORMALS) == openctm.CTM_TRUE:
+            normals = openctm.ctmGetFloatArray(context, openctm.CTM_NORMALS)
+
+        # Extract texture coordinates
+        if openctm.ctmGetInteger(context, openctm.CTM_UV_MAP_COUNT) > 0:
+
+            texCoords = openctm.ctmGetFloatArray(context, openctm.CTM_UV_MAP_1)
+            textureFilename = openctm.ctmGetUVMapString(
+                context, openctm.CTM_UV_MAP_1, openctm.CTM_FILE_NAME)
+            if textureFilename:
+                pass
+
+        # Extract colors
+        colorAttrib = openctm.ctmGetNamedAttribMap(context, "Color")
+        if colorAttrib != openctm.CTM_NONE:
+            colors = openctm.ctmGetFloatArray(context, colorAttrib)
+        # Assign initial shading group
+        initialSG = OpenMaya.MObject()
+        slist = OpenMaya.MGlobal.getSelectionListByName("initialShadingGroup")
+        initialSG = slist.getDependNode(0)
+
+        fnSG = OpenMaya.MFnSet(initialSG)
+        if fnSG.restriction() == OpenMaya.MFnSet.kRenderableOnly:
+            fnSG.addMember(newMesh)
 
 
 def translatorCreator():
@@ -181,11 +289,24 @@ def translatorCreator():
 
 
 def initializePlugin(mobject):
-    mplugin = OpenMayaMPx.MFnPlugin(mobject, "Autodesk", "10.0", "Any")
+    mplugin = OpenMayaMPx.MFnPlugin(
+        mobject, "Autodesk", __version__, "Any")
 
     try:
+        ctmOptions = createMelPythonCallback(
+            "ctm", "exportOptions", parametersList=[
+                ('string', 'parent'),
+                ('string', 'action'),
+                ('string', 'initialSettings'),
+                ('string', 'resultCallback')],
+            returnType="int")
         mplugin.registerFileTranslator(
-            kPluginTranslatorTypeName, None, translatorCreator)
+            kPluginTranslatorTypeName,
+            None,
+            translatorCreator,
+            ctmOptions,
+            kPluginTranslatorDefaultOptions)
+
     except Exception as e:
         sys.stderr.write("Failed to register command: %s\n" %
                          kPluginTranslatorTypeName)
@@ -200,3 +321,79 @@ def uninitializePlugin(mobject):
     except Exception as e:
         sys.stderr.write("Failed to unregister command: %s\n" % kPluginCmdName)
         raise e
+
+
+def createMelPythonCallback(module, function, options=False,
+                            parametersList=None, returnType=None,
+                            returnTypeIsArray=False):
+    mel = ""
+
+    # Arbitrary parameter list and return type
+    if parametersList:
+        mel += "global proc "
+
+        # return value
+        if returnType is None:
+            mel += "string"
+        else:
+            mel += returnType
+
+        if returnTypeIsArray:
+            mel += "[]"
+
+        # function name
+        mel += " melPythonCallbackOptions_%s_%s(" % (module, function)
+
+        # parameter list
+        paramString = ""
+        for (paramType, paramName) in parametersList:
+            paramString = paramString + \
+                ("%s $%s" % (paramType, paramName)) + ", "
+        paramString = paramString[:-2]
+        mel += "%s) { " % paramString
+
+        # return type
+        if returnType is None:
+            mel += "    string $result"
+        else:
+            mel += "    %s $result" % returnType
+
+        if returnTypeIsArray:
+            mel += "[]"
+
+        # python module and function
+        mel += " = python( \"import %s; %s.%s(" % (module, module, function)
+
+        # arguments for python function
+        for (paramType, paramName) in parametersList:
+            mel += "\\\"\" + $%s + \"\\\"," % paramName
+
+        mel += ")\" ); "
+        mel += "    return $result; "
+        mel += "} "
+
+        # mel function call
+        mel += "melPythonCallbackOptions_%s_%s" % (module, function)
+
+    # Return value for python mel command is documented as string[] but seems to return
+    # string in some cases. Commands that don't have options are assumed to return string.
+    # Commands with options are assumed to return string[]
+    elif options:
+
+        mel += "global proc string[] melPythonCallbackOptions_%s_%s(string $options) { " % (
+            module, function)
+        mel += "    string $result[] = python( \"import %s; %s.%s(\\\"\" + $options + \"\\\")\" ); " % (
+            module, module, function)
+        mel += "    return $result; "
+        mel += "} "
+        mel += "melPythonCallbackOptions_%s_%s" % (module, function)
+    else:
+        mel += "global proc string melPythonCallback_%s_%s() { " % (
+            module, function)
+        mel += "    string $result = `python( \"import %s; %s.%s()\" )`; " % (
+            module, module, function)
+        mel += "    return $result; "
+        mel += "} "
+        mel += "melPythonCallback_%s_%s" % (module, function)
+
+    return mel
