@@ -1,8 +1,8 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Product:     OpenCTM
 # File:        openctm.py
 # Description: Python API bindings (tested with Python 2.5.2 and Python 3.0)
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Copyright (c) 2009-2010 Marcus Geelnard
 #
 # This software is provided 'as-is', without any express or implied
@@ -23,10 +23,11 @@
 #
 #     3. This notice may not be removed or altered from any source
 #     distribution.
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import os
-import ctypes
+import sys
+import inspect
 from ctypes import *
 from ctypes.util import find_library
 
@@ -91,9 +92,22 @@ CTM_ATTRIB_MAP_6 = 0x0805
 CTM_ATTRIB_MAP_7 = 0x0806
 CTM_ATTRIB_MAP_8 = 0x0807
 
+
+def get_script_dir(follow_symlinks=True):
+    if getattr(sys, 'frozen', False):  # py2exe, PyInstaller, cx_Freeze
+        path = os.path.abspath(sys.executable)
+    else:
+        path = inspect.getabsfile(get_script_dir)
+    if follow_symlinks:
+        path = os.path.realpath(path)
+    return os.path.dirname(path)
+
+
 # Load the OpenCTM shared library
 if os.name == 'nt':
-    _lib = WinDLL('openctm.dll')
+    lib = get_script_dir()
+    lib = os.path.join(lib, "openctm.dll")
+    _lib = WinDLL(lib)
 else:
     _libName = find_library('openctm')
     if not _libName:
