@@ -1,0 +1,31 @@
+// OpenCTMExporterScript.mel
+// Author: Francesco Leacche
+// Email: f.leacche@holey.it
+
+global proc int OpenCTMExporterScript(string $parent, string $action, string $settings, string $callback)
+{
+    if ($action == "post")
+    {
+        setParent $parent;
+        columnLayout -adj true;
+        checkBox -v true -l "Normals" normalsCb;
+        checkBox -v false -l "UVs" uvsCb;
+        checkBox -v false -l "Colors" colorsCb;
+        checkBox -v false -l "Verbose" verboseCb;
+    }
+    else if ($action == "query")
+    {
+        string $option = "\"";
+        if (`checkBox -q -v normalsCb`)
+            $option += "normals=1;";
+        if (`checkBox -q -v uvsCb`)
+            $option += "uvs=1;";
+        if (`checkBox -q -v colorsCb`)
+            $option += "colors=1;";
+        if (`checkBox -q -v verboseCb`)
+            $option += "verbose=1;";
+        $option += "\"";
+        eval($callback + $option);
+    }
+    return 1;
+}
