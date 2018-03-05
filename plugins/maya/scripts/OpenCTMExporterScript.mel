@@ -11,19 +11,18 @@ global proc int OpenCTMExporterScript(string $parent, string $action, string $se
         checkBox -v true -l "Normals" normalsCb;
         checkBox -v false -l "UVs" uvsCb;
         checkBox -v false -l "Colors" colorsCb;
+        intSliderGrp -label "Compression Level" -field true -min 0 -max 9 -value 1 -step 1 compressionSld;
         checkBox -v false -l "Verbose" verboseCb;
     }
     else if ($action == "query")
     {
         string $option = "\"";
-        if (`checkBox -q -v normalsCb`)
-            $option += "normals=1;";
-        if (`checkBox -q -v uvsCb`)
-            $option += "uvs=1;";
-        if (`checkBox -q -v colorsCb`)
-            $option += "colors=1;";
-        if (`checkBox -q -v verboseCb`)
-            $option += "verbose=1;";
+        $option += "normals=" + `checkBox -q -v normalsCb` + ";";
+        $option += "uvs=" + `checkBox -q -v uvsCb` + ";";
+        $option += "colors=" + `checkBox -q -v colorsCb` + ";";
+        $option += "compressionLevel=" +  `intSliderGrp -q -v compressionSld` + ";";
+        $option += "verbose=" + `checkBox -q -v verboseCb` + ";";
+        $option = `substring $option 1 (size($option) - 1)`;
         $option += "\"";
         eval($callback + $option);
     }

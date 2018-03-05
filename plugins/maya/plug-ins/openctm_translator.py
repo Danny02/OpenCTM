@@ -13,6 +13,13 @@ __version__ = "0.2"
 
 kPluginTranslatorTypeName = "ctm"
 kOptionScript = "OpenCTMExporterScript"
+kOptionsTypes = {
+    'normals': bool,
+    'uvs': bool,
+    'colors': bool,
+    'compressionLevel': int,
+    'verbose': bool
+}
 
 
 class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
@@ -63,6 +70,8 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
                     'uvs', False))
                 print("ctm::writer - Export Colors %r" % options.get(
                     'colors', False))
+                print("ctm::writer - compressionLevel %d" % options.get(
+                    'compressionLevel', 1))
             exportAll = (accessMode == self.kExportAccessMode or
                          accessMode == self.kSaveAccessMode)
             self._exportCtm(fullName, options, exportAll)
@@ -72,8 +81,15 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
             raise
 
     def _parseOptionString(self, optionString):
-        return {k[0]: bool(int(k[1])) for k in [
-            x.split('=') for x in optionString.split(';')] if len(k) == 2}
+        options = {}
+        optionList = [o.split('=') for o in optionString.split(";")]
+        for o in optionList:
+            if len(o) != 2:
+                continue
+            if o[0] not in kOptionsTypes:
+                print("[Warning] %s is not a valid option" % o[0])
+                options[o[0]] = kOptionsTypes[o[0]](o[1])
+        return options
 
     def _exportCtm(self, fileName, exportOptions, exportAll):
         exportNormals = exportOptions.get('normals', False)
@@ -208,7 +224,8 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
         context = openctm.ctmNewContext(openctm.CTM_EXPORT)
         # openctm.ctmCompressionMethod(context, openctm.CTM_METHOD_MG2)
         # Select compression level (0-9) - default 1
-        # openctm.ctmCompressionLevel(context, 9)
+        openctm.ctmCompressionLevel(
+            context, exportOptions.get("compressionLevel", 1))
         comment = "Exported with OpenCTM exporter using Maya"
         openctm.ctmFileComment(context, c_char_p(comment))
         openctm.ctmDefineMesh(context, pvertices, openctm.CTMuint(
