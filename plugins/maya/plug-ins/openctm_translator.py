@@ -263,7 +263,7 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
 
         # Extract indices
         triCount = openctm.ctmGetInteger(context, openctm.CTM_TRIANGLE_COUNT)
-        # ctmIndices = openctm.ctmGetIntegerArray(context, openctm.CTM_INDICES)
+        ctmIndices = openctm.ctmGetIntegerArray(context, openctm.CTM_INDICES)
         polyCount = [3] * triCount
 
         # Extract vertices
@@ -309,8 +309,8 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
             vertexColors.setLength(vertCount)
 
         pointToIndex = {}
+        ctmVertIndexToUniqueIndex = {}
         nrSkippedVertices = 0
-        indices = []
         for i in range(vertCount):
             ctmVertIndex = i * 3
             p = (
@@ -321,10 +321,10 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
             if p not in pointToIndex:
                 index = i - nrSkippedVertices
                 pointToIndex[p] = index
+                ctmVertIndexToUniqueIndex[i] = index
                 vertices[index].x = p[0]
                 vertices[index].y = p[1]
                 vertices[index].z = p[2]
-                indices.append(index)
 
                 if hasNormals:
                     vertNormals[index].x = float(ctmVertNormals[ctmVertIndex])
@@ -345,12 +345,15 @@ class OpenCTMTranslator(OpenMayaMPx.MPxFileTranslator):
                     vertexColors[index].b = float(ctmColors[ctmColIndex + 2])
                     vertexColors[index].a = float(ctmColors[ctmColIndex + 3])
             else:
-                indices.append(pointToIndex[p])
+                ctmVertIndexToUniqueIndex[i] = pointToIndex[p]
                 nrSkippedVertices += 1
 
         uniqVertCount = len(pointToIndex)
         vertices.setLength(uniqVertCount)
         vertNormals.setLength(uniqVertCount)
+
+        indices = [ctmVertIndexToUniqueIndex[
+            ctmIndices[i]] for i in range(3 * triCount)]
 
         if hasUVs:
             uCoords.setLength(uniqVertCount)
