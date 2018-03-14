@@ -52,6 +52,7 @@ Options::Options()
   mNormalPrecision = 1.0f / 256.0f;
   mTexMapPrecision = 1.0f / 4096.0f;
   mColorPrecision = 1.0f / 256.0f;
+  mAttributePrecision = 1.0f / 256.0f;
   mComment = string("");
   mTexFileName = string("");
 }
@@ -172,6 +173,11 @@ void Options::GetFromArgs(int argc, char **argv, int aStartIdx)
     else if((cmd == string("--cprec")) && (i < (argc - 1)))
     {
       mColorPrecision = GetFloatArg(argv[i + 1]);
+      ++ i;
+    }
+    else if((cmd == string("--aprec")) && (i < (argc - 1)))
+    {
+      mAttributePrecision = GetFloatArg(argv[i + 1]);
       ++ i;
     }
     else if((cmd == string("--comment")) && (i < (argc - 1)))

@@ -1,5 +1,4 @@
-1. INTRODUCTION
-===============
+# 1. INTRODUCTION
 
 Welcome to OpenCTM!
 
@@ -11,15 +10,14 @@ through a simple, portable API.
 The library is written in portable C (C99), and should compile nicely on any
 32/64-bit system regardless of endianity (big endian or little endian).
 
+[![Build Status](https://travis-ci.org/Danny02/OpenCTM.svg?branch=master)](https://travis-ci.org/Danny02/OpenCTM)
 
-2. LICENSE
-==========
+# 2. LICENSE
 
 The OpenCTM API and the OpenCTM tools are released under the zlib/libpng
 license (see LICENSE.txt).
 
-3. CREDITS
-==========
+# 3. CREDITS
 
 Many people have helped out in the development process of OpenCTM, with
 valuable feedback, programming efforts, test models and conceptual ideas.
@@ -52,8 +50,7 @@ Legal notices:
 - This software is based in part on the work of the Independent JPEG Group.
 
 
-4. CHANGES
-==========
+# 4. CHANGES
 
 v1.0.3 - 2010.01.15
 -------------------

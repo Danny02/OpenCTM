@@ -1,26 +1,39 @@
-cmake_minimum_required(VERSION 2.6)
-cmake_policy(SET CMP0012 NEW)
+cmake_minimum_required(VERSION 2.8)
+project(vtkOpenCTM)
 
-# Workaround target_compile_options for cmake < 2.8.12
-if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
-	function(target_compile_options target scope)
-		set(args ${ARGV})
-		list(REMOVE_AT args 0 1)
-		string(REPLACE ";" " " CFLAGS_STRING "${args}")
-		set_target_properties(${target} PROPERTIES COMPILE_FLAGS "${CFLAGS_STRING}")
-	endfunction()
-endif()
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
 
+INCLUDE_DIRECTORIES(lib)
+INCLUDE_DIRECTORIES(lib/liblzma)
+INCLUDE_DIRECTORIES(tools/rply)
+INCLUDE_DIRECTORIES(tools/tinyxml)
 
-project(OpenCTM)
+AUX_SOURCE_DIRECTORY(lib ctm)
+AUX_SOURCE_DIRECTORY(lib/liblzma lzma)
+AUX_SOURCE_DIRECTORY(tools/rply rply)
+AUX_SOURCE_DIRECTORY(tools/tinyxml tinyxml)
 
-option(BUILD_TOOLSET "Build tools: ctmconv, ctmviewer" ON)
-option(BUILD_DOCUMENTATION "Build documentation: manpages" ON)
+ADD_DEFINITIONS (-D VTKINCLUDED)
 
-add_subdirectory(lib)
-if(${BUILD_TOOLSET})
-	add_subdirectory(tools)
-endif()
-if(${BUILD_DOCUMENTATION})
-	add_subdirectory(doc)
-endif()
+ADD_EXECUTABLE(mesh2ctm
+	tools/ctmconv.cpp
+	tools/convoptions.cpp
+	tools/systimer.cpp
+	tools/mesh.cpp
+	tools/meshio.cpp
+	tools/ctm.cpp
+	tools/meshio.cpp
+	tools/ply.cpp
+	tools/stl.cpp
+	tools/3ds.cpp
+	tools/dae.cpp
+	tools/lwo.cpp
+	tools/obj.cpp
+	tools/off.cpp
+	tools/wrl.cpp
+	tools/common.cpp
+	${ctm} ${lzma} ${rply} ${tinyxml}
+)
+TARGET_LINK_LIBRARIES(mesh2ctm ${VTK_LIBRARIES})
+

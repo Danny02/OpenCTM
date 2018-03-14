@@ -144,6 +144,13 @@ void Export_CTM(const char * aFileName, Mesh * aMesh, Options &aOptions)
     ctm.AttribPrecision(map, aOptions.mColorPrecision);
   }
 
+  // Define custom attributes
+  if(aMesh->HasAttributes())
+  {
+    CTMenum map = ctm.AddAttribMap(&aMesh->mAttributes[0].x, aMesh->attributesName);
+    ctm.AttribPrecision(map, aOptions.mAttributePrecision);
+  }
+
   // Set file comment
   if(aMesh->mComment.size() > 0)
     ctm.FileComment(aMesh->mComment.c_str());
