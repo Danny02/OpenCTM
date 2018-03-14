@@ -299,14 +299,15 @@ p_ply ply_open(const char *name, p_ply_error_cb error_cb) {
         error_cb("Unable to open file");
         return NULL;
     }
-    if (fread(magic, 1, 4, fp) < 4) {
+    if (fread(magic, 1, 3, fp) < 3) {
         error_cb("Error reading from file");
         fclose(fp);
         return NULL;
     }
-    if (strcmp(magic, "ply\n")) {
+    if (!strcmp(magic, "ply")) {
         fclose(fp);
         error_cb("Not a PLY file. Expected magic number 'ply\\n'");
+		error_cb(magic);
         return NULL;
     }
     ply = ply_alloc();
@@ -854,11 +855,16 @@ static int ply_read_word(p_ply ply) {
     BSKIP(ply, t); 
     /* look for a space after the current word */
     t = strcspn(BFIRST(ply), " \n\r\t");
+
     /* if we didn't reach the end of the buffer, we are done */
     if (t < BSIZE(ply)) {
         ply->buffer_token = ply->buffer_first;
         BSKIP(ply, t);
-        *BFIRST(ply) = '\0';
+		if (*(BFIRST(ply) + 1) == '\n') {
+			*BFIRST(ply) = '\0';
+			BSKIP(ply, 1);
+		}
+		*BFIRST(ply) = '\0';
         BSKIP(ply, 1);
         return ply_check_word(ply);
     }
