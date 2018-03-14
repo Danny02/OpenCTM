@@ -1,0 +1,30 @@
+// OpenCTMExporterScript.mel
+// Author: Francesco Leacche
+// Email: f.leacche@holey.it
+
+global proc int OpenCTMExporterScript(string $parent, string $action, string $settings, string $callback)
+{
+    if ($action == "post")
+    {
+        setParent $parent;
+        columnLayout -adj true;
+        checkBox -v true -l "Normals" normalsCb;
+        checkBox -v false -l "UVs" uvsCb;
+        checkBox -v false -l "Colors" colorsCb;
+        intSliderGrp -label "Compression Level" -field true -min 0 -max 9 -value 1 -step 1 compressionSld;
+        checkBox -v false -l "Verbose" verboseCb;
+    }
+    else if ($action == "query")
+    {
+        string $option = "\"";
+        $option += "normals=" + `checkBox -q -v normalsCb` + ";";
+        $option += "uvs=" + `checkBox -q -v uvsCb` + ";";
+        $option += "colors=" + `checkBox -q -v colorsCb` + ";";
+        $option += "compressionLevel=" +  `intSliderGrp -q -v compressionSld` + ";";
+        $option += "verbose=" + `checkBox -q -v verboseCb` + ";";
+        $option = `substring $option 1 (size($option) - 1)`;
+        $option += "\"";
+        eval($callback + $option);
+    }
+    return 1;
+}
