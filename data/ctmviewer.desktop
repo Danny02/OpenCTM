@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=OpenCTM Viewer
+GenericName=Viewer for OpenCTM files
+Comment=Open .ctm files
+Exec=ctmviewer
+Icon=ctmviewer
+Terminal=false
+Type=Application
+Categories=Graphics;
