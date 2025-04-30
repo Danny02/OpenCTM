@@ -43,10 +43,12 @@ string TrimString(const string &aString)
 {
   size_t l = aString.size();
   size_t p1 = 0, p2 = l - 1;
-  while((p1 < p2) && IsWhiteSpace(aString[p1]))
-    ++ p1;
-  while((p2 > p1) && IsWhiteSpace(aString[p2]))
-    -- p2;
+  if(l!=0) {
+    while((p1 < p2) && IsWhiteSpace(aString[p1]))
+      ++ p1;
+    while((p2 > p1) && IsWhiteSpace(aString[p2]))
+      -- p2;
+  }
   return aString.substr(p1, p2 - p1 + 1);
 }
 
