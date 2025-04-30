@@ -185,7 +185,6 @@ int _ctmCompressMesh_MG1(_CTMcontext * self)
   _ctmStreamWrite(self, (void *) "VERT", 4);
   if(!_ctmStreamWritePackedFloats(self, self->mVertices, self->mVertexCount * 3, 1))
   {
-    free((void *) indices);
     return CTM_FALSE;
   }
 
