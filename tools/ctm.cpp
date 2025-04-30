@@ -123,8 +123,16 @@ void Export_CTM(const char * aFileName, Mesh * aMesh, Options &aOptions)
   CTMfloat * normals = 0;
   if(aMesh->HasNormals() && !aOptions.mNoNormals)
     normals = &aMesh->mNormals[0].x;
-  ctm.DefineMesh((CTMfloat *) &aMesh->mVertices[0].x, aMesh->mVertices.size(),
-                 (const CTMuint*) &aMesh->mIndices[0], aMesh->mIndices.size() / 3,
+  CTMfloat dummy_vertex = 0;
+  CTMfloat * vertices = &dummy_vertex;
+  if(aMesh->mVertices.size()>0)
+    vertices = (CTMfloat *) &aMesh->mVertices[0].x;
+  CTMuint dummy_index = 0;
+  const CTMuint * indices = &dummy_index;
+  if(aMesh->mIndices.size()>0)
+    indices = (const CTMuint*) &aMesh->mIndices[0];
+  ctm.DefineMesh(vertices, aMesh->mVertices.size(),
+                 indices, aMesh->mIndices.size() / 3,
                  normals);
 
   // Define texture coordinates
