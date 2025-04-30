@@ -47,6 +47,7 @@ documentation:
 
 
 # Installation settings
+DESTDIR =
 LIBDIR  = /usr/lib/
 INCDIR  = /usr/local/include/
 BINDIR  = /usr/local/bin/
@@ -55,11 +56,14 @@ CP = cp
 MKDIR = mkdir -p
 
 install:
-	$(CP) lib/libopenctm.so $(LIBDIR)
-	$(CP) lib/openctm.h $(INCDIR)
-	$(CP) lib/openctmpp.h $(INCDIR)
-	$(CP) tools/ctmconv $(BINDIR)
-	$(CP) tools/ctmviewer $(BINDIR)
-	$(MKDIR) $(MAN1DIR)
-	$(CP) doc/ctmconv.1 $(MAN1DIR)
-	$(CP) doc/ctmviewer.1 $(MAN1DIR)
+	$(MKDIR) $(DESTDIR)$(LIBDIR)
+	$(CP) -P lib/libopenctm.so* $(DESTDIR)$(LIBDIR)
+	$(MKDIR) $(DESTDIR)$(INCDIR)
+	$(CP) lib/openctm.h $(DESTDIR)$(INCDIR)
+	$(CP) lib/openctmpp.h $(DESTDIR)$(INCDIR)
+	$(MKDIR) $(DESTDIR)$(BINDIR)
+	$(CP) tools/ctmconv $(DESTDIR)$(BINDIR)
+	$(CP) tools/ctmviewer $(DESTDIR)$(BINDIR)
+	$(MKDIR) $(DESTDIR)$(MAN1DIR)
+	$(CP) doc/ctmconv.1 $(DESTDIR)$(MAN1DIR)
+	$(CP) doc/ctmviewer.1 $(DESTDIR)$(MAN1DIR)
